@@ -176,6 +176,10 @@ table.sbt td .sm{display:block;font-size:.7rem;color:var(--mute)}
 .sbf-chips{display:flex;flex-wrap:wrap;gap:8px}
 .sbf-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:12px;border:2px solid var(--line2);background:#fff;cursor:pointer;font-family:inherit;font-weight:800;font-size:.82rem;color:var(--ink);transition:border-color .15s,transform .1s}
 .sbf-chip:hover{border-color:var(--ac);transform:translateY(-1px)}
+.sbf-chip .sbf-cl{display:flex;flex-direction:column;align-items:flex-start;line-height:1.35}
+.sbf-chip .sbf-cl b{font-weight:800}
+.sbf-chip .sbf-cl small{font-size:.66rem;font-weight:600;color:var(--mute);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sbf-chip.on .sbf-cl small{color:rgba(255,255,255,.85)}
 .sbf-chip .dot{width:10px;height:10px;border-radius:50%;background:var(--ac)}
 .sbf-chip .cnt{min-width:22px;padding:0 7px;height:20px;border-radius:10px;background:#EEF2F1;color:var(--ink2);font-size:.7rem;display:inline-flex;align-items:center;justify-content:center}
 .sbf-chip.on{background:var(--ac);border-color:var(--ac);color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--ac) 35%,transparent)}
@@ -1079,13 +1083,15 @@ function boardSpec(f){var sp=String(f.spec||'');return /^همراه /.test(sp)?'
 function boardKeyOf(cat,f,unit){return cat+'|'+[f.brand,f.size||f.model||f.type||f.name,boardSpec(f),f['for']].map(function(x){return norm(x||'')}).join('|')+'|'+norm(unit||'')}
 function boardTabOf(c,f){for(var i=0;i<DASH.length;i++){for(var j=0;j<DASH[i].tabs.length;j++){if(DASH[i].tabs[j].t(c,f||{}))return {g:DASH[i],t:DASH[i].tabs[j]}}}return null}
 /* ===================== 📋 جدول و جزئیات: فیلتر مرحله‌ای + یک جدول کامل + صدور حواله ===================== */
-var sbG='',sbA='',sbB='',sbQ='',sbOut=false;
+var sbG='',sbSel=[],sbQ='',sbOut=false;
 function sbSupName(n){n=canonSup(n||'');return (SUPPLIER_SEEDS.indexOf(n)>=0||CUST_SUP.indexOf(n)>=0)?n:'سایر'}
 function sbSupRank(n){var i=SUPPLIER_SEEDS.indexOf(n);if(i>=0)return i;i=CUST_SUP.indexOf(n);return i>=0?10+i:99}
-/* ترتیب فیلترها: جک/پاور، موتور و پنل ← اول شرکت بعد نوع کالا | قطعات تکمیلی و متعلقات ← اول نوع کالا بعد برند */
-function sbFacets(g){if(!g)return [];return g==='cm'?['type','brand']:['sup','type']}
-var SB_FL={sup:'شرکت',type:'نوع کالا',brand:'برند'};
-function sbVal(it,f){return f==='sup'?it.sup:f==='type'?it.tab:(it.brand||'بدون برند')}
+/* ترتیب فیلترها: جک/پاور، موتور و پنل ← شرکت › نوع کالا › نام محصول (سایز/مدل) | قطعات تکمیلی و متعلقات ← نوع کالا › نام محصول › برند
+   «نام محصول» یعنی خود کالا: رپچر، شیر، داکت پلاستیک، سایز جک، مدل پاور، برند روغن / فلکه و… — تا معلوم باشد منظور سیستم چیست */
+function sbFacets(g){if(!g)return [];return g==='cm'?['type','prod','brand']:['sup','type','prod']}
+var SB_FL={sup:'شرکت',type:'نوع کالا',prod:'نام محصول',brand:'برند'};
+function sbProd(it){return it.cat==='falake'?(it.brand||'بدون برند'):(it.title||CATS[it.cat].name)}
+function sbVal(it,f){return f==='sup'?it.sup:f==='type'?it.tab:f==='prod'?sbProd(it):(it.brand||'بدون برند')}
 function sbValLabel(f,v){if(f!=='type')return v;for(var i=0;i<DASH.length;i++)for(var j=0;j<DASH[i].tabs.length;j++)if(DASH[i].tabs[j].id===v)return DASH[i].tabs[j].name;return v}
 function sbItems(){
   var rm=rMap(),em=eMap(),out=[],m={};
@@ -1107,49 +1113,55 @@ function sbItems(){
   out.forEach(function(it){var f=it.f;if(!it.brand&&it.cat==='oil')it.brand=f.type||'';it.main=f.size||f.model||f.type||f.name||'';it.title=it.cat==='acc'?(f.name||'متعلقات'):(it.main||CATS[it.cat].name);it.sub=[f.brand,boardSpec(f)].filter(Boolean).join(' · ')});
   return out;
 }
-function sbFilter(items,skip){
-  var fs=sbFacets(sbG),q=norm(sbQ);
+/* upto: فقط فیلترهای مراحل قبل از این شماره اعمال شود (برای ساختن گزینه‌های همان مرحله) */
+function sbFilter(items,upto){
+  var fs=sbFacets(sbG),q=norm(sbQ),n=upto==null?fs.length:upto;
   return items.filter(function(it){
     if(sbG&&it.g!==sbG)return false;
-    if(fs[0]&&skip!==0&&sbA&&sbVal(it,fs[0])!==sbA)return false;
-    if(fs[1]&&skip!==1&&sbB&&sbVal(it,fs[1])!==sbB)return false;
+    for(var i=0;i<n;i++){if(sbSel[i]&&sbVal(it,fs[i])!==sbSel[i])return false}
     if(q&&norm([it.title,it.sub,it.serial,CATS[it.cat].name,it.sup,it.f.company,it.f.project,it.f['for'],(it.rnos||[]).join(' ')].join(' ')).indexOf(q)<0)return false;
     return true;
   });
 }
 function sbChips(attr,cur,opts){return opts.map(function(o){return '<button type="button" data-'+attr+'="'+esc(o.v)+'"'+(cur===o.v?' class="on"':'')+'>'+esc(o.l)+(o.n!=null?' <small>'+fa(o.n)+'</small>':'')+'</button>'}).join('')}
 function sbFacetOpts(items,f,idx){
-  var c={};sbFilter(items,idx).forEach(function(it){if(idx===1&&sbA&&sbVal(it,sbFacets(sbG)[0])!==sbA)return;var v=sbVal(it,f);c[v]=(c[v]||0)+1});
+  var c={},ex={};sbFilter(items,idx).forEach(function(it){var v=sbVal(it,f);c[v]=(c[v]||0)+1;
+    if(f==='type'){var e=ex[v]=ex[v]||[],pn=sbProd(it);if(e.indexOf(pn)<0)e.push(pn)}});
   var vs=Object.keys(c);
   if(f==='sup')vs.sort(function(a,b){return sbSupRank(a)-sbSupRank(b)});
-  else if(f==='type'){var g=DASH.filter(function(x){return x.id===sbG})[0];vs.sort(function(a,b){return g.tabs.map(function(t){return t.id}).indexOf(a)-g.tabs.map(function(t){return t.id}).indexOf(b)})}
-  else vs.sort(function(a,b){return a.localeCompare(b,'fa')});
-  return vs.map(function(v){return {v:v,l:sbValLabel(f,v),n:c[v]}});
+  else if(f==='type'){var g=DASH.filter(function(x){return x.id===sbG})[0],ids=g?g.tabs.map(function(t){return t.id}):[];vs.sort(function(a,b){return ids.indexOf(a)-ids.indexOf(b)})}
+  else vs.sort(function(a,b){return a.localeCompare(b,'fa',{numeric:true})});
+  return vs.map(function(v){return {v:v,l:sbValLabel(f,v),n:c[v],ex:ex[v]?ex[v].slice(0,3).join('، ')+(ex[v].length>3?' و '+fa(ex[v].length-3)+' مورد دیگر':''):''}});
 }
 var SB_GCOL={jp:'#E2572B',mt:'#5B4FB3',pn:'#2559B8',cm:'#0E7C9E'};
 var SB_SCOL={'شکیب جک':'#E2572B','آسانسور 110':'#2F6BD8','سنا پنل':'#12A08A','سایر':'#8C6BB8'};
 function sbTabIcon(id){for(var i=0;i<DASH.length;i++)for(var j=0;j<DASH[i].tabs.length;j++)if(DASH[i].tabs[j].id===id)return DASH[i].tabs[j].icon;return '📦'}
-function sbChip(attr,o,cur,col,icon){return '<button type="button" class="sbf-chip'+(cur===o.v?' on':'')+'" style="--ac:'+col+'" data-'+attr+'="'+esc(o.v)+'">'+(icon?'<span>'+icon+'</span>':'<span class="dot"></span>')+esc(o.l)+(o.n!=null?'<span class="cnt">'+fa(o.n)+'</span>':'')+'</button>'}
+function sbChip(attr,o,cur,col,icon){return '<button type="button" class="sbf-chip'+(cur===o.v?' on':'')+'" style="--ac:'+col+'" '+attr+' data-v="'+esc(o.v)+'"'+(o.ex?' title="'+esc(o.ex)+'"':'')+'>'+(icon?'<span>'+icon+'</span>':'<span class="dot"></span>')+'<span class="sbf-cl"><b>'+esc(o.l)+'</b>'+(o.ex?'<small>'+esc(o.ex)+'</small>':'')+'</span>'+(o.n!=null?'<span class="cnt">'+fa(o.n)+'</span>':'')+'</button>'}
 function sbFacetChips(attr,f,opts,cur,gcol){
   return '<div class="sbf-chips">'+sbChip(attr,{v:'',l:'همه'},cur,'#46585E','✦')+opts.map(function(o){
-    var col=f==='sup'?(SB_SCOL[o.v]||'#8C7F70'):gcol;return sbChip(attr,o,cur,col,f==='type'?sbTabIcon(o.v):'')}).join('')+'</div>';
+    var col=f==='sup'?(SB_SCOL[o.v]||'#8C7F70'):gcol;return sbChip(attr,o,cur,col,f==='type'?sbTabIcon(o.v):f==='prod'?'📦':'')}).join('')+'</div>';
 }
 function sbBar(items){
   var gc={};items.forEach(function(it){gc[it.g]=(gc[it.g]||0)+1});
   var g=DASH.filter(function(x){return x.id===sbG})[0],gcol=g?SB_GCOL[g.id]:'#0E6B66',fs=sbFacets(sbG);
-  /* مسیر انتخاب (breadcrumb) */
-  var path=['<b>📦 انبار</b>'];if(g)path.push('<b>'+g.icon+' '+esc(g.name)+'</b>');if(sbA)path.push('<b>'+esc(sbValLabel(fs[0],sbA))+'</b>');if(sbB)path.push('<b>'+esc(sbValLabel(fs[1],sbB))+'</b>');
+  var path=['<b>📦 انبار</b>'];if(g)path.push('<b>'+g.icon+' '+esc(g.name)+'</b>');
+  fs.forEach(function(f,i){if(sbSel[i])path.push('<b>'+esc(sbValLabel(f,sbSel[i]))+'</b>')});
   var h='<div class="sbf"><div class="sbf-crumb">'+path.join('<i>‹</i>')+'<span class="sp"></span>'+(sbG?'<button type="button" data-sbg="">↺ از اول</button>':'')+'</div>';
-  /* مرحلهٔ ۱: دسته (کاشی‌های بزرگ) */
   h+='<div class="sbf-step '+(sbG?'done':'act')+'" style="--ac:'+gcol+'"><span class="sbf-num">۱</span><div><div class="sbf-t">دسته را انتخاب کنید</div><div class="sbf-tiles">'+
     '<button type="button" class="sbf-tile'+(sbG===''?' on':'')+'" style="--ac:#46585E" data-sbg=""><span class="ti">🏭</span><span><b>همهٔ انبار</b><small>'+fa(items.length)+' ردیف</small></span></button>'+
     DASH.filter(function(x){return gc[x.id]}).map(function(x){return '<button type="button" class="sbf-tile'+(sbG===x.id?' on':'')+'" style="--ac:'+SB_GCOL[x.id]+'" data-sbg="'+x.id+'"><span class="ti">'+x.icon+'</span><span><b>'+esc(x.name)+'</b><small>'+fa(gc[x.id])+' ردیف</small></span></button>'}).join('')+'</div></div></div>';
-  if(fs[0]){var o1=sbFacetOpts(items,fs[0],0);
-    h+='<div class="sbf-step '+(sbA?'done':'act')+'" style="--ac:'+gcol+'"><span class="sbf-num">۲</span><div><div class="sbf-t">'+SB_FL[fs[0]]+'</div>'+(o1.length?sbFacetChips('sba',fs[0],o1,sbA,gcol):'<div class="sbf-wait">—</div>')+'</div></div>';
-    var o2=(sbA||fs[0]==='type')?sbFacetOpts(items,fs[1],1):null;
-    h+='<div class="sbf-step '+(sbB?'done':(sbA?'act':''))+'" style="--ac:'+gcol+'"><span class="sbf-num">۳</span><div><div class="sbf-t">'+SB_FL[fs[1]]+'</div>'+
-      (o2?(o2.length?sbFacetChips('sbb',fs[1],o2,sbB,gcol):'<div class="sbf-wait">—</div>'):'<div class="sbf-wait">👆 اول «'+SB_FL[fs[0]]+'» را انتخاب کنید</div>')+'</div></div>';
-  }
+  var num=2,blocked=false;
+  fs.forEach(function(f,i){
+    var nm=fa(num);
+    if(blocked){h+='<div class="sbf-step" style="--ac:'+gcol+'"><span class="sbf-num">'+nm+'</span><div><div class="sbf-t">'+SB_FL[f]+'</div><div class="sbf-wait">👆 اول مرحلهٔ قبل را انتخاب کنید</div></div></div>';num++;return}
+    var o=sbFacetOpts(items,f,i);
+    /* برند فقط وقتی معنی دارد که بیش از یک برند واقعی باشد */
+    if(f==='brand'&&!sbSel[i]&&(o.length<2))return;
+    h+='<div class="sbf-step '+(sbSel[i]?'done':'act')+'" style="--ac:'+gcol+'"><span class="sbf-num">'+nm+'</span><div><div class="sbf-t">'+SB_FL[f]+'</div>'+(o.length?sbFacetChips('data-sbf="'+i+'"',f,o,sbSel[i]||'',gcol):'<div class="sbf-wait">—</div>')+'</div></div>';
+    num++;
+    /* «شرکت» در جک/پاور باید اول انتخاب شود تا نوع کالا و محصولات همان شرکت بیاید */
+    if(f==='sup'&&!sbSel[i])blocked=true;
+  });
   h+='<div class="sbf-tools"><input id="sbQ" placeholder="🔎 جستجو: نام، سایز، سریال، خریدار، پروژه، شماره رسید…" value="'+esc(sbQ)+'" autocomplete="off"><label><input type="checkbox" id="sbOut"'+(sbOut?' checked':'')+'> نمایش خارج‌شده / تمام‌شده</label></div></div>';
   return h;
 }
@@ -1259,9 +1271,8 @@ function aggLots(){
 }
 $('statCards').addEventListener('click',function(e){
   if(acctClick(e))return;var t;
-  if(t=e.target.closest('[data-sbg]')){sbG=t.dataset.sbg;sbA='';sbB='';renderStock();return}
-  if(t=e.target.closest('[data-sba]')){sbA=(sbA===t.dataset.sba)?'':t.dataset.sba;sbB='';renderStock();return}
-  if(t=e.target.closest('[data-sbb]')){sbB=(sbB===t.dataset.sbb)?'':t.dataset.sbb;renderStock();return}
+  if(t=e.target.closest('[data-sbg]')){sbG=t.dataset.sbg;sbSel=[];renderStock();return}
+  if(t=e.target.closest('[data-sbf]')){var fi=+t.dataset.sbf,v=t.dataset.v;sbSel=sbSel.slice(0,fi);if(v)sbSel[fi]=v;renderStock();return}
   if(t=e.target.closest('[data-xu]')){var id=t.dataset.xu,ix=-1;xStaged.forEach(function(s,k){if(s.type==='u'&&s.unitId===id)ix=k});
     if(ix>=0)xStaged.splice(ix,1);else{xStaged.push({type:'u',unitId:id});toast('✓ به حوالهٔ خروج اضافه شد')}sbRefreshTable();return}
   if(t=e.target.closest('[data-xl]')){var key=t.dataset.xl,g=availLotGroups().filter(function(x){return x.key===key})[0],cur=sbStagedL()[key]||0;

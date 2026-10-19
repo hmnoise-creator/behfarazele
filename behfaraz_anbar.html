@@ -374,6 +374,8 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
 .qchips{margin-top:6px;gap:5px}
 .qchips .chipb{padding:5px 11px;font-size:.74rem}
 .chipb.cust{border-style:dashed}
+.qchips .qg{flex-basis:100%;font-size:.7rem;font-weight:800;color:var(--ink2);margin:6px 0 0;border-bottom:1px solid var(--line2);padding-bottom:2px}
+.qchips .qg:first-child{margin-top:0}
 .chipb.add{border-style:dashed;color:var(--tab);background:#F4F8F7}
 .xbox{margin:12px 0 4px;padding:12px 14px;border:1.5px solid var(--line);border-radius:14px;background:linear-gradient(180deg,#F7FAF9,#fff)}
 .xb-t{font-weight:800;font-size:.86rem;margin-bottom:8px;color:var(--ink)}
@@ -647,14 +649,14 @@ function fdate(s){return s?fa(s):'—'}
 /* ====================== پیکربندی دسته‌ها ====================== */
 var CAT_ORDER=['jack','pu','motor','falake','chcab','chflr','oil','door','rail','panel','elec','setup','acc'];
 var CATS={
-  jack :{name:'جک',icon:'🔩',serial:true,fields:[{k:'brand',l:'برند / سازنده'},{k:'size',l:'سایز جک',ph:'مثلاً 100*5*3500'}]},
+  jack :{name:'جک',icon:'🔩',serial:true,fields:[{k:'brand',l:'برند / سازنده',chips:1},{k:'size',l:'سایز جک',ph:'از دکمه‌ها انتخاب کنید یا دستی بنویسید — مثلاً 100*5*3500',chips:1}]},
   pu   :{name:'پاوریونیت',icon:'⚙️',serial:true,fields:[{k:'spec',l:'نوع پاور',chips:1},{k:'brand',l:'برند / سازنده'},{k:'model',l:'مدل (kW-لیتر)',ph:'مثلاً 7.7kw-100L'}]},
   motor:{name:'موتور',icon:'🧲',serial:true,fields:[{k:'brand',l:'برند موتور',ph:'جنتلرایز / هوبر / داینا / بهران ...'},{k:'model',l:'مدل / مشخصات موتور'}]},
-  falake:{name:'فلکه',icon:'🛞',serial:'opt',units:['عدد','دست'],fields:[{k:'brand',l:'سازنده'},{k:'model',l:'مدل فلکه',ph:'از کارت‌های بالا انتخاب کنید یا دستی بنویسید'}]},
+  falake:{name:'فلکه',icon:'🛞',serial:'opt',units:['عدد'],fields:[{k:'brand',l:'برند / سازنده',chips:1,ph:'پرهام صنعت یا برند جدید را بنویسید'},{k:'model',l:'مدل فلکه',ph:'از کارت‌های بالا انتخاب کنید یا دستی بنویسید'}]},
   chcab:{name:'شاسی کابین',icon:'🚪',serial:'opt',units:['عدد','دست'],fields:[{k:'model',l:'مدل / ابعاد'}]},
   chflr:{name:'شاسی طبقه',icon:'🏢',serial:'opt',units:['عدد','دست'],fields:[{k:'model',l:'مدل / ابعاد'}]},
-  oil  :{name:'روغن',icon:'🛢️',serial:false,newBrand:'type',units:['لیتر','بشکه','گالن','سطل'],fields:[{k:'type',l:'برند روغن',ph:'از فهرست انتخاب کنید یا برند جدید بنویسید',chips:1},{k:'spec',l:'گرید / ویسکوزیته',ph:'اختیاری — مثلاً ISO VG 46'}]},
-  door :{name:'درب',icon:'🛗',serial:'opt',units:['دستگاه','عدد','دست'],fields:[{k:'name',l:'نوع درب',ph:'از فهرست انتخاب کنید',chips:1}]},
+  oil  :{name:'روغن',icon:'🛢️',serial:false,newBrand:'type',units:['لیتر','بشکه','گالن','سطل'],fields:[{k:'type',l:'برند روغن',ph:'از فهرست انتخاب کنید یا برند جدید بنویسید',chips:1},{k:'spec',l:'گرید',ph:'پیش‌فرض H68',chips:1}]},
+  door :{name:'درب',icon:'🛗',serial:'opt',units:['عدد'],fields:[{k:'name',l:'نوع درب',ph:'از فهرست انتخاب کنید',chips:1}]},
   rail :{name:'ریل',icon:'📏',serial:false,units:['شاخه','عدد','دست'],fields:[{k:'name',l:'مدل ریل',ph:'T5 / T9 / T89 / T90 / T125',chips:1},{k:'brand',l:'برند سازنده',chips:1},{k:'spec',l:'توضیحات',ph:'اختیاری — مثلاً طول شاخه'}]},
   panel:{name:'تابلو فرمان',icon:'🎛️',serial:true,multi:['UPS','باطری'],units:['دستگاه','عدد'],fields:[{k:'name',l:'نام قلم',chips:1},{k:'brand',l:'برند',chips:1}]},
   elec :{name:'لوازم برقی',icon:'💡',serial:false,units:['عدد','متر','شاخه','بسته','حلقه','جفت','دستگاه'],fields:[{k:'name',l:'نام قلم',chips:1},{k:'spec',l:'مشخصات',ph:'اختیاری'},{k:'brand',l:'برند / سازنده',ph:'اختیاری'}]},
@@ -667,7 +669,9 @@ var JACK_SIZES='80*5*2000,80*5*3500,80*5*4000,80*5*5000,80*5*5500,90*5*2000,90*5
 /* ---- کاتالوگ مدل‌ها (از فایل‌های محاسبه‌گر خودتان) — هر آیتم: {v:مقدار, h:توضیح, brand:برند} ---- */
 function L(a,fn){return a.map(fn)}
 var CATALOG={};
-CATALOG['jack.size']=L(JACK_SIZES,function(s){return {v:s,h:'سایز جک'}});
+/* سایز جک‌ها دقیقاً از ابزارهای سامانه: شکیب (برای شکیب و بلین) و ویتور — با انتخاب برند، فقط سایزهای همان برند نمایش داده می‌شود */
+var JACK_SH='80*5*2000,80*5*3500,80*5*4000,80*5*5000,80*5*5500,90*5*2000,90*5*3500,90*5*4000,90*5*5000,90*5*5500,90*5*6500,100*5*2000,100*5*3500,100*5*4000,100*5*5000,100*5*5500,100*5*6500,100*5*7000,100*5*8500,110*5*2000,110*5*3500,110*5*4000,110*5*5000,110*5*5500,110*5*6500,110*5*7000,110*5*8500,120*5*3500,120*5*4000,120*5*5000,120*5*5500,120*5*6500,120*5*7000,120*5*8500'.split(','),JACK_WI='80*5*2000,80*5*3500,80*5*4000,80*5*4500,80*5*5000,80*5*5500,90*5*2000,90*5*3500,90*5*4000,90*5*5000,90*5*5500,90*5*6500,100*5*2000,100*5*3500,100*5*4000,100*5*5000,100*5*5500,100*5*6500,100*5*7000,100*7.5*8500,110*5*2000,110*5*3500,110*5*4000,110*5*5000,110*5*5500,110*5*6500,110*5*7000,110*7.5*8500,120*5*3500,120*5*4000,120*5*5000,120*5*5500,120*5*6500,120*5*7000'.split(',');
+CATALOG['jack.size']=[].concat(L(JACK_SH,function(s){return {v:s,brand:'شکیب',h:'سایز جک شکیب'}}),L(JACK_SH,function(s){return {v:s,brand:'بلین',h:'سایز جک بلین'}}),L(JACK_WI,function(s){return {v:s,brand:'ویتور',h:'سایز جک ویتور'}}));
 CATALOG['jack.brand']=L(['شکیب','ویتور','بلین'],function(b){return {v:b}});
 (function(){
   var PU_SH='5.8kw-75L,7.7kw-75L,7.7kw-100L,9.5kw-100L,9.5kw-125L,11kw-125L'.split(',');
@@ -707,8 +711,12 @@ CATALOG['jack.brand']=L(['شکیب','ویتور','بلین'],function(b){return 
 (function(){
   function V(a,u){return a.map(function(v){return u?{v:v,u:u}:{v:v}})}
   ['door','rail','panel','elec','setup','oil'].forEach(function(c){Object.keys(CATALOG).forEach(function(k){if(k.indexOf(c+'.')===0)delete CATALOG[k]})});
-  CATALOG['oil.type']=V(['هیدرومکس','بریستول','بهران','ناوکس','دپول'],'لیتر');
-  CATALOG['door.name']=V(['بیابانی طبقه تمام اتوماتیک','بیابانی کابین تمام اتوماتیک','لولایی سپاهان','لولایی عبادت','عبادت کابین تمام اتوماتیک','عبادت طبقه تمام اتوماتیک','لولایی حجت','یاران کابین تمام اتوماتیک','یاران طبقه تمام اتوماتیک','اتوبوسی','سلکوم طبقه تمام اتوماتیک'],'دستگاه');
+  CATALOG['oil.type']=V(['پارس بابک','هیدرومکس','بریستول','بهران','ناوکس','دپول'],'لیتر');
+  CATALOG['oil.spec']=V(['H68','T46']);
+  CATALOG['door.name']=[].concat(
+    ['بیابانی طبقه تمام اتوماتیک','بیابانی کابین تمام اتوماتیک','سلکوم طبقه تمام اتوماتیک','سلکوم کابین تمام اتوماتیک','عبادت طبقه تمام اتوماتیک','عبادت کابین تمام اتوماتیک','یاران طبقه تمام اتوماتیک','یاران کابین تمام اتوماتیک'].map(function(v){return {v:v,u:'عدد',g:'اتوماتیک'}}),
+    ['لولایی عبادت','لولایی سپاهان','لولایی حجت'].map(function(v){return {v:v,u:'عدد',g:'لولایی'}}),
+    [{v:'اتوبوسی',u:'عدد',g:'اتوبوسی'}]);
   CATALOG['rail.name']=V(['T5','T9','T89','T90','T125'],'شاخه');
   CATALOG['rail.brand']=V(['MF چین','ایرانی','چیلیک ترکیه','مونتوفرو ایتالیا','ساورا چین','ساوز ایتالیا','مارازای ایتالیا']);
   CATALOG['panel.name']=V(['تابلو فرمان هیدرولیک','تابلو فرمان 3F','تابلو فرمان گیرلس MR','تابلو فرمان MRL','تابلو فرمان بالابری'],'دستگاه');
@@ -1450,8 +1458,9 @@ var MAIN_K=QS_MAINK;
 /* ---------- متعلقات هوشمند هر محصول (زیرمجموعهٔ همان کالا ثبت می‌شوند) ---------- */
 var KITS={
   wjack:{t:'جعبه متعلقات جک ویتور (آسانسور ۱۱۰)',for:'جک',brand:'ویتور',items:[{n:'جعبه متعلقات جک ویتور',ser:1,def:1}]},
-  hevos:{t:'برد هوس (Hevos) همراه این پاور',for:'پاوریونیت',brand:'ویتور',single:1,items:[{n:'برد هوس ویتور',ser:1,def:1,tag:'برد هوس'}]},
-  hevosIT:{t:'تجهیزات پاور هوس مونتاژ ایتالیا',for:'پاوریونیت',brand:'ویتور',items:[{n:'برد هوس ویتور',ser:1,def:1,tag:'برد هوس'},{n:'درایو زیمنس ویتور',ser:1,def:1,tag:'درایو زیمنس'},{n:'مقاومت ترمز ویتور',def:1,tag:'مقاومت ترمز'}]},
+  hevos:{t:'برد هوس (Hevos) — اگر همراه این پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:1,tag:'برد هوس'}]},
+  hevosIT:{t:'تجهیزات پاور هوس مونتاژ ایتالیا — هر کدام همراه پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:1,tag:'برد هوس'},{n:'درایو زیمنس ویتور',ser:1,tag:'درایو زیمنس'},{n:'مقاومت ترمز ویتور',tag:'مقاومت ترمز'}]},
+  pudrv:{t:'تجهیزات پاور درایودار — هر کدام همراه پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',items:[{n:'درایو زیمنس ویتور',ser:1,tag:'درایو زیمنس'},{n:'مقاومت ترمز ویتور',tag:'مقاومت ترمز'}]},
   wpu:{t:'متعلقات پاوریونیت ویتور',for:'پاوریونیت',brand:'ویتور',items:[{n:'درخت سیم HM ویتور'},{n:'درخت سیم HE ویتور'},{n:'درخت سیم HI ویتور'},{n:'برد هوس ویتور'},{n:'درایو زیمنس ویتور'}]},
   sjack:{t:'متعلقات جک شکیب',for:'جک',brand:'شکیب',items:[{n:'رپچر شکیب 1 اینچ',ser:1},{n:'رپچر شکیب 1-1/2 اینچ',ser:1},{n:'رپچر 4 پیچ 1-1/4 اینچ شکیب',ser:1},{n:'فلوکنترل شکیب'},{n:'مغزی شکیب'}]},
   motor:{t:'متعلقات موتور',for:'موتور',brand:'',items:[{n:'درخت سیم 6 متری (دیسکی جنتلرایز)'},{n:'درخت سیم 10 متری (بشکه‌ای جنتلرایز)'},{n:'درخت سیم 7 متری (پک خدماتی داینا)'},{n:'درخت سیم (Rope Tree Set هوبر)'},{n:'پک خدماتی (Service Pack)'}]}
@@ -1461,7 +1470,8 @@ function kitFor(cat,v){
   if(cat==='jack'&&(b.indexOf(norm('ویتور'))>=0||(sp&&sp.id==='a110')))return 'wjack';
   if(cat==='pu'&&isA110()){var s=norm(v.spec||'');
     if(s.indexOf(norm('هوس مونتاژ ایتالیا'))>=0)return 'hevosIT';
-    if(s.indexOf(norm('هوس'))>=0)return 'hevos';}
+    if(s.indexOf(norm('هوس'))>=0)return 'hevos';
+    if(s.indexOf(norm('درایو'))>=0)return 'pudrv';}
   return '';
 }
 /* پیش‌فرض: اقلام def همراه کالا انتخاب‌شده (باز) هستند تا سریالشان جا نماند */
@@ -1549,7 +1559,8 @@ var FALAKE=[ /* ردیف، ظرفیت کابین، قطر، عرض، شیاره�
   [5,12,320,105,[7,8],110,50,3,8],[6,12,320,105,[5,6],110,50,3,10],[7,12,320,105,[5,6],110,60,3,10],[8,16,320,105,[7,8],110,60,3,10],
   [9,8,400,105,[5,6],90,50,3,10],[10,12,400,105,[4,5,6],110,50,3,10],[11,18,400,105,[4,5,6],110,60,3,10]
 ].map(function(r){return {row:r[0],cap:r[1],sh:r[2],w:r[3],g:r[4],b:r[5],shaft:r[6],bn:r[7],rope:r[8]}});
-function falakeLabel(r,gr){return 'پرهام '+r.sh+'×'+r.w+' · شیار '+gr+' · بکسل '+r.rope+'mm · بلبرینگ '+r.b+' · شفت '+r.shaft}
+function falakeBrandName(b){b=String(b||'').trim();return (!b||norm(b)===norm('پرهام صنعت')||norm(b)===norm('پرهام'))?'پرهام':b}
+function falakeLabel(r,gr,brand){return falakeBrandName(brand)+' '+r.sh+'×'+r.w+' · شیار '+gr+' · بکسل '+r.rope+'mm · بلبرینگ '+r.b+' · شفت '+r.shaft}
 CATALOG['falake.brand']=[{v:'پرهام صنعت'}];
 CATALOG['falake.model']=[];
 FALAKE.forEach(function(r){r.g.forEach(function(gr){CATALOG['falake.model'].push({v:falakeLabel(r,gr),brand:'پرهام صنعت',h:'ظرفیت کابین '+fa(r.cap)+' نفر',u:'عدد'})})});
@@ -1672,7 +1683,7 @@ function falakePickerHtml(){
   }).join('')+'<button type="button" class="fk manual'+(cur==='manual'?' on':'')+'" data-fk="manual"><b>✍️</b><span>مدل خاص</span><small>مشخصات را دستی بنویسید</small></button>';
   var sel=FALAKE.filter(function(r){return r.row===cur})[0];
   var gr=sel?'<div class="fk-gr"><span>تعداد شیار:</span>'+sel.g.map(function(g){return '<button type="button" class="chipb'+(inVals.__fg===g?' on':'')+'" data-fg="'+g+'">'+fa(g)+' شیار</button>'}).join('')+'</div>':'';
-  return '<div class="fk-wrap"><div class="fk-title">فلکه‌های هرزگرد پرهام صنعت — قطر × عرض (میلی‌متر)</div><div class="fk-grid">'+cards+'</div>'+gr+'</div>';
+  return '<div class="fk-wrap"><div class="fk-title">فلکه‌های هرزگرد '+esc(falakeBrandName(inVals.brand)==='پرهام'?'پرهام صنعت':falakeBrandName(inVals.brand))+' (مشخصات استاندارد پرهام) — قطر × عرض (میلی‌متر)</div><div class="fk-grid">'+cards+'</div>'+gr+'</div>';
 }
 
 /* ---------- فرم کالا ---------- */
@@ -1687,6 +1698,7 @@ function renderInForm(){
   var sp=supProfile();
   if(sp&&sp.brand&&(inCat==='jack'||inCat==='pu')&&!(inVals.brand||'').trim())inVals.brand=sp.brand;
   if(inCat==='falake'&&!(inVals.brand||'').trim())inVals.brand='پرهام صنعت';
+  if(inCat==='oil'&&inVals.spec==null)inVals.spec='H68';
   var own=c.fields.filter(function(f){return f.k!=='company'&&f.k!=='project'});
   var h='<div class="ed-head"><span class="ed-ic">'+c.icon+'</span><h2>'+c.name+'</h2>'+(ser?'<span class="pill">هر سریال = یک عدد</span>':'')+'<button class="x" type="button" data-edclose title="بستن">✕</button></div>';
   if(inCat==='falake')h+=falakePickerHtml();
@@ -1734,7 +1746,8 @@ function quickChipsHtml(cat,k){
     if(k!=='brand'&&it.brand&&inVals.brand&&norm(it.brand)!==norm(inVals.brand)&&(CATALOG[key]||[]).some(function(c){return c.brand&&norm(c.brand)===norm(inVals.brand)}))return;
     if(!seen[n]){seen[n]=1;list.push(it)}});
   var cur=norm(inVals[k]||'');
-  return '<div class="chips qchips" data-qwrap="'+k+'">'+list.map(function(it){return '<button type="button" class="chipb'+(norm(it.v)===cur?' on':'')+(it.cust?' cust':'')+'" data-qk="'+k+'" data-qv="'+esc(it.v)+'">'+esc(it.v)+'</button>'}).join('')+
+  var lastG='';
+  return '<div class="chips qchips" data-qwrap="'+k+'">'+list.map(function(it){var gh='';if(it.g&&it.g!==lastG){lastG=it.g;gh='<span class="qg">'+esc(it.g)+'</span>'}return gh+'<button type="button" class="chipb'+(norm(it.v)===cur?' on':'')+(it.cust?' cust':'')+'" data-qk="'+k+'" data-qv="'+esc(it.v)+'">'+esc(it.v)+'</button>'}).join('')+
     (CATS[cat].newBrand===k?'<button type="button" class="chipb add" data-newb="'+k+'">➕ برند جدید</button>':'')+'</div>';
 }
 function syncChips(){[].forEach.call(document.querySelectorAll('#inEditor [data-qk]'),function(b){b.classList.toggle('on',norm(b.dataset.qv)===norm(inVals[b.dataset.qk]||''))})}
@@ -1743,9 +1756,9 @@ function doorIsHinged(n){n=norm(n||'');return n.indexOf(norm('لولایی'))>=0
 function xFieldsOf(cat){
   if(cat==='door')return [
     {k:'open',l:'سمت بازشو',opts:doorIsHinged(inVals.name)?['راست','چپ']:['سانترال (وسط‌بازشو)','تلسکوپی راست','تلسکوپی چپ'],ph:'یا دستی بنویسید'},
-    {k:'w',l:'عرض',u:'cm',ph:'مثلاً 80',num:1},
-    {k:'h',l:'ارتفاع',u:'cm',ph:'مثلاً 200',num:1},
-    {k:'cover',l:'روکش',opts:['رنگی','استیل','استیل طرح‌دار','استیل طلایی','شیشه‌ای'],ph:'یا دستی بنویسید'}];
+    {k:'w',l:'عرض',u:'cm',ph:'یا دستی بنویسید',num:1,opts:['60','70','80','90','100','110']},
+    {k:'h',l:'ارتفاع',u:'cm',ph:'یا دستی بنویسید',num:1,opts:['200','210','225']},
+    {k:'cover',l:'روکش',opts:['رنگ','استیل نقره‌ای','استیل طلایی','استیل دودی','شیشه‌ای و استیل'],ph:'یا دستی بنویسید'}];
   return null;
 }
 function renderXBox(){
@@ -1755,7 +1768,7 @@ function renderXBox(){
     h+='<div class="xbox"><div class="xb-t">🛗 مشخصات «'+esc(inVals.name)+'» <span class="req">*</span></div><div class="grid g2">';
     xf.forEach(function(x){var v=inVals['__x_'+x.k]||'';
       h+='<div><label class="f">'+x.l+(x.u?' <span class="o">('+x.u+')</span>':'')+'</label><input data-xf="'+x.k+'" class="'+(x.num?'ltr':'')+'"'+(x.num?' inputmode="decimal"':'')+' placeholder="'+esc(x.ph||'')+'" value="'+esc(v)+'" autocomplete="off">'+
-        (x.opts?'<div class="chips">'+x.opts.map(function(o){return '<button type="button" class="chipb'+(v===o?' on':'')+'" data-xk="'+x.k+'" data-xv="'+esc(o)+'">'+esc(o)+'</button>'}).join('')+'</div>':'')+'</div>'});
+        (x.opts?'<div class="chips">'+uniq(x.opts.concat(custList(inCat+'.x_'+x.k))).map(function(o){return '<button type="button" class="chipb'+(v===o?' on':'')+'" data-xk="'+x.k+'" data-xv="'+esc(o)+'">'+esc(o)+'</button>'}).join('')+'</div>':'')+'</div>'});
     h+='</div></div>';
   }
   if(CATS[inCat]&&CATS[inCat].multi){var M=inVals.__mul||{};
@@ -1797,10 +1810,10 @@ function renderParts(){
     var key=S+'|'+it.id,st=inParts[key]||{};
     var b='';
     if(st.on){
-      if(it.opts)b+='<div class="chips"><span class="o">'+(it.optL||'نوع')+' <span class="req">*</span>:</span>'+it.opts.map(function(o){return '<button type="button" class="chipb'+(st.opt===o?' on':'')+'" data-popt="'+esc(o)+'">'+esc(o)+'</button>'}).join('')+'</div>';
-      if(it.manual){var mv=(st.opt&&it.opts.indexOf(st.opt)<0)?st.opt:'';b+='<div class="pf-grid"><label><span>✍️ یا '+esc(it.optL||'سایز')+' را دستی بنویسید</span><input data-pman="1" value="'+esc(mv)+'" placeholder="'+esc(it.manual)+'" autocomplete="off"></label></div>'}
+      if(it.opts)b+='<div class="chips"><span class="o">'+(it.optL||'نوع')+' <span class="req">*</span>:</span>'+uniq(it.opts.concat(custList('parts.'+S+'.'+it.id))).map(function(o){return '<button type="button" class="chipb'+(st.opt===o?' on':'')+'" data-popt="'+esc(o)+'">'+esc(o)+'</button>'}).join('')+'</div>';
+      if(it.manual){var mv=(st.opt&&uniq(it.opts.concat(custList('parts.'+S+'.'+it.id))).indexOf(st.opt)<0)?st.opt:'';b+='<div class="pf-grid"><label><span>✍️ یا '+esc(it.optL||'سایز')+' را دستی بنویسید</span><input data-pman="1" value="'+esc(mv)+'" placeholder="'+esc(it.manual)+'" autocomplete="off"></label></div>'}
       if(it.multi)b+='<div class="chips"><span class="o">همراه:</span>'+it.multi.map(function(o){var m=(st.multi||{})[o];return '<button type="button" class="chipb chk'+(m?' on':'')+'" data-pmul="'+esc(o)+'">'+(m?'☑ ':'☐ ')+esc(o)+'</button>'}).join('')+'</div>';
-      if(it.fields){var FO=it.fopts?it.fopts(st):{};b+='<div class="pf-grid'+(it.wide?' wide':'')+'">'+it.fields.map(function(fl){var cv=(st.vals||{})[fl]||'';return '<label><span>'+esc(fl)+((it.req||[]).indexOf(fl)>=0?' <span class="req">*</span>':'')+'</span>'+(it.wide?'<textarea class="rtl" data-pf="'+esc(fl)+'" rows="2">'+esc(cv)+'</textarea>':'<input data-pf="'+esc(fl)+'" value="'+esc(cv)+'"'+(it.num&&it.num.indexOf(fl)>=0?' class="ltr" inputmode="decimal"':'')+' autocomplete="off">')+((FO[fl]||[]).length?'<span class="chips">'+FO[fl].map(function(o){return '<button type="button" class="chipb'+(cv===o?' on':'')+'" data-pfo="'+esc(fl)+'" data-pfv="'+esc(o)+'">'+esc(o)+'</button>'}).join('')+'</span>':'')+'</label>'}).join('')+'</div>';}
+      if(it.fields){var FO=it.fopts?it.fopts(st):{};it.fields.forEach(function(fl){var cu=custList('parts.'+S+'.'+it.id+'.'+fl);if(cu.length)FO[fl]=uniq((FO[fl]||[]).concat(cu))});b+='<div class="pf-grid'+(it.wide?' wide':'')+'">'+it.fields.map(function(fl){var cv=(st.vals||{})[fl]||'';return '<label><span>'+esc(fl)+((it.req||[]).indexOf(fl)>=0?' <span class="req">*</span>':'')+'</span>'+(it.wide?'<textarea class="rtl" data-pf="'+esc(fl)+'" rows="2">'+esc(cv)+'</textarea>':'<input data-pf="'+esc(fl)+'" value="'+esc(cv)+'"'+(it.num&&it.num.indexOf(fl)>=0?' class="ltr" inputmode="decimal"':'')+' autocomplete="off">')+((FO[fl]||[]).length?'<span class="chips">'+FO[fl].map(function(o){return '<button type="button" class="chipb'+(cv===o?' on':'')+'" data-pfo="'+esc(fl)+'" data-pfv="'+esc(o)+'">'+esc(o)+'</button>'}).join('')+'</span>':'')+'</label>'}).join('')+'</div>';}
       b+='<div class="pq"><span class="o">تعداد</span>'+stepperHtml('p',st.qty==null?1:st.qty)+'</div>';
       if(partNeedsSer(it,st))b+=serTableHtml('p',key,st,qtyOf(st.qty==null?1:st.qty));
     }
@@ -1831,13 +1844,17 @@ $('inEditor').addEventListener('click',function(e){
   }
   if(t=e.target.closest('[data-fk]')){var fk=t.dataset.fk;inVals.__fk=fk==='manual'?'manual':+fk;inVals.__fg=null;
     if(fk==='manual'){inVals.model='';renderInForm();var mi=$('inEditor').querySelector('input[data-lf=model]');if(mi){mi.placeholder='مثلاً فلکه خاص ۳۵۰×۹۰ شیار ۶';mi.focus()}return}
-    var r=FALAKE.filter(function(x){return x.row===+fk})[0];if(r.g.length===1){inVals.__fg=r.g[0];inVals.model=falakeLabel(r,r.g[0])}else inVals.model='';
+    var r=FALAKE.filter(function(x){return x.row===+fk})[0];if(r.g.length===1){inVals.__fg=r.g[0];inVals.model=falakeLabel(r,r.g[0],inVals.brand)}else inVals.model='';
     renderInForm();return}
-  if(t=e.target.closest('[data-fg]')){var r2=FALAKE.filter(function(x){return x.row===inVals.__fk})[0];if(r2){inVals.__fg=+t.dataset.fg;inVals.model=falakeLabel(r2,inVals.__fg);renderInForm();var nx=$('inSerials')||$('inEditor').querySelector('[data-qi=main]');if(nx)nx.focus()}return}
+  if(t=e.target.closest('[data-fg]')){var r2=FALAKE.filter(function(x){return x.row===inVals.__fk})[0];if(r2){inVals.__fg=+t.dataset.fg;inVals.model=falakeLabel(r2,inVals.__fg,inVals.brand);renderInForm();var nx=$('inSerials')||$('inEditor').querySelector('[data-qi=main]');if(nx)nx.focus()}return}
   if(t=e.target.closest('[data-psup]')){partsSup=t.dataset.psup;renderParts();return}
   if(t=e.target.closest('[data-popt]')){var st2=stateOfEl(t);st2.opt=t.dataset.popt;var pit=partItemOf(t);if(pit&&pit.fopts&&st2.vals){var fo2=pit.fopts(st2);Object.keys(fo2).forEach(function(fl){if(st2.vals[fl]&&fo2[fl].indexOf(st2.vals[fl])<0)st2.vals[fl]=''})}renderParts();return}
   if(t=e.target.closest('[data-pfo]')){var st6=stateOfEl(t);st6.vals=st6.vals||{};st6.vals[t.dataset.pfo]=t.dataset.pfv;renderParts();return}
   if(t=e.target.closest('[data-pmul]')){var st3=stateOfEl(t);st3.multi=st3.multi||{};st3.multi[t.dataset.pmul]=!st3.multi[t.dataset.pmul];renderParts();return}
+  if((t=e.target.closest('[data-qk]'))&&t.dataset.qk==='brand'&&(inCat==='jack'||inCat==='falake')){inVals.brand=t.dataset.qv;
+    if(inCat==='falake'&&typeof inVals.__fk==='number'&&inVals.__fg){var rb=FALAKE.filter(function(x){return x.row===inVals.__fk})[0];if(rb)inVals.model=falakeLabel(rb,inVals.__fg,inVals.brand)}
+    if(inCat==='jack'&&inVals.size&&!(CATALOG['jack.size']||[]).some(function(c){return norm(c.brand||'')===norm(inVals.brand)&&c.v===inVals.size}))inVals.size='';
+    renderInForm();return}
   if(t=e.target.closest('[data-qk]')){var qk=t.dataset.qk,qi2=$('inEditor').querySelector('input[data-lf='+qk+']');inVals[qk]=t.dataset.qv;if(qi2){qi2.value=t.dataset.qv;qi2.classList.remove('err')}
     if(qk==='name')Object.keys(inVals).forEach(function(z){if(z.indexOf('__x_open')===0)inVals[z]=''});
     syncChips();renderXBox();updateHint();renderKit();var fx=$('inXBox').querySelector('input[data-xf]');if(fx&&!fx.value)fx.focus();return}
@@ -1861,6 +1878,8 @@ $('inEditor').addEventListener('change',function(e){
 $('inEditor').addEventListener('input',function(e){
   var t=e.target;
   if(t.dataset.lf){var k=t.dataset.lf;inVals[k]=t.value;t.classList.remove('err');
+    if(inCat==='falake'&&k==='brand'&&typeof inVals.__fk==='number'&&inVals.__fg){var rf=FALAKE.filter(function(x){return x.row===inVals.__fk})[0];if(rf){inVals.model=falakeLabel(rf,inVals.__fg,inVals.brand);var mf=$('inEditor').querySelector('input[data-lf=model]');if(mf)mf.value=inVals.model}
+      var ft=$('inEditor').querySelector('.fk-title');if(ft)ft.textContent='فلکه‌های هرزگرد '+(falakeBrandName(inVals.brand)==='پرهام'?'پرهام صنعت':falakeBrandName(inVals.brand))+' (مشخصات استاندارد پرهام) — قطر × عرض (میلی‌متر)'}
     if(k==='name'){updateHint();clearTimeout(renderXBox._t);renderXBox._t=setTimeout(renderXBox,300)}
     syncChips();
     if(k==='brand'||k===MAIN_K[inCat]){clearTimeout(renderKit._t);renderKit._t=setTimeout(renderKit,250)}
@@ -1902,7 +1921,7 @@ function inAdd(){
   }
   var kitOn=K?K.items.filter(function(it){return (inKit[it.n]||{}).on}):[];
   if(inCat==='pu'&&K){var tags=kitOn.filter(function(it){return it.tag}).map(function(it){return it.tag});
-    f.spec=[f.spec,tags.length?'با '+tags.join(' + '):'بدون برد هوس'].filter(Boolean).join(' · ')}
+    f.spec=[f.spec,tags.length?'با '+tags.join(' + '):(K.hv?'بدون برد هوس':'')].filter(Boolean).join(' · ')}
   var mainSers=ser?parseSerials(($('inSerials')||{}).value):[];
   var qi=$('inEditor').querySelector('[data-qi=main]'),mainQty=ser?0:qtyOf(qi?qi.value:'');
   var mainOk=ser?mainSers.length>0:mainQty>0;
@@ -1934,6 +1953,7 @@ function inAdd(){
     if(ss.length){inStaged.push({cat:'acc',f:fo,serials:ss,unit:'عدد',g:g,child:mainOk});if(q-ss.length>0)inStaged.push({cat:'acc',f:clone(fo),qty:q-ss.length,unit:'عدد',g:g,child:mainOk})}
     else inStaged.push({cat:'acc',f:fo,qty:q,unit:'عدد',g:g,child:mainOk});
   });
+  bfRememberForm();
   var added=(mainOk?1:0)+kitOn.length;
   inKit={};inVals.__qty='';
   renderInStaged();renderInForm();
@@ -1964,10 +1984,22 @@ function partsAdd(){
     if(ss.length){inStaged.push({cat:'acc',f:fo,serials:ss,unit:'عدد',g:g});if(q-ss.length>0)inStaged.push({cat:'acc',f:clone(fo),qty:q-ss.length,unit:u,g:g})}
     else inStaged.push({cat:'acc',f:fo,qty:q,unit:u,g:g});
   });
+  var chP=false;on.forEach(function(it){var st=inParts[S+'|'+it.id];if(it.opts&&st.opt&&it.opts.indexOf(st.opt)<0&&bfRemember('parts.'+S+'.'+it.id,st.opt))chP=true;
+    (it.fields||[]).forEach(function(fl){if(it.wide)return;var v=((st.vals||{})[fl]||'').trim();var FO=it.fopts?(it.fopts(st)[fl]||[]):[];if(v&&FO.indexOf(v)<0&&!(it.num&&it.num.indexOf(fl)>=0)&&bfRemember('parts.'+S+'.'+it.id+'.'+fl,v))chP=true})});
+  if(chP)save();
   inParts={};renderInStaged();renderParts();
   toast('✓ '+fa(on.length)+' قطعهٔ تکمیلی به سبد ورود اضافه شد');
 }
 
+/* ---------- هر مقدار تازه‌ای که در فیلدهای نوشتنی وارد شود، در حافظهٔ انبار ذخیره و از این به بعد پیشنهاد می‌شود ---------- */
+function bfRemember(key,v){v=String(v==null?'':v).trim();if(!v)return false;DB.settings.cust=DB.settings.cust||{};var arr=DB.settings.cust[key]=DB.settings.cust[key]||[];
+  if(arr.some(function(x){return norm(x)===norm(v)})||(CATALOG[key]||[]).some(function(x){return norm(x.v)===norm(v)}))return false;arr.push(v);return true}
+function bfRememberForm(){
+  var c=CATS[inCat],ch=false;if(!c)return;
+  c.fields.forEach(function(fd){if(fd.k==='company'||fd.k==='project')return;if(inCat==='falake'&&fd.k==='model'&&typeof inVals.__fk==='number')return;if(bfRemember(inCat+'.'+fd.k,inVals[fd.k]))ch=true});
+  var xf=xFieldsOf(inCat);if(xf)xf.forEach(function(x){var v=(inVals['__x_'+x.k]||'').trim();if(v&&(x.opts||[]).indexOf(v)<0&&bfRemember(inCat+'.x_'+x.k,v))ch=true});
+  if(ch)save();
+}
 /* ---------- سبد ورود (برچسب انبار) ---------- */
 function lineTitle(l){return l.cat==='acc'?(l.f.name||'متعلقات'):CATS[l.cat].name}
 function lineSpec(l){

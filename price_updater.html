@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ابزار آپدیت قیمت (اکسل ➜ کد) | BEHFARAZ</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+  :root{
+    --navy-950:#0a1628; --navy-900:#0f1f38; --navy-800:#16294a;
+    --cyan-400:#2dd4bf; --cyan-300:#5eead4;
+    --amber-400:#f0a830;
+    --bg:#0c1420; --panel:#101c2e; --panel-2:#141f33; --line:#22334d;
+    --text:#e8edf4; --text-dim:#8fa2ba; --ok:#34d399; --err:#f87171;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(45,212,191,0.08), transparent 60%),
+      radial-gradient(900px 500px at 110% 10%, rgba(240,168,48,0.06), transparent 55%),
+      var(--bg);
+    color:var(--text); font-family:'Vazirmatn',sans-serif; min-height:100vh; padding:28px 16px 60px;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+  .head{
+    display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+    padding:22px 26px;border:1px solid var(--line);border-radius:16px;
+    background:linear-gradient(135deg, var(--navy-900), var(--navy-800));
+    margin-bottom:22px;position:relative;overflow:hidden;
+  }
+  .head::before{content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(115deg, transparent 0 26px, rgba(45,212,191,0.045) 26px 27px);pointer-events:none;}
+  .head .brand{display:flex;flex-direction:column;gap:4px;position:relative;z-index:1;}
+  .head .brand small{color:var(--cyan-300);font-size:12px;font-weight:600;}
+  .head h1{margin:0;font-size:20px;font-weight:800;}
+
+  .tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .tab{
+    padding:10px 18px;border-radius:10px;border:1px solid var(--line);background:var(--panel);
+    color:var(--text-dim);font-weight:700;font-size:13.5px;cursor:pointer;
+  }
+  .tab.active{border-color:var(--cyan-400);color:var(--cyan-300);background:rgba(45,212,191,.08);}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;}
+  .panel h3{margin:0 0 12px;font-size:14px;color:var(--cyan-300);}
+  .panel p{font-size:12.5px;color:var(--text-dim);line-height:2;margin:0 0 10px;}
+
+  .cols{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+  .col-tag{
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--panel-2);
+    border:1px solid var(--line);border-radius:6px;padding:4px 9px;color:#8fa8c2;
+  }
+
+  .drop{
+    border:1.5px dashed var(--line);border-radius:12px;padding:30px 16px;text-align:center;
+    cursor:pointer;color:var(--text-dim);font-size:13px;transition:border-color .15s;
+  }
+  .drop:hover, .drop.drag{border-color:var(--cyan-400);color:var(--cyan-300);}
+  .drop input{display:none;}
+
+  .status{margin-top:12px;font-size:12.5px;font-family:'JetBrains Mono',monospace;}
+  .status.ok{color:var(--ok);}
+  .status.err{color:var(--err);white-space:pre-line;}
+
+  textarea{
+    width:100%;min-height:260px;background:var(--panel-2);border:1px solid var(--line);
+    border-radius:10px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:12px;
+    padding:14px;direction:ltr;text-align:left;
+  }
+  .out-actions{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .btn{
+    padding:11px 18px;border-radius:9px;border:none;cursor:pointer;font-weight:700;font-size:13px;
+    font-family:'Vazirmatn',sans-serif;
+  }
+  .btn.primary{background:linear-gradient(135deg, var(--cyan-400), #14b8a6);color:#062924;}
+  .btn.ghost{background:var(--panel-2);border:1px solid var(--line);color:var(--text);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+
+  .foot-note{margin-top:10px;font-size:11.5px;color:var(--text-dim);line-height:2;border-top:1px solid var(--line);padding-top:12px;}
+  .foot-note b{color:var(--cyan-300);}
+  .unsupported{
+    border:1px dashed rgba(248,113,113,.4);background:rgba(248,113,113,.06);border-radius:12px;
+    padding:16px;font-size:12.5px;color:var(--text-dim);line-height:2;margin-bottom:16px;
+  }
+  .unsupported b{color:var(--err);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <div class="brand">
+      <small>BEHFARAZ · Price Update Tool</small>
+      <h1>ابزار آپدیت قیمت — اکسل ➜ کد آماده جایگزینی</h1>
+    </div>
+  </div>
+
+  <div class="unsupported">
+    <b>محدودیت فعلی:</b> این ابزار برای «پنل آسانسور» و «موتورهای گیرلس» هنوز فعال نیست — ساختار داده این دو محصول به‌جای جدول ساده، دسته‌بندی‌های تودرتوی زیادی (رنگ/کلید/نصب/تجهیزات) دارد که به یک نگاشت اختصاصی‌تر نیاز دارد. برای این دو، فعلاً فایل اکسل/PDF را در چت بفرست تا خودم آپدیت کنم.
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="panel" id="templatePanel"></div>
+
+  <div class="panel" id="uploadPanel">
+    <h3>۲ · آپلود فایل اکسل</h3>
+    <div class="drop" id="dropZone">
+      فایل اکسل (.xlsx / .xls / .csv) را اینجا رها کنید یا کلیک کنید
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div class="panel" id="outputPanel" style="display:none;">
+    <h3>۳ · کد آماده</h3>
+    <textarea id="outputBox" readonly></textarea>
+    <div class="out-actions">
+      <button class="btn primary" id="copyBtn">کپی کد</button>
+      <button class="btn ghost" id="downloadBtn">دانلود فایل .js</button>
+    </div>
+    <div class="foot-note" id="pasteHint"></div>
+  </div>
+
+</div>
+
+<script>
+// ===================== TEMPLATES =====================
+const TEMPLATES = {
+  wittur: {
+    label: 'ویتور (OMARLIFT/WITTUR)',
+    file: 'wittur_calc.html',
+    varName: 'DATA',
+    columns: ['floor','persons','kg','travel','speed','jackSize','jackPrice','amp','kw','liters','puPrice','total'],
+    desc: 'هر ردیف اکسل = یک ترکیب طبقه/ظرفیت/تراول. ستون‌ها را دقیقاً با همین نام‌ها (خط اول اکسل، انگلیسی) وارد کنید.',
+    build(rows){
+      const lines = rows.map(r => `{floor:${num(r.floor)}, persons:${num(r.persons)}, kg:${num(r.kg)}, travel:${num(r.travel)}, speed:${str(r.speed)}, jackSize:${str(r.jackSize)}, jackPrice:${nn(r.jackPrice)}, amp:${str(r.amp)}, kw:${str(r.kw)}, liters:${str(r.liters)}, puPrice:${nn(r.puPrice)}, total:${nn(r.total)}}`);
+      return `const DATA = [\n  ${lines.join(',\n  ')}\n];`;
+    }
+  },
+  shakib: {
+    label: 'جک و پاوریونیت شکیب',
+    file: 'shakib_jack_calculator.html',
+    varName: 'DATA',
+    columns: ['floor','cap','travel','speed','current','sizeBelin','sizeShakib','pipeSize','pipePrice','ruptureSize','rupturePrice','valveBelin','valveShakib'],
+    desc: 'ستون cap متن کامل ظرفیت است (مثال: «۳ نفره - ۲۲۵ کیلوگرم»). برای خانه‌های خالی (مثلاً sizeShakib موجود نیست) سلول را خالی بگذارید.',
+    build(rows){
+      const lines = rows.map(r => `{floor:${num(r.floor)}, cap:${str(r.cap)}, travel:${num(r.travel)}, speed:${str(r.speed)}, current:${str(r.current)}, sizeBelin:${str(r.sizeBelin)}, sizeShakib:${strOrNull(r.sizeShakib)}, pipeSize:${str(r.pipeSize)}, pipePrice:${nn(r.pipePrice)}, ruptureSize:${str(r.ruptureSize)}, rupturePrice:${nn(r.rupturePrice)}, valveBelin:${nn(r.valveBelin)}, valveShakib:${nnOrNull(r.valveShakib)}}`);
+      return `const DATA = [\n  ${lines.join(',\n  ')}\n];`;
+    }
+  },
+  hydrolic: {
+    label: 'محاسبه هیدرولیک (نسخه تودرتو)',
+    file: 'hydrolic_calc.html',
+    varName: 'PRICE_DATA',
+    columns: ['jackModel','puModel','passengers','price','speed','travel','size'],
+    desc: 'این فایل ساختار تودرتو دارد (طبقه ➜ پاوریونیت ➜ ظرفیت‌ها). فقط کافیست هر ردیف را flat وارد کنید — ابزار خودش گروه‌بندی می‌کند. jackModel مثل «2 طبقه»، puModel مثل «5.9kw-75L».',
+    build(rows){
+      const byFloor = {};
+      rows.forEach(r=>{
+        byFloor[r.jackModel] = byFloor[r.jackModel] || {};
+        byFloor[r.jackModel][r.puModel] = byFloor[r.jackModel][r.puModel] || [];
+        byFloor[r.jackModel][r.puModel].push(r);
+      });
+      const floorsOut = Object.keys(byFloor).map(floorKey=>{
+        const puOut = Object.keys(byFloor[floorKey]).map(puKey=>{
+          const caps = byFloor[floorKey][puKey].map(r=>
+            `{ passengers: ${num(r.passengers)}, price: ${nn(r.price)}, speed: ${str(r.speed)}, travel: ${str(r.travel)}, size: ${str(r.size)} }`
+          );
+          return `{\n    model: ${str(puKey)},\n    capacities: [\n      ${caps.join(',\n      ')}\n    ]\n  }`;
+        });
+        return `{\n  jackModel: ${str(floorKey)},\n  powerUnits: [\n  ${puOut.join(',\n  ')}\n  ]\n}`;
+      });
+      return `const PRICE_DATA = [\n${floorsOut.join(',\n')}\n];`;
+    }
+  }
+};
+
+function num(v){ return Number(v)||0; }
+function nn(v){ return v===undefined||v===null||v==='' ? 'null' : Number(v); }
+function nnOrNull(v){ return v===undefined||v===null||v==='' ? 'null' : Number(v); }
+function str(v){ return v===undefined||v===null ? "''" : JSON.stringify(String(v)); }
+function strOrNull(v){ return v===undefined||v===null||v==='' ? 'null' : JSON.stringify(String(v)); }
+
+let currentTpl = 'wittur';
+
+const tabsEl = document.getElementById('tabs');
+const templatePanel = document.getElementById('templatePanel');
+const statusEl = document.getElementById('status');
+const outputPanel = document.getElementById('outputPanel');
+const outputBox = document.getElementById('outputBox');
+const pasteHint = document.getElementById('pasteHint');
+
+function renderTabs(){
+  tabsEl.innerHTML = '';
+  Object.keys(TEMPLATES).forEach(key=>{
+    const t = document.createElement('div');
+    t.className = 'tab' + (key===currentTpl ? ' active' : '');
+    t.textContent = TEMPLATES[key].label;
+    t.onclick = ()=>{ currentTpl = key; statusEl.textContent=''; outputPanel.style.display='none'; renderTabs(); renderTemplatePanel(); };
+    tabsEl.appendChild(t);
+  });
+}
+
+function renderTemplatePanel(){
+  const t = TEMPLATES[currentTpl];
+  templatePanel.innerHTML = `
+    <h3>۱ · ساختار مورد انتظار — ${t.label}</h3>
+    <p>${t.desc}</p>
+    <div class="cols">${t.columns.map(c=>`<span class="col-tag">${c}</span>`).join('')}</div>
+    <p style="margin-top:10px;">خط اول اکسل باید دقیقاً همین نام ستون‌ها (انگلیسی) باشد.</p>
+  `;
+}
+
+renderTabs();
+renderTemplatePanel();
+
+// ===================== FILE HANDLING =====================
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('click', ()=>fileInput.click());
+dropZone.addEventListener('dragover', e=>{e.preventDefault(); dropZone.classList.add('drag');});
+dropZone.addEventListener('dragleave', ()=>dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e=>{
+  e.preventDefault(); dropZone.classList.remove('drag');
+  if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e=>{
+  if(e.target.files.length) handleFile(e.target.files[0]);
+});
+
+function handleFile(file){
+  statusEl.className='status'; statusEl.textContent='در حال خواندن فایل...';
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const wb = XLSX.read(e.target.result, {type:'binary'});
+      const sheet = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(sheet, {defval:''});
+      if(!rows.length) throw new Error('فایل خالی است یا داده‌ای پیدا نشد.');
+      processRows(rows);
+    }catch(err){
+      statusEl.className='status err';
+      statusEl.textContent = 'خطا در خواندن فایل: ' + err.message;
+    }
+  };
+  reader.onerror = ()=>{ statusEl.className='status err'; statusEl.textContent='خطا در باز کردن فایل.'; };
+  reader.readAsBinaryString(file);
+}
+
+function processRows(rows){
+  const t = TEMPLATES[currentTpl];
+  const missing = t.columns.filter(c=>!(c in rows[0]));
+  if(missing.length){
+    statusEl.className='status err';
+    statusEl.textContent = 'ستون‌های زیر در فایل پیدا نشد:\n' + missing.join(', ') + '\nخط اول اکسل باید دقیقاً همین نام‌ها باشد.';
+    outputPanel.style.display='none';
+    return;
+  }
+  let code;
+  try{
+    code = t.build(rows);
+  }catch(err){
+    statusEl.className='status err';
+    statusEl.textContent = 'خطا در تولید کد: ' + err.message;
+    return;
+  }
+  statusEl.className='status ok';
+  statusEl.textContent = `✓ ${rows.length} ردیف با موفقیت خوانده شد.`;
+  outputBox.value = code;
+  outputPanel.style.display='block';
+  pasteHint.innerHTML = `<b>محل جایگذاری:</b> این کد را در فایل <b>${t.file}</b> پیدا کنید (جستجوی <code>const ${t.varName} = </code>) و کل بلوک آرایه را با این کد جایگزین کنید.`;
+}
+
+document.getElementById('copyBtn').addEventListener('click', ()=>{
+  outputBox.select();
+  document.execCommand('copy');
+  const btn = document.getElementById('copyBtn');
+  const old = btn.textContent; btn.textContent = 'کپی شد ✓';
+  setTimeout(()=>btn.textContent=old, 1500);
+});
+
+document.getElementById('downloadBtn').addEventListener('click', ()=>{
+  const blob = new Blob([outputBox.value], {type:'text/javascript'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${currentTpl}_data_update.js`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>

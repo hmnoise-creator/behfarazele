@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>کاتالوگ محصولات | بهفراز گروپ</title>
+<style>
+  :root{
+    --teal:#0f3d3a;
+    --teal2:#134a45;
+    --line:#e3e7e6;
+    --muted:#6b7a78;
+    --bg:#f4f6f6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"Vazirmatn","Tahoma",sans-serif;
+    background:var(--bg);
+    min-height:100vh;
+    padding:22px;
+  }
+  .wrap{ width:100%; max-width:900px; margin:0 auto; }
+  .head{ text-align:center; margin-bottom:26px; }
+  .head h1{ margin:0 0 6px; font-size:1.35rem; color:var(--teal); }
+  .head p{ margin:0; color:var(--muted); font-size:.9rem; }
+
+  .cat-list{ display:flex; flex-direction:column; gap:14px; }
+  .cat-card{
+    background:#fff; border:1.5px solid var(--line); border-radius:14px;
+    padding:18px 20px; display:flex; align-items:center; gap:16px;
+    flex-wrap:wrap; transition:box-shadow .15s ease, border-color .15s ease;
+  }
+  .cat-card:hover{ border-color:var(--teal); box-shadow:0 6px 18px rgba(15,61,58,.10); }
+  .cat-icon{
+    width:52px; height:52px; border-radius:50%; flex:0 0 auto;
+    display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(135deg,var(--teal),var(--teal2)); color:#fff; font-size:22px;
+  }
+  .cat-icon svg{ width:26px; height:26px; }
+  .cat-icon img{ width:34px; height:34px; object-fit:contain; }
+  .cat-body{ flex:1 1 220px; min-width:180px; }
+  .cat-body h2{ margin:0 0 4px; font-size:1rem; color:#1a2b29; }
+  .cat-body p{ margin:0; font-size:.8rem; color:var(--muted); word-break:break-all; }
+  .cat-actions{ display:flex; gap:8px; flex:0 0 auto; flex-wrap:wrap; }
+  .cat-btn{
+    border:1.5px solid var(--line); background:#fff; color:var(--teal);
+    border-radius:9px; padding:8px 14px; font-size:.8rem; font-weight:700;
+    cursor:pointer; font-family:inherit; white-space:nowrap; transition:.15s;
+  }
+  .cat-btn.primary{ background:var(--teal); color:#fff; border-color:var(--teal); }
+  .cat-btn.primary:hover{ background:var(--teal2); }
+  .cat-btn:not(.primary):hover{ border-color:var(--teal); background:#eaf4f2; }
+  .cat-btn.copied{ background:#0f6e56; color:#fff; border-color:#0f6e56; }
+
+  .viewer{
+    display:none; margin-top:22px; background:#fff; border:1.5px solid var(--line);
+    border-radius:14px; overflow:hidden;
+  }
+  .viewer.show{ display:block; }
+  .viewer-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px 16px; background:var(--teal); color:#fff; flex-wrap:wrap;
+  }
+  .viewer-bar .t{ font-size:.88rem; font-weight:700; }
+  .viewer-bar .acts{ display:flex; gap:8px; }
+  .viewer-bar button, .viewer-bar a{
+    background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.35); color:#fff;
+    border-radius:8px; padding:6px 12px; font-size:.78rem; cursor:pointer;
+    font-family:inherit; text-decoration:none; display:inline-block;
+  }
+  .viewer-bar button:hover, .viewer-bar a:hover{ background:rgba(255,255,255,.28); }
+  .viewer iframe{ width:100%; height:70vh; border:none; display:block; }
+
+  .toast{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:#0f3d3a; color:#fff; padding:10px 18px; border-radius:10px; font-size:.82rem;
+    opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease; z-index:50;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+  <div class="wrap">
+    <div class="head">
+      <h1>📚 کاتالوگ‌های آنلاین محصولات</h1>
+      <p>یک کاتالوگ را برای نمایش انتخاب کنید، یا لینک آن را کپی کرده و برای مشتری ارسال نمایید</p>
+    </div>
+
+    <div class="cat-list" id="catList"></div>
+
+    <div class="viewer" id="viewer">
+      <div class="viewer-bar">
+        <span class="t" id="viewerTitle"></span>
+        <div class="acts">
+          <a href="#" id="viewerOpenNewTab" target="_blank" rel="noopener">🔗 باز کردن در تب جدید</a>
+          <button type="button" id="viewerClose">✕ بستن</button>
+        </div>
+      </div>
+      <iframe id="viewerFrame" src="about:blank"></iframe>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+  const CATALOGS = [
+    {
+      title: 'کاتالوگ آنلاین - پنل‌های کابین و طبقه',
+      desc: 'مدل‌های پنل کابین (لمسی / استیل / یک‌متری) و پنل طبقه',
+      url: 'https://heyzine.com/flip-book/995345f6ff.html'
+    },
+    {
+      title: 'کاتالوگ آنلاین - موتورهای جنتلرایز',
+      desc: 'معرفی موتورهای گیرلس جنتلرایز',
+      url: 'https://heyzine.com/flip-book/ccc5fb1397.html'
+    },
+    {
+      title: 'کاتالوگ آنلاین - مشخصات داینا لیفت',
+      desc: 'مشخصات فنی و معرفی محصولات داینا لیفت',
+      url: 'https://heyzine.com/flip-book/842ff79957.html'
+    }
+  ];
+
+  const CATALOG_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8.5 4.2 12 5.8l3.5-1.6"/>
+    <path d="M8.5 4.2 12 6.4l3.5-2.2"/>
+    <rect x="6.5" y="7" width="11" height="13" rx="0.6"/>
+    <path d="M7.6 8.1v1.4M7.6 8.1h1.4"/>
+    <path d="M16.4 8.1v1.4M16.4 8.1h-1.4"/>
+    <path d="M7.6 18.9v-1.4M7.6 18.9h1.4"/>
+    <path d="M16.4 18.9v-1.4M16.4 18.9h-1.4"/>
+    <rect x="10" y="10" width="4" height="2" rx="0.3"/>
+    <path d="M9 14.6h6M9 16.4h6M9 18.2h6"/>
+  </svg>`;
+
+  const listEl = document.getElementById('catList');
+  const viewerEl = document.getElementById('viewer');
+  const viewerFrame = document.getElementById('viewerFrame');
+  const viewerTitle = document.getElementById('viewerTitle');
+  const viewerOpenNewTab = document.getElementById('viewerOpenNewTab');
+  const toastEl = document.getElementById('toast');
+
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 2200);
+  }
+
+  function copyLink(url, btn){
+    const done = ()=>{
+      showToast('لینک کاتالوگ کپی شد ✅');
+      if(btn){
+        const orig = btn.textContent;
+        btn.textContent = '✅ کپی شد';
+        btn.classList.add('copied');
+        setTimeout(()=>{ btn.textContent = orig; btn.classList.remove('copied'); }, 1600);
+      }
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(url).then(done).catch(()=> fallbackCopy(url, done));
+    } else {
+      fallbackCopy(url, done);
+    }
+  }
+  function fallbackCopy(url, done){
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try{ document.execCommand('copy'); done(); }catch(e){ showToast('کپی نشد — لینک را دستی انتخاب کنید'); }
+    document.body.removeChild(ta);
+  }
+
+  function openViewer(cat){
+    viewerTitle.textContent = cat.title;
+    viewerFrame.src = cat.url;
+    viewerOpenNewTab.href = cat.url;
+    viewerEl.classList.add('show');
+    viewerEl.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  function closeViewer(){
+    viewerEl.classList.remove('show');
+    viewerFrame.src = 'about:blank';
+  }
+  document.getElementById('viewerClose').addEventListener('click', closeViewer);
+
+  function render(){
+    listEl.innerHTML = CATALOGS.map((cat, i)=>`
+      <div class="cat-card">
+        <div class="cat-icon" style="background:#fff;"><img src="./catalog-icon.png" alt="کاتالوگ"></div>
+        <div class="cat-body">
+          <h2>${cat.title}</h2>
+          <p>${cat.desc}</p>
+        </div>
+        <div class="cat-actions">
+          <button type="button" class="cat-btn primary" data-act="view" data-i="${i}">🔍 نمایش کاتالوگ</button>
+          <button type="button" class="cat-btn" data-act="copy" data-i="${i}">🔗 کپی لینک</button>
+        </div>
+      </div>
+    `).join('');
+
+    listEl.querySelectorAll('.cat-btn').forEach(btn=>{
+      const cat = CATALOGS[Number(btn.getAttribute('data-i'))];
+      const act = btn.getAttribute('data-act');
+      if(act === 'view'){
+        btn.addEventListener('click', ()=> openViewer(cat));
+      } else {
+        btn.addEventListener('click', ()=> copyLink(cat.url, btn));
+      }
+    });
+  }
+
+  render();
+</script>
+</body>
+</html>

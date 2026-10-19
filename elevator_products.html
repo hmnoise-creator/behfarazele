@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script id="bfStaticMode">
+/* ===================== [BF-STATIC] نسخهٔ آنلاین بدون سرور (GitHub Pages) =====================
+   این بلوک قبل از هر کد دیگری اجرا می‌شود و یک «سرور محلی» داخل مرورگر می‌سازد:
+   • ورود حذف شده: نشست اپراتور خودکار ساخته می‌شود (نام زیر قابل تغییر است).
+   • همهٔ درخواست‌های /api/... به‌جای سرور شرکت، روی حافظهٔ همین مرورگر (localStorage) جواب داده می‌شوند:
+     سفارش‌ها، کارتابل، یادداشت‌ها، وضعیت لید، شمارهٔ پیش‌فاکتور، پیشنهاد نام مشتری و سفارش‌های باطل‌شده.
+   • حضور و غیاب، فوروارد بین همکاران و بک‌آپ سرور فقط در شبکهٔ دفتر کار می‌کنند.
+   برای برگرداندن یک فایل به حالت سرور دفتر، کافی است همین بلوک <script id="bfStaticMode"> را پاک کنید. */
+(function(){
+  if(window.BF_STATIC) return;
+  window.BF_STATIC = true;
+  var OPERATOR_NAME = 'بهفراز';          // ← نامی که روی پیش‌فاکتورها به‌عنوان «ثبت‌کننده» می‌آید
+  var SESSION_KEY = 'bf_operator_session_v1', DB_KEY = 'bf_static_server_v1';
+  var OFFICE_ONLY = 'این بخش فقط در سامانهٔ شبکهٔ دفتر (سرور شرکت) کار می‌کند.';
+
+  try{
+    var cur = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    if(!cur || !cur.token) sessionStorage.setItem(SESSION_KEY, JSON.stringify({ name: OPERATOR_NAME, token: 'static', display: OPERATOR_NAME }));
+  }catch(e){}
+
+  function op(){ try{ var o = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); return (o && o.name) || OPERATOR_NAME; }catch(e){ return OPERATOR_NAME; } }
+  function load(){ try{ var d = JSON.parse(localStorage.getItem(DB_KEY) || 'null'); if(d && d.orders) return d; }catch(e){} return { orders:{}, notes:{}, seq:{}, nid:1 }; }
+  function save(d){ try{ localStorage.setItem(DB_KEY, JSON.stringify(d)); }catch(e){} }
+  function now(){ return new Date().toISOString(); }
+  function tehDay(){ return new Date(Date.now() + 210*60000).toISOString().slice(0,10); }
+  function json(data, status){ return new Response(JSON.stringify(data), { status: status || 200, headers: { 'Content-Type': 'application/json' } }); }
+  function parseBody(b){ if(!b) return {}; if(typeof b === 'string'){ try{ return JSON.parse(b); }catch(e){ return {}; } } return {}; }
+
+  function api(path, query, method, body){
+    var d, m, row, list, q;
+    method = (method || 'GET').toUpperCase();
+    if(path === '/api/login') return json({ ok:true, name: (body.name || '').trim() || OPERATOR_NAME, token:'static', display: (body.name || '').trim() || OPERATOR_NAME });
+    if(path === '/api/logout') return json({ ok:true });
+    if(path === '/api/me') return json({ ok:true, name: op(), display: op() });
+    if(path === '/api/invoice-seq/next'){
+      d = load(); var k = (query.get('product') || 'all') + '|' + op() + '|' + tehDay();
+      d.seq[k] = (d.seq[k] || 0) + 1; save(d); return json({ ok:true, seq: d.seq[k] });
+    }
+    if(path === '/api/suggestions'){
+      q = (query.get('q') || '').trim().toLowerCase(); d = load(); var seen = {}, out = [];
+      Object.keys(d.orders).forEach(function(id){ var n = d.orders[id].customer_name; if(n && !seen[n] && (!q || n.toLowerCase().indexOf(q) >= 0)){ seen[n] = 1; out.push(n); } });
+      return json(out.slice(0, 12));
+    }
+    if(path === '/api/orders'){
+      d = load();
+      if(method === 'POST'){
+        if(body.id == null) return json({ ok:false, error:'شناسه ندارد' }, 400);
+        var id = String(body.id), old = d.orders[id] || {};
+        d.orders[id] = Object.assign({}, old, body, { id: id, operator: old.operator || body.operator || op(), created_at: old.created_at || now(), updated_at: now(), deleted_at: null });
+        save(d); return json({ ok:true, id: id });
+      }
+      var cats = (query.get('category') || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+      list = Object.keys(d.orders).map(function(k){ return d.orders[k]; })
+        .filter(function(r){ return !r.deleted_at && (!cats.length || cats.indexOf(r.category) >= 0); })
+        .map(function(r){ return Object.assign({}, r, { note_count: (d.notes[r.id] || []).length }); })
+        .sort(function(a,b){ return String(b.updated_at).localeCompare(String(a.updated_at)); });
+      return json(list);
+    }
+    if(path === '/api/reports/canceled'){
+      d = load();
+      list = Object.keys(d.orders).map(function(k){ return d.orders[k]; }).filter(function(r){ return r.deleted_at; }).map(function(r){
+        var p = r.payload || {};
+        return { id:r.id, category:r.category, total:r.total, customerName:r.customer_name, projectName:r.project_name, customerPhone:p.customerPhone || '',
+                 reason:r.delete_reason || '', note:r.delete_note || '', owner:r.operator, deletedBy:r.deleted_by, deletedAt:r.deleted_at };
+      });
+      return json({ ok:true, items:list });
+    }
+    m = path.match(/^\/api\/orders\/([^\/]+)(?:\/([^\/]+))?(?:\/([^\/]+))?$/);
+    if(m){
+      var oid = decodeURIComponent(m[1]), sub = m[2] || '', nid = m[3];
+      d = load(); row = d.orders[oid];
+      if(!sub){
+        if(method === 'DELETE'){
+          if(row){ row.deleted_at = now(); row.deleted_by = op(); row.delete_reason = body.reason || query.get('reason') || ''; row.delete_note = body.note || query.get('note') || ''; save(d); }
+          return json({ ok:true });
+        }
+        return row ? json(row) : json({ ok:false, error:'پیدا نشد' }, 404);
+      }
+      if(sub === 'permanent'){ delete d.orders[oid]; delete d.notes[oid]; save(d); return json({ ok:true }); }
+      if(sub === 'history') return json([]);
+      if(sub === 'lead-status'){
+        if(!row) return json({ ok:false, error:'پیدا نشد' }, 404);
+        row.lead_status = body.status || ''; row.lead_note = body.note || ''; row.lead_updated_at = now(); row.lead_updated_by = op(); save(d);
+        return json({ ok:true });
+      }
+      if(sub === 'notes'){
+        var arr = d.notes[oid] = d.notes[oid] || [];
+        if(method === 'POST'){ arr.push({ id: d.nid++, text: body.text || '', kind: body.kind || 'note', operator: op(), created_at: now() }); save(d); return json({ ok:true }); }
+        if(method === 'DELETE' && nid){ d.notes[oid] = arr.filter(function(n){ return String(n.id) !== String(nid); }); save(d); return json({ ok:true }); }
+        return json(arr);
+      }
+      if(sub === 'forward') return json({ ok:false, error: OFFICE_ONLY }, 400);
+    }
+    if(path === '/api/forwards/inbox' || path === '/api/notifications') return json([]);
+    if(/^\/api\/(notifications|forwards)\//.test(path)) return json({ ok:true });
+    if(path === '/api/account') return json({ ok:true, name: op(), display: op() });
+    return json({ ok:false, error: OFFICE_ONLY }, 503);
+  }
+
+  var realFetch = window.fetch ? window.fetch.bind(window) : null;
+  window.fetch = function(input, init){
+    var url = typeof input === 'string' ? input : (input && input.url) || '';
+    var u; try{ u = new URL(url, location.href); }catch(e){ u = null; }
+    var i = u ? u.pathname.indexOf('/api/') : -1;
+    if(!u || i < 0 || u.origin !== location.origin) return realFetch ? realFetch(input, init) : Promise.reject(new Error('no fetch'));
+    var method = (init && init.method) || (typeof input !== 'string' && input && input.method) || 'GET';
+    try{ return Promise.resolve(api(u.pathname.slice(i), u.searchParams, method, parseBody(init && init.body))); }
+    catch(e){ return Promise.resolve(json({ ok:false, error: String(e && e.message || e) }, 500)); }
+  };
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>محصولات آسانسور | بهفراز</title>
+<style>
+:root{--teal:#0f3d3a;--teal2:#134a45;--acc:#1e88e5;--acc2:#0d5fc0;--line:#dbe6f3;--muted:#6b7a78;--bg:#f2f6fa;--ok:#0f6e56;--bad:#c0392b}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:"Vazirmatn","Tahoma",sans-serif;background:var(--bg);color:#1a2b29;padding:18px 14px 80px;
+ background-image:radial-gradient(circle at 12% 0%,#dff0ee 0,transparent 38%),radial-gradient(circle at 92% 8%,#dbe9fb 0,transparent 36%)}
+.wrap{max-width:1080px;margin:0 auto}
+.hero{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,var(--teal),var(--teal2) 55%,#1b6a8a);color:#fff;border-radius:20px;padding:18px 22px;box-shadow:0 10px 28px rgba(15,61,58,.2);position:relative;overflow:hidden;margin-bottom:18px}
+.hero:after{content:"";position:absolute;left:-30px;top:-30px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.07)}
+.shaft{width:46px;height:62px;border:2px solid rgba(255,255,255,.55);border-radius:8px;position:relative;overflow:hidden;flex:0 0 auto;background:rgba(255,255,255,.08)}
+.cab{position:absolute;left:5px;right:5px;height:22px;border-radius:4px;background:#fff;bottom:4px;animation:ride 4.2s ease-in-out infinite}
+.cab:before{content:"";position:absolute;left:50%;top:3px;bottom:3px;width:2px;background:var(--teal);transform:translateX(-50%)}
+@keyframes ride{0%,100%{bottom:4px}50%{bottom:32px}}
+.hero h1{margin:0;font-size:1.25rem}
+.hero p{margin:3px 0 0;font-size:.8rem;opacity:.85}
+.hero .pill{margin-right:auto;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);padding:6px 13px;border-radius:20px;font-size:.75rem;font-weight:700;white-space:nowrap}
+.card{background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:18px 20px;margin-bottom:18px;box-shadow:0 2px 10px rgba(15,61,58,.05)}
+.card h2{margin:0 0 14px;font-size:1rem;color:var(--teal);display:flex;align-items:center;gap:8px}
+.card h2 .step{background:var(--teal);color:#fff;width:24px;height:24px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.75rem}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+label.f{display:block;font-size:.76rem;font-weight:700;color:#3a4d4a;margin-bottom:5px}
+.f .opt{color:var(--muted);font-weight:400}
+input,textarea,select{width:100%;font-family:inherit;font-size:.88rem;border:1.5px solid var(--line);border-radius:11px;padding:10px 12px;background:#fff;color:#1a2b29;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(30,136,229,.14)}
+input::placeholder{color:#9aa7a5}
+.span2{grid-column:span 2}.span3{grid-column:span 3}
+@media(max-width:760px){.span2,.span3{grid-column:auto}}
+.rel{position:relative}
+.sug{position:absolute;z-index:30;top:calc(100% + 4px);right:0;left:0;background:#fff;border:1.5px solid var(--acc);border-radius:12px;box-shadow:0 12px 28px rgba(13,95,192,.18);max-height:240px;overflow:auto;display:none}
+.sug.show{display:block}
+.sug div{padding:9px 12px;font-size:.84rem;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid #eef3f8}
+.sug div:last-child{border:0}
+.sug div:hover,.sug div.act{background:#eaf4ff}
+.sug .x{font-style:normal;cursor:pointer;padding:0 4px}
+.sug small{color:var(--muted);font-size:.7rem;white-space:nowrap}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;padding:10px;border-radius:11px;border:1.5px solid var(--line);background:#fff;font-family:inherit;font-weight:700;font-size:.85rem;cursor:pointer;color:#3a4d4a;transition:all .15s}
+.seg button.on{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff;border-color:var(--teal);box-shadow:0 4px 12px rgba(15,61,58,.25)}
+.hint{margin-top:10px;font-size:.76rem;background:#eaf6f2;color:var(--ok);border-radius:10px;padding:8px 12px;display:none}
+.hint.show{display:block}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 12px;align-items:center}
+.chips span.t{font-size:.72rem;color:var(--muted);font-weight:700}
+.chip{background:#eaf4ff;color:var(--acc2);border:1px solid #cfe3fb;border-radius:20px;padding:5px 12px;font-size:.76rem;cursor:pointer;font-family:inherit;font-weight:700}
+.chip:hover{background:var(--acc);color:#fff}
+.tbl-wrap{overflow-x:auto;border:1.5px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;min-width:820px}
+th{background:#e4eefb;color:var(--acc2);font-size:.8rem;padding:11px 8px;border-bottom:1.5px solid var(--line);border-left:1px solid var(--line)}
+td{padding:9px 8px;border-bottom:1px solid #edf2f8;border-left:1px solid #edf2f8;vertical-align:middle;text-align:center;font-size:.85rem}
+td.num{font-weight:800;color:var(--teal);width:42px}
+td input{padding:9px 10px}
+td.tot{font-weight:800;color:var(--teal);white-space:nowrap}
+.qty{max-width:78px;text-align:center}
+.btn{display:inline-flex;align-items:center;gap:6px;font-family:inherit;font-weight:700;font-size:.82rem;border-radius:11px;padding:9px 16px;cursor:pointer;border:1.5px solid var(--acc);background:#fff;color:var(--acc2);transition:all .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(30,136,229,.2)}
+.btn.pri{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border-color:var(--acc2)}
+.btn.sm{padding:8px 13px;font-size:.78rem}
+.btn.del{border-color:#f3c9c4;background:#fdeceb;color:var(--bad);padding:8px 11px}
+.btn.grn{background:linear-gradient(135deg,#17936f,#0f6e56);border-color:#0f6e56;color:#fff}
+.btn.ghost{border-color:var(--line);color:#3a4d4a}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.note{font-size:.75rem;color:var(--muted);margin-top:12px;line-height:1.9}
+.empty{padding:26px;text-align:center;color:var(--muted);font-size:.86rem}
+.sum{display:grid;grid-template-columns:1fr 330px;gap:18px;margin-top:16px}
+@media(max-width:760px){.sum{grid-template-columns:1fr}}
+.sumbox{background:linear-gradient(180deg,#f6fbfa,#eef6f4);border:1.5px solid #cfe4df;border-radius:14px;padding:14px 16px}
+.sumbox .r{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:.85rem}
+.sumbox .r.g{border-top:1.5px dashed #b9d4cd;margin-top:6px;padding-top:12px;font-size:1.02rem;font-weight:800;color:var(--teal)}
+.sumbox input{width:90px;padding:6px 8px;text-align:center}
+.tick{display:flex;align-items:center;gap:8px;font-size:.82rem;cursor:pointer}
+.tick input{width:auto}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#12302d;color:#fff;padding:11px 20px;border-radius:12px;font-size:.84rem;opacity:0;pointer-events:none;transition:all .25s;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.saved{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border:1.5px solid var(--line);border-radius:13px;padding:10px 14px;margin-bottom:9px;background:#fbfdff}
+.saved b{color:var(--teal)}
+.saved small{color:var(--muted);display:block;margin-top:2px}
+.edit-banner{display:none;background:#fff4e0;border:1.5px solid #f0d9ae;color:#a6690a;border-radius:12px;padding:9px 14px;font-size:.82rem;font-weight:700;margin-bottom:14px}
+.edit-banner.show{display:block}
+.rowsWrap{overflow:visible;min-height:340px;padding-bottom:230px}
+.rowsWrap table{min-width:0}
+.rowsWrap .sug{max-height:260px;z-index:60}
+@media(max-width:900px){.rowsWrap{overflow-x:auto;padding-bottom:260px}.rowsWrap table{min-width:820px}}
+#printArea{display:none}
+@media print{
+ @page{size:A4;margin:10mm}
+ *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ body{background:#fff!important;padding:0;background-image:none!important}
+ .wrap,.toast{display:none!important}
+ #printArea{display:block;direction:rtl;font-family:"Vazirmatn","Tahoma",sans-serif;color:#1a2b29}
+ #printArea .ph{background:linear-gradient(135deg,#0f3d3a,#134a45 55%,#1b6a8a);color:#fff;border-radius:14px;padding:14px 20px;text-align:center}
+ #printArea .ph .t1{font-size:16px;font-weight:800}
+ #printArea .ph .t2{font-size:19px;font-weight:800;margin-top:5px;color:#bff0e6}
+ #printArea .valid{margin:10px 0 0;border:2px solid #d32f2f;border-radius:12px;color:#d32f2f;font-weight:800;font-size:15px;text-align:center;padding:11px 8px;background:#fff5f5}
+ #printArea .info{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+ #printArea .info div{background:#f2f8f7;border:1px solid #cfe4df;border-right:4px solid #1e88e5;border-radius:9px;padding:7px 11px;font-size:12px}
+ #printArea .info .w2{grid-column:1/-1}
+ #printArea .info b{color:#0f3d3a}
+ #printArea table{width:100%;min-width:0;border-collapse:separate;border-spacing:0;border:1px solid #b9d4cd;border-radius:10px;overflow:hidden;font-size:12px}
+ #printArea th{background:linear-gradient(135deg,#0f3d3a,#134a45);color:#fff;padding:9px 6px;font-size:12px;border:0;border-left:1px solid rgba(255,255,255,.2)}
+ #printArea td{padding:8px 6px;text-align:center;border:0;border-bottom:1px solid #e1ece9;border-left:1px solid #e1ece9;color:#1a2b29;background:#fff}
+ #printArea tbody tr:nth-child(even) td{background:#f2f8f7}
+ #printArea td.n{font-weight:800;color:#0f3d3a;width:30px}
+ #printArea td.r{text-align:right}
+ #printArea td.t{font-weight:800;color:#0f3d3a;white-space:nowrap}
+ #printArea tr{page-break-inside:avoid}
+ #printArea .tots{margin:14px 0 0 auto;width:52%;border:1px solid #b9d4cd;border-radius:10px;overflow:hidden;font-size:12.5px}
+ #printArea .tots div{display:flex;justify-content:space-between;padding:7px 12px;border-bottom:1px solid #e1ece9;background:#fff}
+ #printArea .tots .g{background:linear-gradient(135deg,#1e88e5,#0d5fc0);color:#fff;font-weight:800;font-size:14.5px;border:0}
+ #printArea .note2{margin-top:12px;background:#fff8e8;border:1px solid #f0d9ae;border-radius:9px;padding:8px 12px;font-size:12px;line-height:1.9}
+ #printArea .sig{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:26px}
+ #printArea .sig div{border:1px dashed #9db8b3;border-radius:10px;height:72px;padding:8px 12px;font-size:12px;color:#3a4d4a}
+ #printArea .terms{margin-top:14px;border:1px solid #cfe4df;border-radius:10px;background:#f7fbfa;padding:9px 14px;font-size:11px;line-height:1.95;color:#2a3b39;page-break-inside:avoid}
+ #printArea .terms b{color:#0f3d3a;font-size:12px}
+ #printArea .terms ol{margin:3px 0 0;padding:0 18px 0 0}
+ #printArea .terms .thx{margin-top:5px;text-align:center;font-weight:800;color:#0f3d3a;font-size:12px}
+ #printArea .ft{margin-top:14px;text-align:center;font-size:10.5px;color:#6b7a78;border-top:1px solid #cfe4df;padding-top:6px}
+ #printArea h1.rt{text-align:center;font-size:20px;margin:0 0 4px;color:#0f3d3a}
+ #printArea .sub{text-align:center;font-size:12px;margin-bottom:12px;color:#333}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="hero">
+    <div class="shaft"><div class="cab"></div></div>
+    <div>
+      <h1>محصولات آسانسور</h1>
+      <p>ثبت پیش‌فاکتور هوشمند — مشتری و محصول‌ها به‌خاطر سپرده می‌شوند و به کارتابل سفارشات وصل است</p>
+    </div>
+    <span class="pill" id="memPill">🧠 حافظه: ۰ مشتری · ۰ محصول</span>
+  </div>
+
+  <div class="edit-banner" id="editBanner">✏️ در حال ویرایش یک پیش‌فاکتور ثبت‌شده — پس از اصلاح، «ذخیره» را بزنید.</div>
+
+  <!-- ۱. مشخصات مشتری -->
+  <div class="card">
+    <h2><span class="step">۱</span> مشخصات مشتری</h2>
+    <div class="grid">
+      <div class="rel">
+        <label class="f">نام خریدار</label>
+        <input id="cName" placeholder="نام را تایپ کنید؛ مشتری‌های قبلی خودکار پیشنهاد می‌شوند" autocomplete="off">
+        <div class="sug" id="cSug"></div>
+      </div>
+      <div class="rel">
+        <label class="f">نام پروژه</label>
+        <input id="cProject" placeholder="نام پروژه" autocomplete="off">
+        <div class="sug" id="pSug"></div>
+      </div>
+      <div>
+        <label class="f">تماس</label>
+        <input id="cPhone" inputmode="tel" placeholder="شماره تماس" autocomplete="off">
+      </div>
+      <div class="span2">
+        <label class="f">آدرس پروژه</label>
+        <input id="cAddress" placeholder="آدرس پروژه" autocomplete="off">
+      </div>
+      <div>
+        <label class="f">شماره پیش‌فاکتور <span class="opt">(پیش‌فرض: تاریخ امروز، قابل ویرایش)</span></label>
+        <input id="cManual" placeholder="مثلاً ۱۴۰۵/۱۲۳" autocomplete="off">
+      </div>
+      <div class="span3">
+        <label class="f">نوع مشتری</label>
+        <div class="seg" id="typeSeg">
+          <button type="button" data-v="partner">🤝 همکار</button>
+          <button type="button" data-v="employer">🏢 کارفرما</button>
+        </div>
+      </div>
+    </div>
+    <div class="hint" id="custHint"></div>
+  </div>
+
+  <!-- ۲. ردیف محصولات -->
+  <div class="card">
+    <h2><span class="step">۲</span> ثبت محصول</h2>
+    <div class="chips" id="freqChips"></div>
+    <div class="tbl-wrap rowsWrap">
+      <table>
+        <thead><tr>
+          <th style="width:42px">#</th><th>نام محصول</th><th>مشخصات</th><th style="width:100px">تعداد</th>
+          <th style="width:150px">قیمت واحد (ریال)</th><th style="width:140px">جمع (ریال)</th><th style="width:220px"></th>
+        </tr></thead>
+        <tbody id="rowsBody"></tbody>
+      </table>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="addRow()">➕ افزودن ردیف</button>
+      <button class="btn pri" onclick="addAllToInvoice()">✅ افزودن همه به فاکتور</button>
+    </div>
+    <div class="note">تعداد ردیف‌ها محدودیتی ندارد. هر ردیف پس از «افزودن به فاکتور» در فاکتور جاری و چاپ (پیش‌فاکتور) درج می‌شود. نام و قیمت هر محصول در حافظه می‌ماند و دفعه بعد با تایپ چند حرف خودکار پیشنهاد می‌شود.</div>
+  </div>
+
+  <!-- ۳. فاکتور جاری -->
+  <div class="card">
+    <h2><span class="step">۳</span> فاکتور جاری</h2>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:42px">#</th><th>نام محصول</th><th>مشخصات</th><th style="width:90px">تعداد</th><th style="width:140px">قیمت واحد</th><th style="width:140px">جمع</th><th style="width:60px"></th></tr></thead>
+        <tbody id="invBody"></tbody>
+      </table>
+    </div>
+    <div class="sum">
+      <div>
+        <label class="f">توضیحات فاکتور <span class="opt">(اختیاری)</span></label>
+        <textarea id="cNote" rows="4" placeholder="شرایط پرداخت، زمان تحویل، ..."></textarea>
+      </div>
+      <div class="sumbox">
+        <div class="r"><span>جمع اقلام</span><b id="sSub">۰</b></div>
+        <div class="r"><span>درصد تخفیف</span><span><input id="cDisc" inputmode="decimal" value="۰"> ٪</span></div>
+        <div class="r"><span>مبلغ تخفیف</span><b id="sDisc">۰</b></div>
+        <div class="r"><label class="tick"><input type="checkbox" id="cVat"> فاکتور رسمی (ارزش افزوده ۱۰٪)</label><b id="sVat">۰</b></div>
+        <div class="r g"><span>مبلغ نهایی (ریال)</span><span id="sGrand">۰</span></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn grn" onclick="saveOrder()">💾 ذخیره پیش‌فاکتور</button>
+      <button class="btn" onclick="printInvoice()">🖨️ چاپ پیش‌فاکتور</button>
+      <button class="btn ghost" onclick="sendToFactorPlus()">🧾 افزودن به فاکتور پلاس</button>
+      <button class="btn ghost" onclick="resetAll(true)">🧹 فاکتور جدید</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🗂️ بایگانی و گزارش پیش‌فاکتورها <small id="repCount" style="color:var(--muted);font-weight:400"></small></h2>
+    <div class="grid" style="margin-bottom:12px">
+      <div class="span2"><input id="repQ" placeholder="🔍 جستجوی مشتری، پروژه، محصول یا شماره پیش‌فاکتور..." autocomplete="off"></div>
+      <div><select id="repSort"><option value="new">جدیدترین</option><option value="old">قدیمی‌ترین</option><option value="big">بیشترین مبلغ</option></select></div>
+    </div>
+    <div id="savedList"></div>
+    <div class="sumbox" style="margin-top:10px"><div class="r"><span>تعداد پیش‌فاکتور (طبق فیلتر)</span><b id="repN">۰</b></div><div class="r g"><span>جمع مبلغ (ریال)</span><span id="repSum">۰</span></div></div>
+    <div class="actions"><button class="btn pri" onclick="printReport()">🖨️ چاپ گزارش</button><button class="btn grn" onclick="exportCsv()">📊 خروجی Excel</button></div>
+    <div class="note">پیش‌فاکتورهای ذخیره‌شده در سامانه (همهٔ کاربران) و در کارتابل سفارشات هم دیده می‌شوند.</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="printArea"></div>
+
+<script id="bfOutboxScript">
+/* ===== [BF-OUTBOX-BEGIN] صف ارسال مطمئن به سرور (Outbox) =====
+   مشکل قبلی: اگر هنگام ذخیره/حذف پیش‌فاکتور سرور یا شبکه لحظه‌ای در دسترس نبود، فقط یک پیام خطا
+   نشان داده می‌شد و سفارش فقط در حافظهٔ همان تب می‌ماند؛ با بستن ابزار یا همگام‌سازی بعدی، برای همیشه گم می‌شد.
+   حالا: هر ذخیره/حذف «اول» روی دیسک مرورگر (کلید bf_sync_outbox_v1) نوشته می‌شود و بعد ارسال می‌شود.
+   اگر ارسال نشد، در صف می‌ماند و خودکار دوباره ارسال می‌شود (هر چند ثانیه، با وصل‌شدن شبکه، با برگشتن به تب
+   و با باز شدن هر صفحه از سامانه). تا وقتی در صف است، در فهرست‌ها همان نسخهٔ صف نمایش داده می‌شود.
+   این بلوک در همهٔ صفحه‌های سامانه عیناً یکسان است. */
+(function(){
+  if(window.bfOutbox) return;
+  var KEY = 'bf_sync_outbox_v1', LOCK = 'bf_sync_outbox_lock_v1', SESSION_KEY = 'bf_operator_session_v1';
+  var ME = Math.random().toString(36).slice(2);
+  var memQ = null;          // اگر نوشتن روی دیسک ممکن نبود (پر بودن فضا)، صف موقتاً در حافظهٔ همین صفحه می‌ماند
+  var timer = null, delay = 4000, flushing = false, authWaiting = false, deliveredSinceFail = 0;
+
+  function load(){ try{ var q = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(q) ? q : []; }catch(e){ return []; } }
+  function save(q){
+    try{
+      if(q.length) localStorage.setItem(KEY, JSON.stringify(q)); else localStorage.removeItem(KEY);
+      memQ = null; return true;
+    }catch(e){ memQ = q; return false; }
+  }
+  function getQ(){ return memQ || load(); }
+  function sid(v){ return String(v == null ? '' : v); }
+  function token(){ try{ var o = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); return (o && o.token) || ''; }catch(e){ return ''; } }
+
+  /* ---- پیام و نشانگر کوچک «در صف ارسال» ---- */
+  function onBody(fn){ if(document.body) fn(); else document.addEventListener('DOMContentLoaded', fn); }
+  function toast(msg, bad){
+    onBody(function(){
+      var t = document.getElementById('bfOutboxToast');
+      if(!t){
+        t = document.createElement('div'); t.id = 'bfOutboxToast';
+        t.style.cssText = 'position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:2147483000;max-width:92vw;padding:10px 16px;border-radius:10px;font:700 13px/1.8 Tahoma,Vazirmatn,sans-serif;direction:rtl;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25);transition:opacity .25s;pointer-events:none;';
+        document.body.appendChild(t);
+      }
+      t.style.background = bad ? '#8a2b20' : '#0f3d3a'; t.style.color = '#fff';
+      t.textContent = msg; t.style.opacity = '1';
+      clearTimeout(toast._t); toast._t = setTimeout(function(){ t.style.opacity = '0'; }, 4500);
+    });
+  }
+  function fa(n){ return String(n).replace(/\d/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'[d]; }); }
+  function paintBadge(){
+    onBody(function(){
+      var n = getQ().length, b = document.getElementById('bfOutboxBadge');
+      if(!n){ if(b) b.remove(); return; }
+      if(!b){
+        b = document.createElement('div'); b.id = 'bfOutboxBadge';
+        b.title = 'این موارد هنوز به سرور نرسیده‌اند و خودکار دوباره ارسال می‌شوند. برای ارسال فوری کلیک کنید.';
+        b.style.cssText = 'position:fixed;bottom:12px;left:12px;z-index:2147482999;background:#a15c00;color:#fff;padding:6px 12px;border-radius:20px;font:700 12px/1.6 Tahoma,Vazirmatn,sans-serif;direction:rtl;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.25);';
+        b.onclick = function(){ delay = 4000; flush(); };
+        document.body.appendChild(b);
+      }
+      b.textContent = '⏳ ' + fa(n) + ' مورد در صف ارسال به سرور' + (memQ ? ' — صفحه را نبندید' : '');
+    });
+  }
+  try{ var st = document.createElement('style'); st.textContent = '@media print{#bfOutboxBadge,#bfOutboxToast{display:none!important}}'; (document.head || document.documentElement).appendChild(st); }catch(e){}
+
+  /* ---- قفل بین صفحه‌ها (صفحهٔ اصلی + iframe ابزارها) تا یک مورد هم‌زمان از دو جا ارسال نشود ---- */
+  function lock(){
+    try{
+      var l = JSON.parse(localStorage.getItem(LOCK) || 'null');
+      if(l && l.o !== ME && l.u > Date.now()) return false;
+      localStorage.setItem(LOCK, JSON.stringify({ o: ME, u: Date.now() + 30000 }));
+      return true;
+    }catch(e){ return true; }
+  }
+  function unlock(){ try{ var l = JSON.parse(localStorage.getItem(LOCK) || 'null'); if(l && l.o === ME) localStorage.removeItem(LOCK); }catch(e){} }
+
+  /* ---- یک ارسال: 'ok' | 'retry' (شبکه/سرور) | 'auth' (نشست نامعتبر) | 'drop' (درخواست نامعتبر؛ تکرار بی‌فایده است) ---- */
+  function attempt(item){
+    var h = { 'Content-Type': 'application/json' }, t = token();
+    if(!t) return Promise.resolve('auth');
+    h['x-operator-token'] = t;
+    var ctl = (typeof AbortController === 'function') ? new AbortController() : null;
+    var to = ctl ? setTimeout(function(){ ctl.abort(); }, 20000) : null;
+    return fetch(item.url, { method: item.method, headers: h, body: item.body != null ? JSON.stringify(item.body) : undefined, signal: ctl ? ctl.signal : undefined })
+      .then(function(res){
+        if(res.ok) return 'ok';
+        if(res.status === 401) return 'auth';
+        if(res.status === 408 || res.status === 429 || res.status >= 500) return 'retry';
+        return 'drop';
+      }, function(){ return 'retry'; })
+      .then(function(r){ if(to) clearTimeout(to); return r; });
+  }
+  // نتیجه را روی صف اعمال می‌کند؛ اگر در این فاصله نسخهٔ تازه‌تری از همین سفارش در صف آمده باشد، به آن دست نمی‌زند
+  function settle(item, r){
+    var q = getQ(), i = -1;
+    for(var k = 0; k < q.length; k++){ if(sid(q[k].id) === sid(item.id) && q[k].at === item.at){ i = k; break; } }
+    if(i < 0) return;
+    if(r === 'ok' || r === 'drop') q.splice(i, 1); else q[i].tries = (q[i].tries || 0) + 1;
+    save(q);
+  }
+  function needAuth(){
+    if(authWaiting) return;
+    if(typeof window.bfOutboxOnAuth === 'function'){
+      authWaiting = true;
+      Promise.resolve().then(window.bfOutboxOnAuth).then(function(){ authWaiting = false; delay = 4000; schedule(800); }, function(){ authWaiting = false; });
+    }
+  }
+  function schedule(ms){
+    clearTimeout(timer);
+    if(!getQ().length){ paintBadge(); return; }
+    timer = setTimeout(flush, ms != null ? ms : delay);
+    paintBadge();
+  }
+  function done(){ try{ window.dispatchEvent(new CustomEvent('bf-outbox-delivered')); }catch(e){} }
+
+  function flush(){
+    if(flushing) return Promise.resolve();
+    var q = getQ();
+    if(!q.length){ paintBadge(); return Promise.resolve(); }
+    if(!token()){ schedule(5000); return Promise.resolve(); }   // هنوز وارد نشده؛ بعد از ورود ارسال می‌شود
+    if(!lock()){ schedule(6000); return Promise.resolve(); }   // صفحهٔ دیگری در حال ارسال است
+    flushing = true;
+    var ids = q.map(function(x){ return sid(x.id); }), sent = 0, stop = null;
+    function next(){
+      if(stop || !ids.length) return Promise.resolve();
+      var id = ids.shift(), cur = null, qq = getQ();
+      for(var k = 0; k < qq.length; k++) if(sid(qq[k].id) === id){ cur = qq[k]; break; }
+      if(!cur) return next();
+      return attempt(cur).then(function(r){
+        settle(cur, r);
+        if(r === 'ok') sent++;
+        else if(r === 'drop'){ if(typeof window.bfSyncFailToast === 'function') window.bfSyncFailToast(); }
+        else stop = r;
+        return next();
+      });
+    }
+    return next().then(function(){
+      flushing = false; unlock();
+      if(sent){ deliveredSinceFail += sent; done(); }
+      if(stop === 'auth') needAuth();
+      if(getQ().length){
+        if(stop === 'retry') delay = Math.min(delay * 2, 60000);
+        schedule();
+      } else {
+        delay = 4000; paintBadge();
+        if(deliveredSinceFail){ toast('✅ ' + fa(deliveredSinceFail) + ' مورد از صف ارسال با موفقیت روی سرور ثبت شد'); deliveredSinceFail = 0; }
+      }
+    });
+  }
+
+  /* ---- ارسال یک ذخیره/حذف: اول روی دیسک در صف، بعد ارسال فوری ----
+     item = { id, op:'upsert'|'delete', method, url, body, quiet? }
+     خروجی (Promise): 'ok' | 'queued' | 'auth' | 'drop' */
+  function send(item){
+    var quiet = !!item.quiet;
+    item = { id: sid(item.id), op: item.op, method: item.method, url: item.url, body: item.body, at: Date.now(), tries: 0 };
+    var q = getQ().filter(function(x){ return sid(x.id) !== item.id; });   // نسخهٔ قدیمی‌ترِ همین سفارش جایگزین می‌شود
+    q.push(item);
+    var onDisk = save(q);
+    if(!onDisk) toast('⚠️ فضای مرورگر پر است؛ این مورد فقط تا وقتی همین صفحه باز است در صف می‌ماند', true);
+    paintBadge();
+    return attempt(item).then(function(r){
+      settle(item, r);
+      if(r === 'ok'){ paintBadge(); if(getQ().length) schedule(1500); return 'ok'; }
+      if(r === 'drop'){ paintBadge(); if(typeof window.bfSyncFailToast === 'function') window.bfSyncFailToast(); return 'drop'; }
+      if(r === 'auth'){ needAuth(); schedule(5000); return 'auth'; }
+      if(!quiet) toast('⚠️ سرور در دسترس نیست — این مورد در صف ارسال نگه داشته شد و به‌محض وصل‌شدن، خودکار ثبت می‌شود', true);
+      schedule(); return 'queued';
+    });
+  }
+
+  function has(id, op){ id = sid(id); return getQ().some(function(x){ return sid(x.id) === id && (!op || x.op === op); }); }
+
+  /* لیست سفارش‌های سرور (خروجی /api/orders) را با صف اعمال می‌کند:
+     • سفارشی که حذفش در صف است، از لیست برداشته می‌شود
+     • سفارشی که ذخیره/ویرایشش در صف است، با نسخهٔ صف جایگزین/اضافه می‌شود (وضعیت لید و تعداد یادداشتِ سرور حفظ می‌شود) */
+  function overlay(rows){
+    var q = getQ();
+    if(!q.length || !Array.isArray(rows)) return rows;
+    var pend = {}; q.forEach(function(x){ pend[sid(x.id)] = x; });
+    var byId = {};
+    var out = rows.filter(function(r){ var p = pend[sid(r.id)]; if(p){ byId[sid(r.id)] = r; return false; } return true; });
+    var add = [];
+    q.forEach(function(x){
+      if(x.op !== 'upsert' || !x.body) return;
+      var b = x.body, old = byId[sid(x.id)] || {};
+      add.push(Object.assign({}, old, {
+        id: sid(x.id),
+        category: b.category != null ? b.category : (old.category || ''),
+        customer_name: b.customer_name != null ? b.customer_name : (old.customer_name || ''),
+        project_name: b.project_name != null ? b.project_name : (old.project_name || ''),
+        order_date: b.order_date != null ? b.order_date : (old.order_date || ''),
+        total: Number(b.total) || 0,
+        lead_status: old.lead_status || 'pending',
+        note_count: old.note_count || 0,
+        payload: b.payload != null ? b.payload : b,
+        __pending: true
+      }));
+    });
+    return add.reverse().concat(out);
+  }
+
+  window.bfOutbox = { send: send, flush: flush, has: has, overlay: overlay, count: function(){ return getQ().length; } };
+
+  window.addEventListener('online', function(){ delay = 4000; schedule(500); });
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden && getQ().length){ delay = 4000; schedule(500); } });
+  window.addEventListener('storage', function(e){ if(e.key === KEY) paintBadge(); });
+  window.addEventListener('pagehide', unlock);
+  setTimeout(function(){ schedule(1500); }, 0);
+})();
+/* ===== [BF-OUTBOX-END] ===== */
+</script>
+<script id="bfDraftScript">
+/* ===== [BF-DRAFT-BEGIN] ادامهٔ پیش‌فاکتور نیمه‌کاره =====
+   اگر اپراتور وسط صدور پیش‌فاکتور یک محصول، از آن خارج شود (رفتن سراغ محصول دیگر، بستن تب، رفرش، قطع برق مرورگر)،
+   وضعیت همان لحظه (مشتری + سبد/اقلام + انتخاب‌های مرحله‌به‌مرحله + تخفیف و توضیحات) روی همین مرورگر نگه داشته می‌شود.
+   دفعهٔ بعد که همان محصول باز شود، پرسیده می‌شود: «ادامهٔ همان پیش‌فاکتور» یا «سفارش جدید».
+   • جدا برای هر اپراتور و هر محصول (کلید bf_draft_v1|محصول|اپراتور) — حداکثر ۷ روز نگه داشته می‌شود
+   • با «ذخیرهٔ» واقعی پیش‌فاکتور، نسخهٔ نیمه‌کاره پاک می‌شود (کار تمام شده است)
+   • اگر کاربر هنوز چیزی وارد/انتخاب نکرده باشد، چیزی ذخیره نمی‌شود و سؤالی هم پرسیده نمی‌شود
+   هر ابزار فقط یک «آداپتور» می‌دهد: capture() = عکس فوری وضعیت، restore(state) = بازسازی همان وضعیت
+   (با همان توابعی که خود ابزار برای «ویرایش پیش‌فاکتور ذخیره‌شده» استفاده می‌کند). این بلوک در همهٔ ابزارها یکسان است. */
+(function(){
+  if(window.bfDraft) return;
+  var PREFIX = 'bf_draft_v1|', SESSION_KEY = 'bf_operator_session_v1', MAX_AGE = 7 * 24 * 3600 * 1000;
+  var A = null, baseSig = null, ready = false, timer = null, busy = false;
+
+  function opName(){ try{ var o = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); return (o && o.name) || ''; }catch(e){ return ''; } }
+  function key(){ return PREFIX + A.product + '|' + (opName() || '_'); }
+  function readDraft(){ try{ var d = JSON.parse(localStorage.getItem(key()) || 'null'); return (d && d.state) ? d : null; }catch(e){ return null; } }
+  function removeDraft(){ try{ localStorage.removeItem(key()); }catch(e){} }
+  function fa(n){ return String(n).replace(/\d/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'[d]; }); }
+  function esc(v){ return String(v == null ? '' : v).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  function clean(v){ v = (v == null ? '' : String(v)).trim(); return (v && v !== '—' && v !== '-') ? v : ''; }
+
+  function capture(){ try{ return A.capture() || null; }catch(e){ try{ console.warn('[bfDraft] capture failed', e); }catch(_){} return null; } }
+  // امضای «آیا چیزی واقعاً عوض شده؟» — فیلدهایی که خودکار پر می‌شوند (مثل شمارهٔ پیش‌فاکتور) در آن حساب نمی‌شوند
+  function sigOf(c){
+    if(!c) return '';
+    var s = {};
+    for(var k in c.state){ if((A.sigOmit || []).indexOf(k) < 0) s[k] = c.state[k]; }
+    try{ return JSON.stringify(s); }catch(e){ return ''; }
+  }
+
+  function persist(){
+    if(!ready || busy || !A) return;
+    var c = capture(); if(!c) return;
+    if(sigOf(c) === baseSig){ removeDraft(); return; }   // هنوز کاری انجام نشده (یا همان وضعیت ذخیره‌شده)
+    var d = { v: 1, product: A.product, label: A.label, ts: Date.now(), customer: clean(c.customer), summary: c.summary || '', editing: c.editing || null, state: c.state };
+    try{ localStorage.setItem(key(), JSON.stringify(d)); }catch(e){ /* فضای مرورگر پر است؛ پیش‌نویس نگه داشته نمی‌شود */ }
+  }
+  function schedule(){ if(!ready) return; clearTimeout(timer); timer = setTimeout(persist, 450); }
+
+  /* ---- پنجرهٔ پرسش «ادامه یا سفارش جدید» ---- */
+  function ask(d, onContinue, onNew){
+    var row = function(k, v){ return '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #eef3f2;"><span style="flex:0 0 auto;white-space:nowrap;color:#6b7a78;">' + k + '</span><b style="flex:1;color:#1a2b29;font-weight:700;">' + (v ? esc(v) : '—') + '</b></div>'; };
+    var ov = document.createElement('div');
+    ov.id = 'bfDraftAsk';
+    ov.style.cssText = 'position:fixed;inset:0;z-index:2147483100;background:rgba(10,30,28,.6);display:flex;align-items:center;justify-content:center;padding:16px;direction:rtl;font-family:inherit;';
+    ov.innerHTML =
+      '<div role="dialog" aria-modal="true" style="background:#fff;border-radius:14px;max-width:400px;width:100%;padding:18px 20px 16px;box-shadow:0 18px 50px rgba(0,0,0,.35);font-family:inherit;font-size:.88rem;">' +
+        '<h3 style="margin:0 0 8px;font-size:1rem;color:#0f3d3a;">پیش‌فاکتور نیمه‌کاره داشتید' + (d.editing ? ' <small style="font-weight:600;color:#a15c00;">(ویرایش)</small>' : '') + '</h3>' +
+        row('اسم مشتری', d.customer) + row('نوع محصول', d.label) + row('مشخصات محصول', d.summary) +
+        '<div style="display:flex;gap:8px;margin-top:14px;">' +
+          '<button type="button" data-a="go" style="flex:1;padding:10px;border-radius:10px;border:0;background:#0f6e56;color:#fff;font:inherit;font-weight:800;cursor:pointer;">ادامهٔ همین پیش‌فاکتور</button>' +
+          '<button type="button" data-a="new" style="flex:1;padding:10px;border-radius:10px;border:2px solid #0f3d3a;background:#fff;color:#0f3d3a;font:inherit;font-weight:800;cursor:pointer;">سفارش جدید</button>' +
+        '</div>' +
+      '</div>';
+    ov.addEventListener('click', function(e){
+      var b = e.target.closest && e.target.closest('[data-a]'); if(!b) return;
+      ov.remove();
+      if(b.getAttribute('data-a') === 'go') onContinue(); else onNew();
+    });
+    document.body.appendChild(ov);
+    try{ ov.querySelector('[data-a="go"]').focus(); }catch(e){}
+  }
+  function note(msg, bad){
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:2147483000;max-width:92vw;padding:10px 16px;border-radius:10px;font:700 13px/1.8 Tahoma,Vazirmatn,sans-serif;direction:rtl;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.25);color:#fff;background:' + (bad ? '#8a2b20' : '#0f3d3a') + ';transition:opacity .3s;';
+    t.textContent = msg; document.body.appendChild(t);
+    setTimeout(function(){ t.style.opacity = '0'; setTimeout(function(){ t.remove(); }, 400); }, 3500);
+  }
+
+  function begin(){
+    var fresh = capture();
+    baseSig = sigOf(fresh);
+    var editMode = /[?&]editId=/.test(location.search);   // از داشبورد مستقیم برای ویرایش یک سفارش مشخص باز شده
+    var d = editMode ? null : readDraft();
+    if(d && (Date.now() - (d.ts || 0)) > MAX_AGE){ removeDraft(); d = null; }
+    if(!d){ ready = true; return; }
+    ask(d, function(){
+      busy = true;
+      var ok = true;
+      try{ A.restore(d.state); }catch(e){ ok = false; try{ console.error('[bfDraft] restore failed', e); }catch(_){} }
+      busy = false; ready = true;
+      persist();   // مبنا همان صفحهٔ تازه است؛ پس پیش‌نویس بازسازی‌شده تا ذخیره یا «سفارش جدید» باقی می‌ماند
+      note(ok ? '✅ پیش‌فاکتور نیمه‌کاره بازسازی شد؛ از همان‌جا ادامه دهید' : '⚠️ بخشی از پیش‌فاکتور نیمه‌کاره قابل بازسازی نبود؛ لطفاً موارد را بررسی کنید', !ok);
+    }, function(){
+      removeDraft(); ready = true;
+    });
+  }
+
+  window.bfDraft = {
+    fa: fa,
+    // متن گزینهٔ انتخاب‌شدهٔ یک لیست کشویی (برای «مشخصات محصول» در پنجرهٔ پرسش)
+    optText: function(id){ var el = document.getElementById(id); if(!el || !el.value || el.selectedIndex < 0) return ''; var o = el.options[el.selectedIndex]; return o ? o.text.trim() : ''; },
+    join: function(parts){ return parts.filter(function(x){ return x; }).join(' · '); },
+    /* adapter = { product, label, capture(): {state, customer, summary, editing}, restore(state), sigOmit:[...] } */
+    init: function(adapter){
+      if(A) return; A = adapter;
+      ['input', 'change', 'click', 'keyup'].forEach(function(ev){ document.addEventListener(ev, schedule, true); });
+      window.addEventListener('pagehide', persist);
+      window.addEventListener('beforeunload', persist);
+      document.addEventListener('visibilitychange', function(){ if(document.hidden) persist(); });
+      setInterval(persist, 15000);
+      // بعد از هر «ذخیرهٔ» واقعی پیش‌فاکتور، نسخهٔ نیمه‌کاره پاک و مبنا به‌روز می‌شود
+      if(typeof window.bfMarkSaved === 'function'){
+        var orig = window.bfMarkSaved;
+        window.bfMarkSaved = function(){
+          var r = orig.apply(this, arguments);
+          try{ var c = capture(); if(c) baseSig = sigOf(c); removeDraft(); }catch(e){}
+          return r;
+        };
+      }
+      // صبر تا ورود اپراتور و آماده‌شدن کامل صفحه
+      var tries = 0;
+      (function wait(){
+        if(document.readyState === 'complete' && opName()){ setTimeout(begin, 700); return; }
+        if(++tries > 400){ return; }   // حدود ۲ دقیقه بدون ورود — این بار بی‌خیال
+        setTimeout(wait, 300);
+      })();
+    },
+    // ابزار کمکی: مقداردهی فیلدهای فرم به‌ترتیب، با رویداد input/change (برای لیست‌های آبشاری که گزینه‌هایشان بعد از انتخاب قبلی ساخته می‌شود)؛
+    // silent=true یعنی بدون رویداد (برای فیلدهای متنی مثل نام مشتری، تا پیشنهاد خودکار باز نشود)
+    readFields: function(ids){
+      var out = {};
+      ids.forEach(function(id){
+        var el = document.getElementById(id); if(!el) return;
+        out[id] = (el.type === 'checkbox' || el.type === 'radio') ? !!el.checked : el.value;
+      });
+      return out;
+    },
+    writeFields: function(ids, vals, silent){
+      if(!vals) return;
+      function setOne(id){
+        if(!(id in vals)) return true;
+        var el = document.getElementById(id); if(!el) return true;
+        var v = vals[id];
+        if(el.type === 'checkbox' || el.type === 'radio'){
+          if(el.checked === !!v) return true;
+          el.checked = !!v;
+        } else {
+          if(String(el.value) === String(v)) return true;
+          if(el.tagName === 'SELECT' && !Array.prototype.some.call(el.options, function(o){ return o.value === String(v); })) return false;
+          el.value = v;
+        }
+        if(!silent){
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        return true;
+      }
+      var pending = ids.slice();
+      for(var pass = 0; pass < 3 && pending.length; pass++) pending = pending.filter(function(id){ return !setOne(id); });
+    }
+  };
+})();
+/* ===== [BF-DRAFT-END] ===== */
+</script>
+<script>
+/* ============ ابزارهای عمومی ============ */
+var FA='۰۱۲۳۴۵۶۷۸۹';
+function fa(n){return String(n).replace(/\d/g,function(d){return FA[d]})}
+function en(s){return String(s==null?'':s).replace(/[۰-۹]/g,function(d){return FA.indexOf(d)}).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d)})}
+function num(s){var v=en(s).replace(/[^\d.]/g,'');return v?parseFloat(v)||0:0}
+function money(n){return fa(Math.round(n||0).toLocaleString('en-US'))}
+function norm(s){return en(s).replace(/[\u200c]/g,' ').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/\s+/g,' ').trim().toLowerCase()}
+function esc(x){return String(x==null?'':x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function $(id){return document.getElementById(id)}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(function(){t.classList.remove('show')},2400)}
+function getOperator(){try{return JSON.parse(sessionStorage.getItem('bf_operator_session_v1')||'null')}catch(e){return null}}
+function authHeaders(){var o=getOperator();return (o&&o.token)?{'x-operator-token':o.token}:{}}
+function lget(k,d){try{var v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}}
+function lset(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+/* ============ حافظه هوشمند ============ */
+var KEY_ORDERS='behfaraz_elevator_saved_v1', KEY_MEM='behfaraz_elevator_memory_v1';
+var mem=lget(KEY_MEM,{customers:{},products:{}});
+if(!mem.deleted)mem.deleted={}; if(!mem.customers)mem.customers={}; if(!mem.products)mem.products={};
+
+function rememberCustomer(c){
+  if(!c.name)return; var k=norm(c.name), cur=mem.customers[k]||{uses:0,projects:[]};
+  cur.name=c.name; cur.phone=c.phone||cur.phone||''; cur.address=c.address||cur.address||'';
+  cur.type=c.type||cur.type||''; cur.uses=(cur.uses||0)+(c.bump?1:0); cur.last=Date.now();
+  if(c.project && cur.projects.indexOf(c.project)<0) cur.projects.unshift(c.project);
+  cur.projects=cur.projects.slice(0,8); mem.customers[k]=cur;
+}
+function rememberProduct(p,bump){
+  if(!p.name)return; var k=norm(p.name), cur=mem.products[k]||{uses:0};
+  if(mem.deleted[k]){ if(!bump)return; delete mem.deleted[k]; }
+  cur.name=p.name; cur.spec=p.spec||cur.spec||''; if(p.unit)cur.unit=p.unit;
+  cur.uses=(cur.uses||0)+(bump?1:0); cur.last=Date.now(); mem.products[k]=cur;
+}
+function saveMem(){lset(KEY_MEM,mem);updatePill()}
+function updatePill(){$('memPill').textContent='🧠 حافظه: '+fa(Object.keys(mem.customers).length)+' مشتری · '+fa(Object.keys(mem.products).length)+' محصول'}
+
+/* حافظه را از سفارش‌های سرور (همهٔ کاربران و ابزارها) هم بازسازی می‌کنیم */
+function harvestServer(){
+  fetch('/api/orders').then(function(r){return r.ok?r.json():[]}).then(function(rows){
+    rows=bfOutbox.overlay(rows); // سفارش‌های در صف ارسال
+    rows.forEach(function(r){
+      var p=r.payload||{}, nm=(p.customerCompany||r.customer_name||p.customerName||'').trim();
+      if(nm && nm!=='—'){
+        var k=norm(nm); var ex=mem.customers[k];
+        rememberCustomer({name:nm,phone:p.customerPhone,address:p.customerAddress,type:p.customerType,project:(r.project_name||p.customerProject||'').trim()});
+        if(!ex) mem.customers[k].uses=0;
+      }
+      if(p.sourceType==='elevator' && Array.isArray(p.items)){
+        p.items.forEach(function(it){ if(it&&it.name){var k=norm(it.name),ex=mem.products[k];rememberProduct({name:it.name,spec:it.spec,unit:it.unit},false);if(!ex&&mem.products[k])mem.products[k].uses=1;} });
+      }
+    });
+    srvOrders=rows.filter(function(r){return (r.payload||{}).sourceType==='elevator'}).map(function(r){var p=r.payload;p.id=p.id||r.id;return p});
+    saveMem(); renderChips(); renderSaved();
+  }).catch(function(){});
+}
+
+/* ============ حالت صفحه ============ */
+var srvOrders=[], rows=[], inv=[], custType='', editId=null, editMeta=null;
+function newRow(){return {id:'r'+Date.now()+Math.round(Math.random()*9999),name:'',spec:'',qty:'1',unit:''}}
+
+/* ============ پیشنهاد خودکار (Autocomplete) ============ */
+function attachSuggest(input,box,getItems,onPick){
+  var idx=-1,cur=[];
+  function render(){
+    var q=norm(input.value); cur=getItems(q); idx=-1;
+    if(!cur.length){box.classList.remove('show');return}
+    box.innerHTML=cur.map(function(it,i){return '<div data-i="'+i+'"><span>'+esc(it.label)+'</span><small>'+esc(it.meta||'')+(it.del?' <em class="x" data-x="1" title="حذف از حافظه">🗑️</em>':'')+'</small></div>'}).join('');
+    box.classList.add('show');
+  }
+  input.addEventListener('input',render); input.addEventListener('focus',render);
+  input.addEventListener('keydown',function(e){
+    var ds=box.querySelectorAll('div'); if(!box.classList.contains('show')||!ds.length)return;
+    if(e.key==='ArrowDown'){idx=(idx+1)%ds.length;e.preventDefault()}
+    else if(e.key==='ArrowUp'){idx=(idx-1+ds.length)%ds.length;e.preventDefault()}
+    else if(e.key==='Enter'&&idx>=0){onPick(cur[idx]);box.classList.remove('show');e.preventDefault();return}
+    else if(e.key==='Escape'){box.classList.remove('show');return}
+    else return;
+    ds.forEach(function(d,i){d.classList.toggle('act',i===idx)});
+  });
+  box.addEventListener('mousedown',function(e){var d=e.target.closest('div[data-i]');if(!d)return;e.preventDefault();
+    if(e.target.closest('[data-x]')){var it=cur[+d.dataset.i];if(it&&it.del&&confirm('«'+it.label+'» از حافظه محصولات حذف شود؟')){it.del();render();}return}onPick(cur[+d.dataset.i]);box.classList.remove('show')});
+  input.addEventListener('blur',function(){setTimeout(function(){box.classList.remove('show')},120)});
+}
+function rank(list,q,nameOf){
+  return list.filter(function(x){return !q||norm(nameOf(x)).indexOf(q)>=0})
+    .sort(function(a,b){var an=norm(nameOf(a)).indexOf(q)===0?0:1,bn=norm(nameOf(b)).indexOf(q)===0?0:1;return an-bn||(b.uses||0)-(a.uses||0)||(b.last||0)-(a.last||0)}).slice(0,8);
+}
+
+/* ---- مشتری ---- */
+attachSuggest($('cName'),$('cSug'),function(q){
+  return rank(Object.keys(mem.customers).map(function(k){return mem.customers[k]}),q,function(c){return c.name})
+   .map(function(c){return {label:c.name,meta:(c.type==='partner'?'همکار':c.type==='employer'?'کارفرما':'')+(c.uses?' · '+fa(c.uses)+' سفارش':''),c:c}});
+},function(it){fillCustomer(it.c)});
+$('cName').addEventListener('input',function(){var c=mem.customers[norm(this.value)];if(c&&c.name===this.value.trim())showHint(c)});
+function fillCustomer(c){
+  $('cName').value=c.name; if(c.phone&&!$('cPhone').value)$('cPhone').value=c.phone;
+  if(c.address&&!$('cAddress').value)$('cAddress').value=c.address;
+  if(c.type)setType(c.type);
+  if(c.projects&&c.projects.length&&!$('cProject').value)$('cProject').value=c.projects[0];
+  showHint(c);
+}
+function showHint(c){
+  var h=$('custHint'); h.textContent='🧠 مشتری شناخته‌شده'+(c.uses?': '+fa(c.uses)+' سفارش قبلی':'')+(c.projects&&c.projects.length?' · پروژه‌های قبلی: '+c.projects.slice(0,3).join('، '):'');
+  h.classList.add('show');
+}
+attachSuggest($('cProject'),$('pSug'),function(q){
+  var c=mem.customers[norm($('cName').value)]; if(!c||!c.projects)return [];
+  return c.projects.filter(function(p){return !q||norm(p).indexOf(q)>=0}).map(function(p){return {label:p,p:p}});
+},function(it){$('cProject').value=it.p});
+function setType(v){custType=v;[].forEach.call($('typeSeg').children,function(b){b.classList.toggle('on',b.dataset.v===v)})}
+$('typeSeg').addEventListener('click',function(e){var b=e.target.closest('button');if(b)setType(b.dataset.v)});
+
+/* ============ ردیف‌ها ============ */
+function rowTotal(r){return num(r.qty)*num(r.unit)}
+function renderRows(){
+  var tb=$('rowsBody'); tb.innerHTML='';
+  rows.forEach(function(r,i){
+    var tr=document.createElement('tr'); tr.dataset.id=r.id;
+    tr.innerHTML='<td class="num">'+fa(i+1)+'</td>'+
+     '<td><div class="rel"><input data-f="name" placeholder="نام محصول" autocomplete="off" value="'+esc(r.name)+'"><div class="sug"></div></div></td>'+
+     '<td><input data-f="spec" placeholder="مشخصات" autocomplete="off" value="'+esc(r.spec)+'"></td>'+
+     '<td><input data-f="qty" class="qty" inputmode="numeric" value="'+esc(fa(r.qty))+'"></td>'+
+     '<td><input data-f="unit" inputmode="numeric" placeholder="قیمت واحد" value="'+(num(r.unit)?esc(money(num(r.unit))):'')+'"></td>'+
+     '<td class="tot">'+(rowTotal(r)?money(rowTotal(r)):'—')+'</td>'+
+     '<td><button class="btn pri sm" data-a="add">افزودن به فاکتور</button> <button class="btn del sm" data-a="del" title="حذف ردیف">✕</button></td>';
+    tb.appendChild(tr);
+    var nameInp=tr.querySelector('[data-f=name]'),box=tr.querySelector('.sug');
+    attachSuggest(nameInp,box,function(q){
+      return rank(Object.keys(mem.products).map(function(k){return mem.products[k]}),q,function(p){return p.name})
+        .map(function(p){return {del:function(){var k=norm(p.name);delete mem.products[k];mem.deleted[k]=1;saveMem();renderChips();toast('از حافظه حذف شد')},label:p.name,meta:(p.unit?money(p.unit)+' ریال':'')+(p.uses?' · '+fa(p.uses)+'×':''),p:p}});
+    },function(it){
+      r.name=it.p.name; if(it.p.spec)r.spec=it.p.spec; if(it.p.unit)r.unit=String(it.p.unit);
+      renderRows(); var again=$('rowsBody').querySelector('tr[data-id="'+r.id+'"] [data-f=qty]'); if(again){again.focus();again.select()}
+    });
+  });
+  if(!rows.length)tb.innerHTML='<tr><td colspan="7" class="empty">ردیفی وجود ندارد — «افزودن ردیف» را بزنید</td></tr>';
+}
+$('rowsBody').addEventListener('input',function(e){
+  var t=e.target,tr=t.closest('tr'); if(!tr||!t.dataset.f)return;
+  var r=rows.filter(function(x){return x.id===tr.dataset.id})[0]; if(!r)return;
+  if(t.dataset.f==='unit'||t.dataset.f==='qty'){
+    var raw=num(t.value); r[t.dataset.f]=String(raw||(t.dataset.f==='qty'?'':''));
+    if(t.dataset.f==='unit')t.value=raw?money(raw):'';
+  } else r[t.dataset.f]=t.value;
+  tr.querySelector('.tot').textContent=rowTotal(r)?money(rowTotal(r)):'—';
+});
+$('rowsBody').addEventListener('click',function(e){
+  var b=e.target.closest('button[data-a]'); if(!b)return;
+  var id=b.closest('tr').dataset.id, r=rows.filter(function(x){return x.id===id})[0]; if(!r)return;
+  if(b.dataset.a==='del'){rows=rows.filter(function(x){return x.id!==id}); if(!rows.length)rows.push(newRow()); renderRows()}
+  else if(addToInvoice(r)){rows=rows.filter(function(x){return x.id!==id}); if(!rows.length)rows.push(newRow()); renderRows()}
+});
+function addRow(){rows.push(newRow());renderRows();var last=$('rowsBody').querySelector('tr:last-child [data-f=name]');if(last)last.focus()}
+
+/* ============ فاکتور جاری ============ */
+function addToInvoice(r,silent){
+  if(!r.name.trim()){if(!silent)toast('نام محصول را وارد کنید');return false}
+  if(!num(r.unit)){if(!silent)toast('قیمت واحد را وارد کنید');return false}
+  var qty=Math.max(1,num(r.qty)||1), k=norm(r.name), prev=mem.products[k];
+  inv.push({id:'i'+Date.now()+Math.round(Math.random()*9999),name:r.name.trim(),spec:r.spec.trim(),qty:qty,unit:num(r.unit)});
+  rememberProduct({name:r.name.trim(),spec:r.spec.trim(),unit:num(r.unit)},true); saveMem();
+  if(!silent){
+    if(prev&&prev.unit&&prev.unit!==num(r.unit)) toast('قیمت قبلی این محصول '+money(prev.unit)+' ریال بود'); else toast('به فاکتور اضافه شد ✓');
+  }
+  renderInv(); renderChips(); return true;
+}
+function addAllToInvoice(){
+  var ok=0,keep=[];
+  rows.forEach(function(r){ if(!r.name.trim()&&!num(r.unit))return; if(addToInvoice(r,true))ok++; else keep.push(r) });
+  rows=keep.length?keep:[newRow()]; renderRows();
+  toast(ok?fa(ok)+' ردیف به فاکتور اضافه شد ✓':'ردیف کاملی برای افزودن نیست (نام و قیمت لازم است)');
+}
+function renderInv(){
+  var tb=$('invBody');
+  if(!inv.length){tb.innerHTML='<tr><td colspan="7" class="empty">هنوز محصولی به فاکتور اضافه نشده است</td></tr>'}
+  else tb.innerHTML=inv.map(function(it,i){
+    return '<tr data-id="'+it.id+'"><td class="num">'+fa(i+1)+'</td><td style="text-align:right">'+esc(it.name)+'</td><td style="text-align:right">'+(esc(it.spec)||'—')+'</td>'+
+     '<td><input class="qty" data-f="qty" inputmode="numeric" value="'+fa(it.qty)+'"></td><td>'+money(it.unit)+'</td><td class="tot">'+money(it.qty*it.unit)+'</td>'+
+     '<td><button class="btn del sm" data-a="rm">✕</button></td></tr>';
+  }).join('');
+  calc();
+}
+$('invBody').addEventListener('input',function(e){
+  var t=e.target; if(t.dataset.f!=='qty')return; var tr=t.closest('tr');
+  var it=inv.filter(function(x){return x.id===tr.dataset.id})[0]; if(!it)return;
+  it.qty=Math.max(1,num(t.value)||1); tr.querySelector('.tot').textContent=money(it.qty*it.unit); calc();
+});
+$('invBody').addEventListener('click',function(e){var b=e.target.closest('[data-a=rm]');if(!b)return;var id=b.closest('tr').dataset.id;inv=inv.filter(function(x){return x.id!==id});renderInv()});
+$('cDisc').addEventListener('input',calc); $('cVat').addEventListener('change',calc);
+function totals(){
+  var sub=inv.reduce(function(s,it){return s+it.qty*it.unit},0), pct=Math.min(100,num($('cDisc').value));
+  var disc=Math.round(sub*pct/100), net=sub-disc, vat=$('cVat').checked?Math.round(net*0.10):0;
+  return {sub:sub,pct:pct,disc:disc,net:net,vat:vat,grand:net+vat};
+}
+function calc(){var t=totals();$('sSub').textContent=money(t.sub);$('sDisc').textContent=money(t.disc);$('sVat').textContent=money(t.vat);$('sGrand').textContent=money(t.grand)}
+
+/* چیپ‌های محصولات پرتکرار */
+function renderChips(){
+  var list=Object.keys(mem.products).map(function(k){return mem.products[k]}).sort(function(a,b){return (b.uses||0)-(a.uses||0)}).slice(0,6);
+  var el=$('freqChips'); if(!list.length){el.innerHTML='';return}
+  el.innerHTML='<span class="t">⚡ پرکاربردها:</span>'+list.map(function(p,i){return '<button class="chip" data-k="'+esc(norm(p.name))+'">'+esc(p.name)+'</button>'}).join('');
+}
+$('freqChips').addEventListener('click',function(e){
+  var b=e.target.closest('.chip'); if(!b)return; var p=mem.products[b.dataset.k]; if(!p)return;
+  var r=rows.filter(function(x){return !x.name&&!num(x.unit)})[0]; if(!r){r=newRow();rows.push(r)}
+  r.name=p.name;r.spec=p.spec||'';r.unit=p.unit?String(p.unit):''; renderRows();
+});
+
+/* ============ ذخیره و اتصال به کارتابل ============ */
+function buildOrder(){
+  var t=totals(), now=new Date(), name=$('cName').value.trim(), id=editId||('elv_'+Date.now()), op=getOperator();
+  var o={
+    id:id, ts:(editMeta&&editMeta.ts)||Date.now(),
+    dateStr:now.toLocaleDateString('fa-IR')+' '+now.toLocaleTimeString('fa-IR'),
+    category:'محصولات آسانسور', sourceType:'elevator',
+    customerCompany:name, customerName:name, customerProject:$('cProject').value.trim(),
+    customerPhone:$('cPhone').value.trim(), customerAddress:$('cAddress').value.trim(),
+    customerType:custType, manualProformaNo:$('cManual').value.trim(), note:$('cNote').value.trim(),
+    discountPct:t.pct, discountAmount:t.disc, subtotal:t.sub, isOfficial:$('cVat').checked, vat:t.vat,
+    total:t.grand, grand:t.grand,
+    items:inv.map(function(it){return {name:it.name,description:it.name+(it.spec?' — '+it.spec:''),spec:it.spec,qty:it.qty,unit:it.unit,total:it.qty*it.unit,sourceType:'elevator'}}),
+    createdByOperator:(editMeta&&editMeta.createdByOperator)||(op&&op.name)||'',
+    editCount:editMeta?((editMeta.editCount||0)+1):0, editedStr:editMeta?now.toLocaleDateString('fa-IR'):'', editedByOperator:editMeta?((op&&op.name)||''):''
+  };
+  return o;
+}
+function pushMirror(){try{parent.postMessage({__behfarazDash:true,sourceType:'elevator',orders:lget(KEY_ORDERS,[])},'*')}catch(e){}}
+function saveOrder(){
+  addAllToInvoiceSilent();
+  if(!$('cName').value.trim()){toast('نام خریدار را وارد کنید');$('cName').focus();return}
+  if(!inv.length){toast('حداقل یک محصول به فاکتور اضافه کنید');return}
+  var o=buildOrder(), list=lget(KEY_ORDERS,[]).filter(function(x){return x.id!==o.id}); list.unshift(o); lset(KEY_ORDERS,list);
+  rememberCustomer({name:o.customerCompany,phone:o.customerPhone,address:o.customerAddress,type:o.customerType,project:o.customerProject,bump:!editId}); saveMem();
+  pushMirror();
+  bfOutbox.send({id:o.id,op:'upsert',method:'POST',url:'/api/orders',quiet:true,body:{
+    id:o.id,category:o.category,customer_name:o.customerCompany,project_name:o.customerProject,order_date:o.dateStr,total:o.total,payload:o
+  }}).then(function(r){toast(r==='ok'?'✓ ذخیره شد و در کارتابل سفارشات ثبت گردید':r==='queued'?'ذخیره محلی انجام شد؛ سرور در دسترس نیست — در صف ارسال ماند و خودکار ثبت می‌شود':r==='auth'?'ذخیره محلی انجام شد؛ نشست منقضی شده — پس از ورود دوباره، خودکار ثبت می‌شود':'ذخیره محلی انجام شد؛ سرور این پیش‌فاکتور را نپذیرفت')});
+  editId=o.id; editMeta=o; $('editBanner').classList.add('show'); renderSaved();
+}
+var __bfOrig_eso = saveOrder;
+saveOrder = function(){ var __b = JSON.stringify(lget(KEY_ORDERS,[]).map(function(x){return x.id+':'+(x.editCount||0)})); var __r = __bfOrig_eso.apply(this, arguments); if(JSON.stringify(lget(KEY_ORDERS,[]).map(function(x){return x.id+':'+(x.editCount||0)})) !== __b) bfMarkSaved(inv); return __r; };
+function addAllToInvoiceSilent(){
+  var keep=[]; rows.forEach(function(r){ if(!r.name.trim()&&!num(r.unit))return; if(!addToInvoice(r,true))keep.push(r) });
+  rows=keep.length?keep:[newRow()]; renderRows();
+}
+function resetAll(ask){
+  if(ask&&(inv.length||$('cName').value)&&!confirm('فاکتور جاری پاک شود و فاکتور جدید شروع شود؟'))return;
+  rows=[newRow()];inv=[];editId=null;editMeta=null;custType='';setType('');
+  ['cName','cProject','cPhone','cAddress','cNote'].forEach(function(i){$(i).value=''});$('cManual').value=todayNo();
+  $('cDisc').value=fa(0);$('cVat').checked=false;$('custHint').classList.remove('show');$('editBanner').classList.remove('show');
+  renderRows();renderInv();
+}
+function loadOrder(o){
+  editId=o.id;editMeta=o;
+  $('cName').value=o.customerCompany||o.customerName||'';$('cProject').value=o.customerProject||'';$('cPhone').value=o.customerPhone||'';
+  $('cAddress').value=o.customerAddress||'';$('cManual').value=o.manualProformaNo||'';$('cNote').value=o.note||'';
+  setType(o.customerType||'');$('cDisc').value=fa(o.discountPct||0);$('cVat').checked=!!o.isOfficial;
+  inv=(o.items||[]).map(function(it,i){return {id:'i'+Date.now()+i,name:it.name||it.description||'',spec:it.spec||'',qty:Number(it.qty)||1,unit:Number(it.unit)||0}});
+  rows=[newRow()];renderRows();renderInv();$('editBanner').classList.add('show');window.scrollTo({top:0,behavior:'smooth'});
+}
+function allSaved(){
+  var loc=lget(KEY_ORDERS,[]), ids={}; loc.forEach(function(o){ids[o.id]=1});
+  return loc.concat(srvOrders.filter(function(o){return !ids[o.id]}));
+}
+function filteredSaved(){
+  var q=norm($('repQ').value), s=$('repSort').value, l=allSaved().filter(function(o){
+    if(!q)return true;
+    var hay=norm([o.customerCompany,o.customerProject,o.manualProformaNo,o.dateStr].concat((o.items||[]).map(function(i){return i.name})).join(' '));
+    return hay.indexOf(q)>=0;
+  });
+  l.sort(function(a,b){return s==='old'?(a.ts||0)-(b.ts||0):s==='big'?(b.total||0)-(a.total||0):(b.ts||0)-(a.ts||0)});
+  return l;
+}
+function renderSaved(){
+  var list=filteredSaved(), el=$('savedList'), sum=list.reduce(function(s,o){return s+(o.total||0)},0);
+  $('repN').textContent=fa(list.length); $('repSum').textContent=money(sum); $('repCount').textContent='('+fa(allSaved().length)+' مورد)';
+  if(!list.length){el.innerHTML='<div class="empty">پیش‌فاکتوری یافت نشد</div>';return}
+  el.innerHTML=list.map(function(o){
+    return '<div class="saved"><div><b>'+esc(o.customerCompany||'—')+'</b> '+(o.customerProject?'· '+esc(o.customerProject):'')+(o.manualProformaNo?' · شماره '+esc(o.manualProformaNo):'')+'<small>'+esc(o.dateStr||'')+' · '+fa((o.items||[]).length)+' قلم · '+money(o.total)+' ریال'+(o.createdByOperator?' · ثبت: '+esc(o.createdByOperator):'')+'</small></div>'+
+     '<div><button class="btn sm" data-a="load" data-id="'+esc(o.id)+'">✏️ ویرایش</button> <button class="btn del sm" data-a="delete" data-id="'+esc(o.id)+'">🗑️</button></div></div>';
+  }).join('');
+}
+$('repQ').addEventListener('input',renderSaved); $('repSort').addEventListener('change',renderSaved);
+$('savedList').addEventListener('click',function(e){
+  var b=e.target.closest('button[data-a]');if(!b)return; var id=b.dataset.id, list=lget(KEY_ORDERS,[]);
+  var o=allSaved().filter(function(x){return x.id===id})[0]; if(!o)return;
+  if(b.dataset.a==='load')loadOrder(o);
+  else if(confirm('این پیش‌فاکتور حذف شود؟ (در سطل بازیافت سرور می‌ماند)')){
+    lset(KEY_ORDERS,list.filter(function(x){return x.id!==id})); srvOrders=srvOrders.filter(function(x){return x.id!==id}); pushMirror();renderSaved();
+    bfOutbox.send({id:id,op:'delete',method:'DELETE',url:'/api/orders/'+encodeURIComponent(id),quiet:true,body:{reason:'customer_cancel'}});
+    if(editId===id)resetAll(false); toast('حذف شد');
+  }
+});
+function reportRows(){return filteredSaved().map(function(o,i){return [i+1,o.dateStr||'',o.customerCompany||'',o.customerProject||'',o.manualProformaNo||'',(o.items||[]).map(function(it){return it.name+' ×'+it.qty}).join(' | '),o.total||0,o.createdByOperator||'']})}
+function printReport(){
+  var r=reportRows(); if(!r.length){toast('گزارشی برای چاپ نیست');return}
+  var tot=r.reduce(function(s,x){return s+x[6]},0);
+  $('printArea').innerHTML='<h1 class="rt">گزارش پیش‌فاکتورهای محصولات آسانسور</h1><div class="sub">گروه بهفراز — '+new Date().toLocaleDateString('fa-IR')+' — '+fa(r.length)+' پیش‌فاکتور</div>'+
+   '<table><thead><tr><th>#</th><th>تاریخ</th><th>مشتری</th><th>پروژه</th><th>شماره</th><th>اقلام</th><th>مبلغ (ریال)</th></tr></thead><tbody>'+
+   r.map(function(x){return '<tr><td>'+fa(x[0])+'</td><td>'+esc(x[1])+'</td><td>'+esc(x[2])+'</td><td>'+esc(x[3])+'</td><td>'+esc(x[4])+'</td><td>'+esc(x[5])+'</td><td>'+money(x[6])+'</td></tr>'}).join('')+'</tbody></table><div class="tots"><div class="g"><span>جمع کل</span><span>'+money(tot)+' ریال</span></div></div>';
+  setTimeout(function(){window.print()},50);
+}
+function exportCsv(){
+  var r=reportRows(); if(!r.length){toast('گزارشی برای خروجی نیست');return}
+  var h=['ردیف','تاریخ','مشتری','پروژه','شماره پیش‌فاکتور','اقلام','مبلغ (ریال)','ثبت‌کننده'];
+  var csv='\ufeff'+[h].concat(r).map(function(x){return x.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"'}).join(',')}).join('\r\n');
+  var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='elevator_proformas.csv'; document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ============ فاکتور پلاس ============ */
+function sendToFactorPlus(){
+  addAllToInvoiceSilent();
+  var name=$('cName').value.trim(); if(!name){toast('نام خریدار را وارد کنید');return} if(!inv.length){toast('فاکتور خالی است');return}
+  var t=totals();
+  try{parent.postMessage({__behfarazFactorPlusAdd:true,companyName:name,projectName:$('cProject').value.trim(),sourceType:'elevator',sourceLabel:'محصولات آسانسور',sourceIcon:'🛗',
+    discount:t.pct,items:inv.map(function(it){return {description:it.name+(it.spec?' — '+it.spec:''),qty:it.qty,total:it.qty*it.unit,kind:'elevator'}})},'*');toast('به فاکتور پلاس این مشتری اضافه شد ✓')}catch(e){toast('ارسال ممکن نشد')}
+}
+
+/* ============ شماره پیش‌فاکتور پیش‌فرض (تاریخ شمسی امروز) ============ */
+var TERMS=['لطفا پیش از تایید نهایی سفارش، نسبت به بررسی دقیق ابعاد و مشخصات کالای درج شده در فاکتور اقدام نمایید تا از هرگونه مغایرت با مشخصات پروژه جلوگیری شود','کالای سفارشی تحت هیچ شرایطی قابل کنسل شدن یا استرداد نمی‌باشد.','در صورت عدم تسویه کامل حساب طبق شرایط پرداخت، شرکت از تحویل کالا خودداری خواهد نمود.','درصورت افزایش قیمت محصول، به میزان مانده حساب فاکتور، مابه التفاوت به عهده خریدار محترم میباشد.','درصورت توافق و پرداخت چک، تحویل کالا منوط به وصول آن میباشد.','درصورت انصراف خریدار از سفارش (شامل کالاهای روئین) پس از ثبت و تایید نهایی بابت هزینه های ثابت و وقفه در روند فروش مبلغی معادل ۱٪ از کل فاکتور از خریدار محترم دریافت میشود.','کالا پس از خروج از انبار به هیچ عنوان قابل مرجوع نمیباشد.'];
+function todayNo(){var o={};new Intl.DateTimeFormat('en-US-u-ca-persian-nu-latn',{year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date()).forEach(function(x){o[x.type]=x.value});return String(parseInt(o.year,10)-1000)+o.month+o.day}
+if(!$('cManual').value)$('cManual').value=todayNo();
+/* ===== پرسش «فقط چاپ یا ذخیره هم بشود؟» — هر بار که چاپ / PDF گرفته می‌شود (پیش‌فاکتور تازه یا بازشده از ذخیره‌شده‌ها) ===== */
+function bfSigOf(o){ try{ return JSON.stringify(o, function(k,v){ return /^(id|ts|dateStr|date|savedAt|editedStr|editCount|invoiceHtml|createdByOperator|editedByOperator|operator)$/.test(k) ? undefined : v; }); }catch(e){ return ''; } }
+function bfFormSig(extra){
+  let s = '';
+  try{ document.querySelectorAll('input,select,textarea').forEach(function(el){
+    if(el.type==='file'||el.type==='button'||el.type==='search') return;
+    s += ((el.type==='checkbox'||el.type==='radio') ? (el.checked?'1':'0') : el.value) + '|';
+  }); }catch(e){}
+  return s + bfSigOf(extra);
+}
+// بعد از هر ذخیرهٔ واقعی صدا زده می‌شود؛ اگر تا چاپ بعدی چیزی تغییر نکرده باشد، دیگر نیازی به پرسیدن نیست
+function bfMarkSaved(extra){ window.__bfLastSavedSig = bfFormSig(extra); }
+function bfPrintGate(openedId, run, extra){
+  if(extra === undefined) extra = window.__bfGateExtra;
+  window.__bfGateExtra = undefined;
+  if(window.__bfLastSavedSig && window.__bfLastSavedSig === bfFormSig(extra)){ run(false); return; } // همین الان ذخیره شده و تغییری نکرده
+  if(document.getElementById('bfAskPrintOv')) return;
+  if(!document.getElementById('bfAskPrintCss')){
+    const st = document.createElement('style'); st.id = 'bfAskPrintCss';
+    st.textContent = '.bf-ask-ov{position:fixed;inset:0;z-index:99999;background:rgba(10,30,28,.55);display:flex;align-items:center;justify-content:center;padding:16px;direction:rtl;font-family:inherit}'+
+      '.bf-ask-box{background:#fff;border-radius:16px;max-width:430px;width:100%;padding:22px 22px 16px;box-shadow:0 18px 50px rgba(0,0,0,.3);text-align:center}'+
+      '.bf-ask-ico{font-size:2.2rem;line-height:1}.bf-ask-box h3{margin:8px 0 6px;font-size:1.05rem;color:#0f3d3a}'+
+      '.bf-ask-box p{margin:0 0 14px;font-size:.88rem;line-height:1.9;color:#333}.bf-ask-box p small{color:#6b7a78}'+
+      '.bf-ask-btn{display:block;width:100%;margin:8px 0 0;padding:11px 12px;border-radius:11px;border:2px solid transparent;font:inherit;font-weight:800;font-size:.92rem;cursor:pointer}'+
+      '.bf-ask-btn.yes{background:#0f6e56;color:#fff}.bf-ask-btn.no{background:#fff;color:#0f3d3a;border-color:#0f3d3a}'+
+      '.bf-ask-btn:hover{filter:brightness(1.08)}.bf-ask-x{margin-top:10px;background:none;border:0;color:#7a8a88;font:inherit;font-size:.8rem;cursor:pointer;text-decoration:underline}'+
+      '@media print{.bf-ask-ov{display:none!important}}';
+    document.head.appendChild(st);
+  }
+  const isOld = !!openedId;
+  const ov = document.createElement('div'); ov.id = 'bfAskPrintOv'; ov.className = 'bf-ask-ov';
+  ov.innerHTML = '<div class="bf-ask-box" role="dialog" aria-modal="true"><div class="bf-ask-ico">🖨️</div>'+
+    '<h3>' + (isOld ? 'این پیش‌فاکتور قبلاً در «ذخیره‌شده‌ها» ثبت شده است' : 'این پیش‌فاکتور هنوز ذخیره نشده است') + '</h3>'+
+    '<p>' + (isOld ? 'فقط چاپ / PDF بگیرم، یا آنچه الان روی صفحه است در همان پیش‌فاکتور ذخیره (بروزرسانی) شود؟<br><small>بروزرسانی روی همان رکورد انجام می‌شود و نسخهٔ تکراری نمی‌سازد.</small>'
+                  : 'فقط چاپ / PDF بگیرم، یا به‌عنوان یک پیش‌فاکتور جدید در «ذخیره‌شده‌ها» هم ثبت شود؟') + '</p>'+
+    '<button type="button" class="bf-ask-btn yes" data-a="1">' + (isOld ? '💾 بله، چاپ کن و بروزرسانی هم بشود' : '💾 بله، چاپ کن و ذخیره هم بشود') + '</button>'+
+    '<button type="button" class="bf-ask-btn no" data-a="0">' + (isOld ? '🖨️ نه، فقط چاپ — تغییری ذخیره نشود' : '🖨️ نه، فقط چاپ — ذخیره نشود') + '</button>'+
+    '<button type="button" class="bf-ask-x" data-a="x">انصراف</button></div>';
+  function onKey(e){ if(e.key === 'Escape') done('x'); }
+  function done(a){ document.removeEventListener('keydown', onKey); ov.remove(); if(a === 'x') return; run(a === '1'); }
+  ov.addEventListener('click', function(e){ const b = e.target.closest('[data-a]'); if(b) done(b.dataset.a); else if(e.target === ov) done('x'); });
+  document.addEventListener('keydown', onKey);
+  document.body.appendChild(ov);
+}
+/* ============ چاپ ============ */
+function printInvoice(){
+  addAllToInvoiceSilent(); if(!inv.length){toast('فاکتور خالی است');return}
+  bfPrintGate(editId, function(saveToo){
+    if(saveToo) saveOrder();
+  var t=totals(), d=new Date().toLocaleDateString('fa-IR');
+  var no=$('cManual').value, tm=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
+  $('printArea').innerHTML='<div class="ph"><div class="t1">مرکز فروش تخصصی سیستم‌های هیدرولیک و گیرلس</div><div class="t2">پیش‌فاکتور محصولات آسانسور و قطعات</div></div>'+
+   '<div class="valid">((((( اعتبار پیش‌فاکتور، روز جاری می‌باشد )))))</div>'+
+   '<div class="info"><div><b>شماره پیش‌فاکتور:</b> '+esc(no||'—')+'</div><div><b>تاریخ:</b> '+d+' — ساعت '+tm+'</div>'+
+   '<div><b>نام خریدار / شرکت:</b> '+esc($('cName').value||'—')+'</div><div><b>تماس:</b> '+esc($('cPhone').value||'—')+'</div>'+
+   '<div class="w2"><b>پروژه:</b> '+esc($('cProject').value||'—')+'</div><div class="w2"><b>آدرس:</b> '+esc($('cAddress').value||'—')+'</div></div>'+
+   '<table><thead><tr><th>#</th><th>شرح محصول</th><th>مشخصات</th><th>تعداد</th><th>قیمت واحد (ریال)</th><th>جمع (ریال)</th></tr></thead><tbody>'+
+   inv.map(function(it,i){return '<tr><td class="n">'+fa(i+1)+'</td><td class="r">'+esc(it.name)+'</td><td class="r">'+(esc(it.spec)||'—')+'</td><td>'+fa(it.qty)+'</td><td>'+money(it.unit)+'</td><td class="t">'+money(it.qty*it.unit)+'</td></tr>'}).join('')+'</tbody></table>'+
+   '<div class="tots"><div><span>جمع اقلام</span><span>'+money(t.sub)+'</span></div>'+(t.disc?'<div><span>تخفیف ('+fa(t.pct)+'٪)</span><span>'+money(t.disc)+'</span></div>':'')+(t.vat?'<div><span>ارزش افزوده ۱۰٪</span><span>'+money(t.vat)+'</span></div>':'')+'<div class="g"><span>مبلغ نهایی</span><span>'+money(t.grand)+' ریال</span></div></div>'+
+   ($('cNote').value?'<div class="note2"><b>توضیحات:</b> '+esc($('cNote').value)+'</div>':'')+
+   '<div class="sig"><div>مهر و امضای فروشنده</div><div>تایید و امضای خریدار</div></div><div class="terms"><b>شرایط و ضوابط:</b><ol>'+TERMS.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ol><div class="thx">از حسن اعتماد شما سپاسگزاریم ، رضایت شما افتخار ماست.</div></div>';
+  setTimeout(function(){window.print()},50);
+  }, inv);
+}
+
+/* ============ شروع ============ */
+resetAll(false); updatePill(); renderChips(); renderSaved(); pushMirror(); harvestServer();
+(function(){
+  var m=location.search.match(/editId=([^&]+)/); if(!m)return; var id=decodeURIComponent(m[1]);
+  var o=lget(KEY_ORDERS,[]).filter(function(x){return x.id===id})[0]; if(o){loadOrder(o);return}
+  fetch('/api/orders/'+encodeURIComponent(id)).then(function(r){return r.json()}).then(function(row){var p=row&&(row.payload||row);if(p&&p.items)loadOrder(p)}).catch(function(){});
+})();
+</script>
+<script id="bfDraftAdapter">
+/* ===== [BF-DRAFT-ADAPTER] محصولات آسانسور — ادامهٔ پیش‌فاکتور نیمه‌کاره ===== */
+(function(){
+  if(!window.bfDraft) return;
+  const F = ['cName','cProject','cPhone','cAddress','cManual','cNote','cDisc','cVat'];
+  bfDraft.init({
+    product: 'elevator', label: 'محصولات آسانسور', sigOmit: ['seq'],
+    capture: function(){
+      const f = bfDraft.readFields(F);
+      const seq = f.cManual; delete f.cManual;
+      const live = rows.filter(r=>r.name || num(r.unit));
+      return {
+        customer: f.cName,
+        summary: bfDraft.join(inv.concat(live).slice(0, 3).map(function(x){ return x.name; })) + (inv.length + live.length > 3 ? ' و …' : ''),
+        editing: editId ? 'در حال ویرایش پیش‌فاکتور ذخیره‌شده' : null,
+        state: {
+          fields: f, custType: custType, inv: JSON.parse(JSON.stringify(inv)), rows: JSON.parse(JSON.stringify(live)),
+          editId: editId || null,
+          editMeta: editMeta ? { id: editMeta.id, ts: editMeta.ts, createdByOperator: editMeta.createdByOperator || '', editCount: editMeta.editCount || 0 } : null,
+          seq: seq
+        }
+      };
+    },
+    restore: function(s){
+      bfDraft.writeFields(F, Object.assign({}, s.fields, { cManual: s.seq }), true);
+      setType(s.custType || '');
+      inv = JSON.parse(JSON.stringify(s.inv || []));
+      rows = (s.rows && s.rows.length) ? JSON.parse(JSON.stringify(s.rows)) : [newRow()];
+      if(s.editId){
+        editId = s.editId;
+        editMeta = allSaved().filter(function(o){ return o.id === s.editId; })[0] || s.editMeta;
+        $('editBanner').classList.add('show');
+      }
+      renderRows(); renderInv();
+    }
+  });
+})();
+</script>
+<style id="bfCollapseStyle">
+  .bf-cl-hide{ display:none !important; }
+  .bf-cl-bar{ display:flex; justify-content:center; margin:10px 0 4px; }
+  .bf-cl-btn{ font-family:inherit; font-size:13px; font-weight:800; cursor:pointer; width:100%; padding:9px 14px; border-radius:10px;
+    border:1.5px dashed #9fc3bd; background:#f2f8f7; color:#134a45; display:flex; align-items:center; justify-content:center; gap:8px; }
+  .bf-cl-btn:hover{ background:#e3f1ef; }
+  .bf-cl-btn .bf-cl-ic{ display:inline-block; transition:transform .2s; }
+  .bf-cl-btn[aria-expanded="true"] .bf-cl-ic{ transform:rotate(180deg); }
+  @media print{ .bf-cl-bar{ display:none !important; } }
+</style>
+<script id="bfCollapseScript">
+/* ===== [BF-COLLAPSE] لیست کشویی پیش‌فاکتورهای ذخیره‌شده =====
+   فقط ۳ پیش‌فاکتور آخر (جدیدترین‌ها، بالای لیست) نمایش داده می‌شود؛ دکمهٔ «نمایش همه» بقیه را باز می‌کند.
+   هنگام جستجو، همهٔ نتایج نمایش داده می‌شوند. به تابع رندر خود ابزار دست نمی‌زند (با MutationObserver کار می‌کند). */
+(function(){
+  const faNum = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  window.bfCollapseList = function(o){
+    const list = document.getElementById(o.list); if(!list) return;
+    const keep = o.keep || 3;
+    let open = false;
+    const anchor = (list.tagName==='TBODY' && list.closest('table')) ? list.closest('table') : list;
+    const bar = document.createElement('div'); bar.className = 'bf-cl-bar no-print';
+    const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'bf-cl-btn';
+    bar.appendChild(btn); anchor.insertAdjacentElement('afterend', bar);
+    const items = () => Array.from(list.children).filter(el => !(el.tagName==='TR' && el.cells.length===1 && el.cells[0].colSpan>1) && !/saved-empty|empty/.test(el.className||''));
+    const searching = () => { const s = o.search && document.getElementById(o.search); return !!(s && s.value.trim()); };
+    function apply(){
+      const it = items(), extra = it.length - keep;
+      const showAll = open || searching() || (o.forceAll && o.forceAll());
+      it.forEach((el,i) => el.classList.toggle('bf-cl-hide', !showAll && i >= keep));
+      if(extra <= 0 || searching() || (o.forceAll && o.forceAll())){ bar.style.display = 'none'; return; }
+      bar.style.display = '';
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.innerHTML = open
+        ? '<span class="bf-cl-ic">▼</span> بستن لیست — فقط ' + faNum(keep) + ' پیش‌فاکتور آخر'
+        : '<span class="bf-cl-ic">▼</span> نمایش همهٔ پیش‌فاکتورها (' + faNum(extra) + ' مورد دیگر — جمعاً ' + faNum(it.length) + ')';
+    }
+    btn.addEventListener('click', () => {
+      open = !open; apply();
+      if(!open){ const t = (o.scrollTo && document.getElementById(o.scrollTo)) || list; t.scrollIntoView({behavior:'smooth', block:'start'}); }
+    });
+    new MutationObserver(apply).observe(list, {childList:true});
+    if(o.search){ const s = document.getElementById(o.search); if(s) s.addEventListener('input', () => setTimeout(apply, 0)); }
+    apply();
+  };
+})();
+(function(){ function go(){ bfCollapseList({list:'savedList', search:'repQ', forceAll:function(){ var s=document.getElementById('repSort'); return !!(s && s.value!=='new'); }}); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go(); })();
+</script>
+</body>
+</html>

@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<script id="bfStaticMode">
+/* ===================== [BF-STATIC] نسخهٔ آنلاین بدون سرور (GitHub Pages) =====================
+   این بلوک قبل از هر کد دیگری اجرا می‌شود و یک «سرور محلی» داخل مرورگر می‌سازد:
+   • ورود حذف شده: نشست اپراتور خودکار ساخته می‌شود (نام زیر قابل تغییر است).
+   • همهٔ درخواست‌های /api/... به‌جای سرور شرکت، روی حافظهٔ همین مرورگر (localStorage) جواب داده می‌شوند:
+     سفارش‌ها، کارتابل، یادداشت‌ها، وضعیت لید، شمارهٔ پیش‌فاکتور، پیشنهاد نام مشتری و سفارش‌های باطل‌شده.
+   • حضور و غیاب، فوروارد بین همکاران و بک‌آپ سرور فقط در شبکهٔ دفتر کار می‌کنند.
+   برای برگرداندن یک فایل به حالت سرور دفتر، کافی است همین بلوک <script id="bfStaticMode"> را پاک کنید. */
+(function(){
+  if(window.BF_STATIC) return;
+  window.BF_STATIC = true;
+  var OPERATOR_NAME = 'بهفراز';          // ← نامی که روی پیش‌فاکتورها به‌عنوان «ثبت‌کننده» می‌آید
+  var SESSION_KEY = 'bf_operator_session_v1', DB_KEY = 'bf_static_server_v1';
+  var OFFICE_ONLY = 'این بخش فقط در سامانهٔ شبکهٔ دفتر (سرور شرکت) کار می‌کند.';
+
+  try{
+    var cur = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+    if(!cur || !cur.token) sessionStorage.setItem(SESSION_KEY, JSON.stringify({ name: OPERATOR_NAME, token: 'static', display: OPERATOR_NAME }));
+  }catch(e){}
+
+  function op(){ try{ var o = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); return (o && o.name) || OPERATOR_NAME; }catch(e){ return OPERATOR_NAME; } }
+  function load(){ try{ var d = JSON.parse(localStorage.getItem(DB_KEY) || 'null'); if(d && d.orders) return d; }catch(e){} return { orders:{}, notes:{}, seq:{}, nid:1 }; }
+  function save(d){ try{ localStorage.setItem(DB_KEY, JSON.stringify(d)); }catch(e){} }
+  function now(){ return new Date().toISOString(); }
+  function tehDay(){ return new Date(Date.now() + 210*60000).toISOString().slice(0,10); }
+  function json(data, status){ return new Response(JSON.stringify(data), { status: status || 200, headers: { 'Content-Type': 'application/json' } }); }
+  function parseBody(b){ if(!b) return {}; if(typeof b === 'string'){ try{ return JSON.parse(b); }catch(e){ return {}; } } return {}; }
+
+  function api(path, query, method, body){
+    var d, m, row, list, q;
+    method = (method || 'GET').toUpperCase();
+    if(path === '/api/login') return json({ ok:true, name: (body.name || '').trim() || OPERATOR_NAME, token:'static', display: (body.name || '').trim() || OPERATOR_NAME });
+    if(path === '/api/logout') return json({ ok:true });
+    if(path === '/api/me') return json({ ok:true, name: op(), display: op() });
+    if(path === '/api/invoice-seq/next'){
+      d = load(); var k = (query.get('product') || 'all') + '|' + op() + '|' + tehDay();
+      d.seq[k] = (d.seq[k] || 0) + 1; save(d); return json({ ok:true, seq: d.seq[k] });
+    }
+    if(path === '/api/suggestions'){
+      q = (query.get('q') || '').trim().toLowerCase(); d = load(); var seen = {}, out = [];
+      Object.keys(d.orders).forEach(function(id){ var n = d.orders[id].customer_name; if(n && !seen[n] && (!q || n.toLowerCase().indexOf(q) >= 0)){ seen[n] = 1; out.push(n); } });
+      return json(out.slice(0, 12));
+    }
+    if(path === '/api/orders'){
+      d = load();
+      if(method === 'POST'){
+        if(body.id == null) return json({ ok:false, error:'شناسه ندارد' }, 400);
+        var id = String(body.id), old = d.orders[id] || {};
+        d.orders[id] = Object.assign({}, old, body, { id: id, operator: old.operator || body.operator || op(), created_at: old.created_at || now(), updated_at: now(), deleted_at: null });
+        save(d); return json({ ok:true, id: id });
+      }
+      var cats = (query.get('category') || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+      list = Object.keys(d.orders).map(function(k){ return d.orders[k]; })
+        .filter(function(r){ return !r.deleted_at && (!cats.length || cats.indexOf(r.category) >= 0); })
+        .map(function(r){ return Object.assign({}, r, { note_count: (d.notes[r.id] || []).length }); })
+        .sort(function(a,b){ return String(b.updated_at).localeCompare(String(a.updated_at)); });
+      return json(list);
+    }
+    if(path === '/api/reports/canceled'){
+      d = load();
+      list = Object.keys(d.orders).map(function(k){ return d.orders[k]; }).filter(function(r){ return r.deleted_at; }).map(function(r){
+        var p = r.payload || {};
+        return { id:r.id, category:r.category, total:r.total, customerName:r.customer_name, projectName:r.project_name, customerPhone:p.customerPhone || '',
+                 reason:r.delete_reason || '', note:r.delete_note || '', owner:r.operator, deletedBy:r.deleted_by, deletedAt:r.deleted_at };
+      });
+      return json({ ok:true, items:list });
+    }
+    m = path.match(/^\/api\/orders\/([^\/]+)(?:\/([^\/]+))?(?:\/([^\/]+))?$/);
+    if(m){
+      var oid = decodeURIComponent(m[1]), sub = m[2] || '', nid = m[3];
+      d = load(); row = d.orders[oid];
+      if(!sub){
+        if(method === 'DELETE'){
+          if(row){ row.deleted_at = now(); row.deleted_by = op(); row.delete_reason = body.reason || query.get('reason') || ''; row.delete_note = body.note || query.get('note') || ''; save(d); }
+          return json({ ok:true });
+        }
+        return row ? json(row) : json({ ok:false, error:'پیدا نشد' }, 404);
+      }
+      if(sub === 'permanent'){ delete d.orders[oid]; delete d.notes[oid]; save(d); return json({ ok:true }); }
+      if(sub === 'history') return json([]);
+      if(sub === 'lead-status'){
+        if(!row) return json({ ok:false, error:'پیدا نشد' }, 404);
+        row.lead_status = body.status || ''; row.lead_note = body.note || ''; row.lead_updated_at = now(); row.lead_updated_by = op(); save(d);
+        return json({ ok:true });
+      }
+      if(sub === 'notes'){
+        var arr = d.notes[oid] = d.notes[oid] || [];
+        if(method === 'POST'){ arr.push({ id: d.nid++, text: body.text || '', kind: body.kind || 'note', operator: op(), created_at: now() }); save(d); return json({ ok:true }); }
+        if(method === 'DELETE' && nid){ d.notes[oid] = arr.filter(function(n){ return String(n.id) !== String(nid); }); save(d); return json({ ok:true }); }
+        return json(arr);
+      }
+      if(sub === 'forward') return json({ ok:false, error: OFFICE_ONLY }, 400);
+    }
+    if(path === '/api/forwards/inbox' || path === '/api/notifications') return json([]);
+    if(/^\/api\/(notifications|forwards)\//.test(path)) return json({ ok:true });
+    if(path === '/api/account') return json({ ok:true, name: op(), display: op() });
+    return json({ ok:false, error: OFFICE_ONLY }, 503);
+  }
+
+  var realFetch = window.fetch ? window.fetch.bind(window) : null;
+  window.fetch = function(input, init){
+    var url = typeof input === 'string' ? input : (input && input.url) || '';
+    var u; try{ u = new URL(url, location.href); }catch(e){ u = null; }
+    var i = u ? u.pathname.indexOf('/api/') : -1;
+    if(!u || i < 0 || u.origin !== location.origin) return realFetch ? realFetch(input, init) : Promise.reject(new Error('no fetch'));
+    var method = (init && init.method) || (typeof input !== 'string' && input && input.method) || 'GET';
+    try{ return Promise.resolve(api(u.pathname.slice(i), u.searchParams, method, parseBody(init && init.body))); }
+    catch(e){ return Promise.resolve(json({ ok:false, error: String(e && e.message || e) }, 500)); }
+  };
+})();
+</script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ثبت ورود و خروج</title>
+<link rel="icon" href="data:,">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --brand:#0f3d3a; --brand2:#16605b; --brand3:#1f8a7f; --mint:#29c79a;
+    --bg:#eef4f2; --card:#fff; --ink:#1c2624; --muted:#7a8a87; --line:#e3e8e7;
+    --in1:#13a37a; --in2:#2fd3a0; --out1:#d9442f; --out2:#ff8a5c; --gold:#f0b44c;
+    --shadow:0 8px 28px rgba(15,61,58,.10);
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:"Vazirmatn",Tahoma,'Segoe UI',sans-serif; color:var(--ink); padding:16px;
+    background:radial-gradient(1100px 380px at 100% -10%, rgba(31,138,127,.16), transparent 60%), radial-gradient(900px 340px at -10% 0%, rgba(15,61,58,.10), transparent 55%), var(--bg); min-height:100vh; }
+  .wrap{ max-width:1040px; margin:0 auto; }
+  button{ font-family:inherit; cursor:pointer; }
+  .card{ background:var(--card); border-radius:20px; padding:20px; box-shadow:var(--shadow); margin-bottom:16px; border:1px solid rgba(15,61,58,.05); }
+  .card h3{ margin:0 0 12px; font-size:.95rem; color:var(--brand); display:flex; align-items:center; gap:8px; }
+  .card h3 small{ color:var(--muted); font-weight:500; font-size:.72rem; }
+
+  /* ---------- هیرو ---------- */
+  .hero{ position:relative; overflow:hidden; color:#fff; border-radius:26px; padding:22px 24px 26px;
+    background:radial-gradient(600px 300px at 85% 0%, rgba(47,211,160,.28), transparent 60%), linear-gradient(140deg,#0b2e2c 0%,#0f3d3a 45%,#16605b 100%);
+    box-shadow:0 14px 40px rgba(11,46,44,.35); margin-bottom:16px; }
+  .hero::after{ content:''; position:absolute; inset:auto -80px -120px auto; width:340px; height:340px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,.08), transparent 65%); pointer-events:none; }
+  .hero-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .greet{ font-size:1.35rem; font-weight:900; margin:0; }
+  .greet span{ color:#9ff0d4; }
+  .date-line{ font-size:.82rem; color:#bfe0d9; margin-top:4px; }
+  .clock{ font-size:2rem; font-weight:900; letter-spacing:1px; font-variant-numeric:tabular-nums; text-align:left; direction:ltr; }
+  .status-pill{ display:inline-flex; align-items:center; gap:7px; padding:6px 13px; border-radius:30px; font-size:.78rem; font-weight:800; background:rgba(255,255,255,.12); margin-top:6px; }
+  .status-pill i{ width:9px; height:9px; border-radius:50%; background:#9aa; }
+  .status-pill.open i{ background:#41f0b0; box-shadow:0 0 0 0 rgba(65,240,176,.6); animation:pulse 1.6s infinite; }
+  @keyframes pulse{ 70%{ box-shadow:0 0 0 9px rgba(65,240,176,0);} 100%{ box-shadow:0 0 0 0 rgba(65,240,176,0);} }
+  .hero-main{ display:grid; grid-template-columns:auto 1fr; gap:26px; align-items:center; margin-top:16px; }
+  @media(max-width:720px){ .hero-main{ grid-template-columns:1fr; justify-items:center; text-align:center; } .clock{ text-align:center; } }
+
+  /* ---------- دکمهٔ گرد ---------- */
+  .orb-wrap{ position:relative; width:230px; height:230px; }
+  .orb{ position:absolute; inset:0; border:0; padding:0; background:none; border-radius:50%; outline:none; -webkit-tap-highlight-color:transparent; }
+  .orb svg{ position:absolute; inset:0; width:100%; height:100%; transform:rotate(-90deg); }
+  .orb .disc{ position:absolute; inset:26px; border-radius:50%; background:#000; display:grid; place-items:center; overflow:hidden;
+    box-shadow:0 0 0 6px rgba(255,255,255,.08), 0 18px 40px rgba(0,0,0,.35), inset 0 -8px 18px rgba(15,61,58,.12); transition:transform .18s; }
+  .orb .disc img{ width:68%; height:68%; object-fit:contain; margin-top:-18px; }
+  .orb .lbl{ position:absolute; bottom:24%; left:0; right:0; text-align:center; font-weight:900; font-size:1.02rem; }
+  .orb.in .lbl{ color:#41e0ad; } .orb.out .lbl{ color:#ff7a5c; }
+  .orb:hover .disc{ transform:scale(1.03); } .orb:active .disc{ transform:scale(.96); }
+  .orb.busy .disc{ opacity:.7; }
+  .orb .halo{ position:absolute; inset:14px; border-radius:50%; pointer-events:none; }
+  .orb.in .halo{ animation:halo 2.4s infinite; box-shadow:0 0 0 0 rgba(47,211,160,.55); }
+  @keyframes halo{ 70%{ box-shadow:0 0 0 18px rgba(47,211,160,0);} 100%{ box-shadow:0 0 0 0 rgba(47,211,160,0);} }
+  .orb.wait .lbl{ color:#f6c45a; font-size:.85rem; }
+  .shake{ animation:shake .45s; } @keyframes shake{ 20%,60%{ transform:translateX(-7px);} 40%,80%{ transform:translateX(7px);} }
+  .hero-info .live{ font-family:ui-monospace,'SF Mono',Consolas,monospace; letter-spacing:1px; font-size:2.1rem; font-weight:900; font-variant-numeric:tabular-nums; direction:ltr; display:inline-block; }
+  .hero-info .live-lbl{ font-size:.8rem; color:#bfe0d9; }
+  .hero-info .hint{ font-size:.75rem; color:#bfe0d9; margin-top:10px; line-height:1.9; }
+  .hero-info .hint b{ color:#fff; }
+  .mini{ display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; }
+  .mini div{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:8px 12px; min-width:110px; }
+  .mini b{ display:block; font-size:1.15rem; } .mini span{ font-size:.68rem; color:#bfe0d9; }
+
+  /* ---------- تایم‌لاین امروز ---------- */
+  .tl{ position:relative; height:46px; margin:6px 2px 20px; }
+  .tl .track{ position:absolute; top:14px; left:0; right:0; height:18px; border-radius:10px; background:#eef3f2; }
+  .tl .seg{ position:absolute; top:14px; height:18px; border-radius:10px; background:linear-gradient(90deg,var(--in1),var(--in2)); box-shadow:0 3px 10px rgba(19,163,122,.3); }
+  .tl .seg.open{ background:repeating-linear-gradient(45deg,var(--in1) 0 8px,var(--in2) 8px 16px); animation:mv 1s linear infinite; background-size:22px 22px; }
+  @keyframes mv{ to{ background-position:22px 0; } }
+  .tl .seg.auto{ background:linear-gradient(90deg,#c9932b,var(--gold)); }
+  .tl .tick{ position:absolute; top:36px; font-size:.62rem; color:var(--muted); transform:translateX(50%); }
+  .tl .shift{ position:absolute; top:10px; height:26px; border-radius:12px; background:rgba(31,138,127,.10); border:1.5px dashed rgba(31,138,127,.45); }
+  .tl .shift span{ position:absolute; top:-15px; right:50%; transform:translateX(50%); font-size:.6rem; color:var(--brand3); font-weight:800; white-space:nowrap; }
+  .tl .now{ position:absolute; top:6px; height:34px; width:2px; background:var(--out1); border-radius:2px; }
+  .tl .auto9{ position:absolute; top:8px; height:30px; border-left:2px dashed #d9a640; }
+  .tl .auto9 span{ position:absolute; top:-14px; transform:translateX(50%); font-size:.6rem; color:#a26a00; white-space:nowrap; }
+
+  /* ---------- KPI ---------- */
+  .kpis{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+  @media(max-width:860px){ .kpis{ grid-template-columns:repeat(2,1fr); } }
+  .kpi{ background:#fff; border-radius:18px; padding:14px 16px; box-shadow:var(--shadow); display:flex; gap:12px; align-items:center; border:1px solid rgba(15,61,58,.05); }
+  .kpi .ring{ width:58px; height:58px; flex:none; }
+  .kpi .ico{ width:46px; height:46px; flex:none; border-radius:14px; display:grid; place-items:center; font-size:1.3rem; background:#eef6f4; }
+  .kpi b{ display:block; font-size:1.25rem; font-variant-numeric:tabular-nums; }
+  .kpi span{ font-size:.7rem; color:var(--muted); }
+  .kpi small{ display:block; font-size:.66rem; color:var(--brand3); margin-top:2px; font-weight:700; }
+  .grid2{ display:grid; grid-template-columns:1.4fr 1fr; gap:16px; }
+  @media(max-width:860px){ .grid2{ grid-template-columns:1fr; } }
+  .chart svg{ width:100%; height:auto; display:block; overflow:visible; }
+  .chart .ax{ font-size:9px; fill:var(--muted); }
+  .chart .vl{ font-size:9px; font-weight:800; fill:var(--ink); }
+  .cal{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+  .cal .h{ font-size:.62rem; color:var(--muted); text-align:center; }
+  .cal .d{ aspect-ratio:1; border-radius:9px; display:grid; place-items:center; font-size:.68rem; font-weight:700; background:#f1f5f4; color:#9aa8a5; position:relative; }
+  .cal .d.l1{ background:#d6f3ea; color:#0f6e56; } .cal .d.l2{ background:#9fe3cc; color:#0b4f3e; } .cal .d.l3{ background:#3fc79b; color:#fff; } .cal .d.l4{ background:#13a37a; color:#fff; }
+  .cal .d.today{ outline:2px solid var(--brand); outline-offset:1px; }
+  .cal .d.auto::after{ content:''; position:absolute; top:3px; left:3px; width:6px; height:6px; border-radius:50%; background:var(--gold); }
+  .legend{ display:flex; gap:10px; flex-wrap:wrap; font-size:.66rem; color:var(--muted); margin-top:10px; }
+  .legend i{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-left:4px; vertical-align:-1px; }
+  #tip{ position:fixed; z-index:9999; display:none; pointer-events:none; background:#16302d; color:#fff; font-size:.72rem; line-height:1.7; padding:7px 11px; border-radius:9px; box-shadow:0 8px 22px rgba(0,0,0,.25); }
+
+  /* ---------- گزارش ---------- */
+  .report-head{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+  select, input[type=time], input[type=date]{ font-family:inherit; padding:9px 12px; border:1.5px solid var(--line); border-radius:11px; font-size:.84rem; background:#fbfdfc; color:var(--ink); }
+  .btn{ border:none; border-radius:11px; padding:10px 16px; font-weight:800; font-size:.84rem; }
+  .btn-sec{ background:#eef2f1; color:#2a3735; } .btn-sec:hover{ background:#e3eae8; }
+  .btn-xl{ background:linear-gradient(135deg,#1d6f42,#2f9463); color:#fff; }
+  .btn-pri{ background:linear-gradient(135deg,var(--brand),var(--brand3)); color:#fff; }
+  .btn-dan{ background:#fdeeec; color:var(--out1); }
+  .op-block{ margin-bottom:20px; border:1px solid var(--line); border-radius:16px; overflow:hidden; }
+  .op-title{ font-weight:800; color:var(--brand); padding:12px 14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; background:linear-gradient(90deg,#f2f8f6,#fff); }
+  .chip{ font-size:.74rem; font-weight:800; color:var(--brand); background:#e7f3f1; padding:4px 11px; border-radius:20px; }
+  table{ width:100%; border-collapse:collapse; font-size:.8rem; }
+  th,td{ border-top:1px solid var(--line); padding:8px 12px; text-align:right; vertical-align:middle; }
+  th{ color:var(--muted); font-weight:700; background:#fbfdfc; }
+  .time-chip{ display:inline-flex; align-items:center; gap:5px; font-size:.75rem; background:#eef6f4; color:#0f3d3a; border-radius:20px; padding:3px 10px; margin:2px; font-weight:700; }
+  .time-chip.open{ background:#fdeeec; color:var(--out1); }
+  .time-chip.auto{ background:#fff4dc; color:#8a5a00; }
+  .time-chip .e{ border:0; background:none; padding:0 2px; font-size:.8rem; color:inherit; opacity:.7; }
+  .time-chip .e:hover{ opacity:1; }
+  .tag{ font-size:.62rem; font-weight:800; border-radius:10px; padding:1px 7px; margin-right:4px; }
+  .tag.auto{ background:#ffe9b8; color:#8a5a00; } .tag.ed{ background:#e8eefc; color:#3550a8; }
+  .empty{ color:var(--muted); font-size:.82rem; padding:16px 0; text-align:center; }
+  .bar-mini{ height:6px; border-radius:6px; background:#e9efee; overflow:hidden; margin:0 14px 8px; }
+  .bar-mini i{ display:block; height:100%; border-radius:6px; background:linear-gradient(90deg,var(--brand3),var(--brand)); }
+
+  /* ---------- پیام‌ها ---------- */
+  #pop{ position:fixed; inset:0; z-index:9000; display:none; background:rgba(8,24,22,.45); backdrop-filter:blur(3px); padding:16px; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; }
+  #pop.show{ display:flex; } #pop>.pop-card{ margin:auto; flex:0 0 auto; }
+  body.pop-open{ overflow:hidden; }
+  .pop-card.am{ padding:18px 20px 16px; } .pop-card.am .em{ font-size:2rem; } .pop-card.am h2{ margin:6px 0 2px; } .pop-card.am .field{ margin-top:6px; }
+  .pop-card.am .am-acts{ position:sticky; bottom:0; background:#fff; padding:8px 0 2px; margin-top:6px; display:flex; gap:8px; } .pop-card.am .am-acts .btn{ margin-top:0; }
+  .pop-card{ background:#fff; border-radius:26px; padding:28px 26px 22px; max-width:420px; width:100%; text-align:center; box-shadow:0 30px 80px rgba(0,0,0,.35); animation:popin .35s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes popin{ from{ transform:scale(.85); opacity:0; } }
+  .pop-card .em{ font-size:3rem; line-height:1; }
+  .pop-card h2{ margin:12px 0 6px; font-size:1.3rem; color:var(--brand); }
+  .pop-card p{ margin:6px 0; color:#3d4b49; font-size:.92rem; line-height:1.9; }
+  .pop-card .stats{ display:flex; gap:10px; justify-content:center; margin:14px 0 6px; }
+  .pop-card .stats div{ background:#f2f8f6; border-radius:14px; padding:10px 14px; min-width:120px; }
+  .pop-card .stats b{ display:block; font-size:1.3rem; color:var(--brand); } .pop-card .stats span{ font-size:.72rem; color:var(--muted); }
+  .pop-card .btn{ margin-top:12px; width:100%; }
+  .pop-card.warn h2{ color:#a26a00; }
+  #toast{ position:fixed; bottom:20px; right:50%; transform:translate(50%,30px); opacity:0; transition:.3s; z-index:9500; background:#16302d; color:#fff; padding:10px 18px; border-radius:12px; font-size:.82rem; font-weight:700; pointer-events:none; }
+  #toast.show{ opacity:1; transform:translate(50%,0); }
+  .field{ display:flex; flex-direction:column; gap:5px; text-align:right; margin-top:10px; font-size:.78rem; color:var(--muted); font-weight:700; }
+  .field input, .field select{ width:100%; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .msg{ font-size:.78rem; min-height:16px; margin-top:8px; color:var(--out1); }
+
+.am-modes{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0 4px}
+.am-modes button{border:1.5px solid var(--line,#dfe7e5);background:#fff;border-radius:10px;padding:7px 10px;font:inherit;font-size:.78rem;font-weight:700;cursor:pointer;color:#33504c}
+.am-modes button.on{background:#0f3d3a;color:#fff;border-color:#0f3d3a}
+.am-hint{font-size:.74rem;color:#5b6b6a;background:#f3f8f7;border-radius:10px;padding:7px 10px;margin:4px 0 6px;line-height:1.8;text-align:right}
+.chip.warn{background:#fff1e0!important;color:#a15c00!important}.chip.man{background:#eef2ff!important;color:#3446a8!important}
+.tag.man{background:#eef2ff;color:#3446a8}
+
+.jd-row{display:grid;grid-template-columns:1fr 1.6fr 1.1fr;gap:6px;margin-top:4px}
+.jd-row select{width:100%;padding:9px 8px;border:1.5px solid var(--line,#dfe7e5);border-radius:10px;font:inherit;font-size:.9rem;background:#fff}
+.jd-quick{display:flex;gap:6px;margin-top:6px}.jd-quick button{border:1px solid var(--line,#dfe7e5);background:#f3f8f7;border-radius:8px;padding:4px 10px;font:inherit;font-size:.74rem;font-weight:700;cursor:pointer;color:#0f3d3a}
+.jd-quick button:hover{background:#0f3d3a;color:#fff}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== هیرو: خوشامد، ساعت، دکمهٔ گرد ===== -->
+  <section class="hero">
+    <div class="hero-top">
+      <div>
+        <h1 class="greet" id="greet">ثبت ورود و خروج</h1>
+        <div class="date-line" id="dateLine"></div>
+        <div class="status-pill" id="statusPill"><i></i><span id="statusTxt">در حال بررسی…</span></div>
+      </div>
+      <div class="clock" id="clock">--:--</div>
+    </div>
+    <div class="hero-main">
+      <div class="orb-wrap">
+        <button type="button" id="orb" class="orb in" aria-label="ثبت ورود یا خروج">
+          <svg viewBox="0 0 230 230"><defs>
+            <linearGradient id="gIn" x1="0" x2="1"><stop offset="0" stop-color="#13a37a"/><stop offset="1" stop-color="#2fd3a0"/></linearGradient>
+            <linearGradient id="gOut" x1="0" x2="1"><stop offset="0" stop-color="#d9442f"/><stop offset="1" stop-color="#ff8a5c"/></linearGradient>
+            <linearGradient id="gWait" x1="0" x2="1"><stop offset="0" stop-color="#c9932b"/><stop offset="1" stop-color="#f6c45a"/></linearGradient></defs>
+            <circle cx="115" cy="115" r="104" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="14"/>
+            <circle id="ringBase" cx="115" cy="115" r="104" fill="none" stroke="url(#gIn)" stroke-width="14" stroke-linecap="round" stroke-dasharray="653.5" stroke-dashoffset="0"/>
+            <circle id="ringProg" cx="115" cy="115" r="104" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="4" stroke-linecap="round" stroke-dasharray="653.5" stroke-dashoffset="653.5"/>
+          </svg>
+          <span class="halo"></span>
+          <span class="disc"><img src="data:image/jpeg;base64,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" alt="لوگوی بهفراز"></span>
+          <span class="lbl" id="orbLbl">ورود</span>
+        </button>
+      </div>
+      <div class="hero-info">
+        <div class="live-lbl" id="liveLbl">کارکرد امروز</div>
+        <div class="live" id="live">00:00:00</div>
+        <div class="mini">
+          <div><b id="mIn">—</b><span>اولین ورود امروز</span><small id="mInNote" style="display:block;font-size:.66rem;font-weight:800;margin-top:2px"></small></div>
+          <div><b id="mPf">—</b><span>پیش‌فاکتور امروز</span></div>
+          <div><b id="mGoal">—</b><span>از هدف ۸ ساعته</span></div>
+        </div>
+        <div class="hint" id="hint">ساعت کاری شرکت: <b>۹:۰۰ تا ۱۷:۰۰</b> (۸ ساعت). اگر خروج را فراموش کنید، سامانه ساعت <b>۲۱:۰۰</b> همان روز خودکار خروج را ثبت می‌کند.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="card">
+    <h3>🕘 تایم‌لاین امروز <small>(۷ صبح تا ۱۰ شب)</small></h3>
+    <div class="tl" id="tl"></div>
+    <div class="legend"><span><i style="background:#13a37a"></i>حضور</span><span><i style="background:repeating-linear-gradient(45deg,#13a37a 0 3px,#2fd3a0 3px 6px)"></i>در حال حضور</span><span><i style="background:#f0b44c"></i>خروج خودکار ساعت ۲۱</span><span><i style="background:rgba(31,138,127,.15);border:1px dashed #1f8a7f"></i>ساعت کاری ۹ تا ۱۷</span></div>
+  </div>
+
+  <div id="dashOpRow" class="report-head" style="display:none"><span style="font-size:.8rem;color:var(--muted);font-weight:700">داشبورد کاربر:</span><select id="dashOp"></select></div>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid2">
+    <div class="card chart"><h3>📊 ساعت کار ۱۴ روز اخیر <small>(خط‌چین: هدف ۸ ساعت)</small></h3><div id="bars"></div></div>
+    <div class="card"><h3>🗓️ تقویم حضور <small id="calTitle"></small></h3><div class="cal" id="cal"></div>
+      <div class="legend"><span><i style="background:#f1f5f4"></i>بدون حضور</span><span><i style="background:#9fe3cc"></i>کمتر از ۶ ساعت</span><span><i style="background:#13a37a"></i>۸ ساعت و بیشتر</span><span><i style="background:#f0b44c;border-radius:50%"></i>خروج خودکار</span></div></div>
+  </div>
+
+  <div class="card">
+    <h3>📑 گزارش ماهانه <small id="reportSub">ماه را انتخاب کنید</small></h3>
+    <div class="report-head">
+      <select id="jalaliMonthSelect"></select>
+      <select id="jalaliYearSelect"></select>
+      <select id="opPicker" style="display:none;"></select>
+      <button class="btn btn-sec" onclick="loadReport()">نمایش گزارش</button>
+      <button id="btnExportExcel" class="btn btn-xl" onclick="exportToExcel()" style="display:none;">⬇️ خروجی اکسل</button>
+      <button id="btnAddSess" class="btn btn-pri" onclick="openAdd()" style="display:none;" title="برای کسی که ورود یا خروجش را فراموش کرده">🖐️ ثبت ساعت دستی (فراموشی)</button><button id="btnPrintRep" class="btn btn-xl" onclick="printReport()" style="display:none;">🖨️ چاپ / PDF گزارش ماه</button>
+    </div>
+    <div id="reportBox"><div class="empty">ماه مورد نظر را انتخاب کنید و «نمایش گزارش» را بزنید.</div></div>
+  </div>
+</div>
+
+<div id="pop"><div class="pop-card" id="popCard"></div></div>
+<div id="toast"></div>
+<div id="tip"></div>
+
+<script>
+  const BF_OPERATOR_KEY = 'bf_operator_session_v1';
+  const ADMIN_NAMES = ["سیمنی","زمردی","نوری"];   // فقط برای نمایش انتخابگر؛ اجازهٔ واقعی در سرور چک می‌شود
+  const PERSIAN_MONTHS = ['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+  const WEEKDAYS = ['ی','د','س','چ','پ','ج','ش'];
+  const MONTHLY_TARGET_MINUTES = 192 * 60, DAY_TARGET = 8 * 60, RING = 653.5;
+  const SHIFT_IN = 9*60, SHIFT_OUT = 17*60;   // ساعت کاری پیش‌فرض شرکت: ۹ صبح تا ۱۷ (۸ ساعت)
+  const hm2m = t => +t.slice(0,2)*60 + +t.slice(3,5);
+  const tehNowMin = () => { const d = new Date(nowMs() + 210*60000); return d.getUTCHours()*60 + d.getUTCMinutes(); };
+  const lateTxt = m => m <= 0 ? 'به‌موقع ✓' : fmtHM(m) + ' تأخیر';
+  const $ = id => document.getElementById(id);
+  const fa = n => String(n).replace(/\d/g, d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+  const toFaDigits = fa;
+  const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  /* ---------------- تقویم شمسی ---------------- */
+  function gregorianToJalali(gy, gm, gd){
+    const g_d_m = [0,31,59,90,120,151,181,212,243,273,304,334]; let jy;
+    if(gy > 1600){ jy = 979; gy -= 1600; } else { jy = 0; gy -= 621; }
+    const gy2 = (gm > 2) ? (gy + 1) : gy;
+    let days = (365*gy) + parseInt((gy2+3)/4) - parseInt((gy2+99)/100) + parseInt((gy2+399)/400) - 80 + gd + g_d_m[gm-1];
+    jy += 33 * parseInt(days/12053); days %= 12053; jy += 4 * parseInt(days/1461); days %= 1461;
+    if(days > 365){ jy += parseInt((days-1)/365); days = (days-1) % 365; }
+    const jm = (days < 186) ? 1 + parseInt(days/31) : 7 + parseInt((days-186)/30);
+    const jd = 1 + ((days < 186) ? (days % 31) : ((days-186) % 30));
+    return [jy, jm, jd];
+  }
+  function jalaliToGregorian(jy, jm, jd){
+    let gy; if(jy > 979){ gy = 1600; jy -= 979; } else { gy = 621; }
+    let days = (365*jy) + parseInt(jy/33)*8 + parseInt(((jy%33)+3)/4) + 78 + jd + ((jm < 7) ? (jm-1)*31 : ((jm-7)*30) + 186);
+    gy += 400 * parseInt(days/146097); days %= 146097;
+    if(days > 36524){ gy += 100 * parseInt(--days/36524); days %= 36524; if(days >= 365) days++; }
+    gy += 4 * parseInt(days/1461); days %= 1461;
+    if(days > 365){ gy += parseInt((days-1)/365); days = (days-1) % 365; }
+    const gd = days + 1, isLeapG = (gy%4===0 && gy%100!==0) || (gy%400===0);
+    const sal_a = [0,31, isLeapG?29:28, 31,30,31,30,31,31,30,31,30,31]; let gm, rem = gd;
+    for(gm=1; gm<=12; gm++){ if(rem <= sal_a[gm]) break; rem -= sal_a[gm]; }
+    return [gy, gm, rem];
+  }
+  function todayJalali(){ const n = new Date(); return gregorianToJalali(n.getFullYear(), n.getMonth()+1, n.getDate()); }
+  function jalaliMonthRange(jy, jm){
+    const [gy1, gm1, gd1] = jalaliToGregorian(jy, jm, 1); let ny = jy, nm = jm + 1; if(nm > 12){ nm = 1; ny = jy + 1; }
+    const [gy2, gm2, gd2] = jalaliToGregorian(ny, nm, 1);
+    const start = new Date(Date.UTC(gy1, gm1-1, gd1)), end = new Date(Date.UTC(gy2, gm2-1, gd2) - 864e5), iso = d => d.toISOString().slice(0,10);
+    return { from: iso(start), to: iso(end) };
+  }
+  const jOf = ds => { const [gy, gm, gd] = ds.split('-').map(Number); return gregorianToJalali(gy, gm, gd); };
+  function toJalaliDisplay(ds){ const [jy, jm, jd] = jOf(ds); return fa(jd) + ' ' + PERSIAN_MONTHS[jm-1] + ' ' + fa(jy); }
+  function weekdayOf(ds){ return new Date(ds + 'T12:00:00Z').getUTCDay(); } // 0 = یکشنبه
+
+  /* ---------------- نشست ---------------- */
+  function getOperatorSession(){ try { return JSON.parse(sessionStorage.getItem(BF_OPERATOR_KEY) || 'null'); } catch(e){ return null; } }
+  const dn = n => (window.__NAMES && window.__NAMES[n]) || n;
+  function authHeaders(json){ const o = getOperatorSession(), h = (o && o.token) ? { 'x-operator-token': o.token } : {}; if(json) h['Content-Type'] = 'application/json'; return h; }
+  let session = getOperatorSession();
+  let ST = null, skew = 0, SUM = null, lastReportData = null, lastReportJalali = null, busy = false;
+
+  /* ---------------- قالب‌بندی ---------------- */
+  const fmtHM = mins => { if(mins == null) return '—'; const h = Math.floor(mins/60), m = mins%60; if(!h) return fa(m) + ' دقیقه'; return fa(h) + ' ساعت' + (m ? ' و ' + fa(m) + ' دقیقه' : ''); };
+  const fmtShort = mins => { const h = Math.floor(mins/60), m = mins%60; return fa(h) + ':' + fa(String(m).padStart(2,'0')); };
+  const hms = s => { s = Math.max(0, Math.floor(s)); return [Math.floor(s/3600), Math.floor(s%3600/60), s%60].map(v=>String(v).padStart(2,'0')).join(':'); };
+  const nowMs = () => Date.now() + (isFinite(skew) ? skew : 0);
+  const tehHour = () => +new Intl.DateTimeFormat('en-GB',{hour:'2-digit',hour12:false,timeZone:'Asia/Tehran'}).format(new Date(nowMs()));
+  function greetWord(){ const h = tehHour(); return h < 11 ? 'صبح بخیر' : h < 16 ? 'ظهر بخیر' : h < 19 ? 'عصر بخیر' : 'شب بخیر'; }
+
+  function toast(t){ const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('show'), 2600); }
+  function pop(html, cls, autoMs){
+    const c = $('popCard'); c.className = 'pop-card' + (cls ? ' ' + cls : ''); c.innerHTML = html; $('pop').classList.add('show'); document.body.classList.add('pop-open'); $('pop').scrollTop = 0;
+    clearTimeout(pop._t); if(autoMs) pop._t = setTimeout(closePop, autoMs);
+  }
+  function closePop(){ $('pop').classList.remove('show'); document.body.classList.remove('pop-open'); }
+  $('pop').addEventListener('click', e=>{ if(e.target.id==='pop' || e.target.closest('[data-close]')) closePop(); });
+
+  /* ---------------- ساعت زنده و دکمهٔ گرد ---------------- */
+  function tick(){
+    const d = new Date();
+    $('clock').textContent = fa(new Date(nowMs()).toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit', second:'2-digit', timeZone:'Asia/Tehran'}));
+    const [jy, jm, jd] = todayJalali();
+    $('dateLine').textContent = d.toLocaleDateString('fa-IR', {weekday:'long'}) + ' · ' + fa(jd) + ' ' + PERSIAN_MONTHS[jm-1] + ' ' + fa(jy);
+    if(!ST) return;
+    const doneMin = (ST.today ? ST.today.sessions.filter(s=>s.out).reduce((a,s)=>a+s.minutes,0) : 0);
+    const curSec = ST.open && ST.since ? (nowMs() - Date.parse(ST.since))/1000 : 0;
+    const totSec = doneMin*60 + curSec;
+    $('live').textContent = hms(totSec);   // ارقام لاتین: صفرِ فارسی (۰) در ساعت دیجیتال شبیه نقطه دیده می‌شود
+    $('liveLbl').textContent = ST.open ? 'کارکرد امروز (در حال حضور)' : 'کارکرد امروز';
+    $('mGoal').textContent = fa(Math.min(999, Math.round(totSec/60/DAY_TARGET*100))) + '٪';
+    $('ringProg').style.strokeDashoffset = RING * (1 - Math.min(1, totSec/60/DAY_TARGET));
+    const orb = $('orb');
+    const waitLeft = ST.open && ST.since ? (ST.minGapSec||60) - curSec : 0;
+    orb.classList.toggle('in', !ST.open); orb.classList.toggle('out', !!ST.open);
+    orb.classList.toggle('wait', ST.open && waitLeft > 0);
+    $('ringBase').setAttribute('stroke', !ST.open ? 'url(#gIn)' : (waitLeft > 0 ? 'url(#gWait)' : 'url(#gOut)'));
+    $('ringBase').style.strokeDashoffset = (ST.open && waitLeft > 0) ? RING * (1 - waitLeft/(ST.minGapSec||60)) : 0;
+    $('orbLbl').textContent = !ST.open ? 'ورود' : (waitLeft > 0 ? fa(Math.ceil(waitLeft)) + ' ثانیه تا خروج' : 'خروج');
+    if(ST.open && Math.floor(curSec) % 60 === 0) renderTimeline();
+  }
+  setInterval(tick, 1000);
+
+  async function refreshState(){
+    if(!session || !session.token){
+      $('greet').textContent = 'لطفاً ابتدا از صفحهٔ اصلی وارد سامانه شوید'; $('orb').disabled = true; $('statusTxt').textContent = 'بدون نشست'; return;
+    }
+    try{
+      const res = await fetch('/api/attendance/state', { headers: authHeaders() });
+      const data = await res.json(); if(data && data.names){ window.__NAMES = data.names; document.querySelectorAll('#opPicker option, #dashOp option, #aOp option').forEach(o=>{ if(o.value && o.value!=='ALL') o.textContent = dn(o.value); }); }
+      if(!res.ok || !data.ok){ toast(data.error || 'خطا در دریافت وضعیت'); return; }
+      ST = data; const sn = Date.parse(data.serverNow); skew = isNaN(sn) ? 0 : sn - Date.now();
+      if(!data.today) data.today = { sessions: [], minutes: 0, proformas: 0 };
+      if(!data.minGapSec) data.minGapSec = 60;
+      if(!data.serverNow) toast('⚠️ سرور هنوز به‌روز نشده؛ server.js جدید را نصب و سرور را ری‌استارت کنید');
+      $('greet').innerHTML = greetWord() + '، <span>' + esc(dn(data.operator)) + '</span> 👋';
+      $('statusPill').className = 'status-pill' + (data.open ? ' open' : '');
+      $('statusTxt').textContent = data.open ? 'در محل کار · از ساعت ' + fa(new Date(Date.parse(data.since)).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Tehran'})) : 'خارج از محل کار';
+      const f = data.today.sessions[0];
+      $('mIn').textContent = f ? fa(f.in.slice(11,16)) : '—';
+      $('mInNote').textContent = f ? lateTxt(hm2m(f.in.slice(11,16)) - SHIFT_IN) : 'ساعت کاری ۹ تا ۱۷';
+      $('mInNote').style.color = f && hm2m(f.in.slice(11,16)) > SHIFT_IN ? '#ffcf8a' : '#9ff0d4';
+      $('mPf').textContent = fa(data.today.proformas || 0);
+      $('btnAddSess').style.display = data.canEdit ? '' : 'none';
+      renderTimeline(); tick();
+    }catch(e){ toast('اتصال به سرور برقرار نشد'); }
+  }
+
+  $('orb').addEventListener('click', async ()=>{
+    if(!ST || busy) return;
+    if(ST.open){
+      const left = (ST.minGapSec||60) - (nowMs() - Date.parse(ST.since))/1000;
+      if(left > 0){
+        $('orb').classList.remove('shake'); void $('orb').offsetWidth; $('orb').classList.add('shake');
+        pop('<div class="em">⏳</div><h2>کمی صبر کنید</h2><p>شما همین الان ورود زده‌اید. برای جلوگیری از <b>خروج اشتباهی</b>، تا <b>' + fa(Math.ceil(left)) + ' ثانیه</b> دیگر امکان ثبت خروج نیست.</p><button class="btn btn-sec" data-close>متوجه شدم</button>', 'warn', 4000);
+        return;
+      }
+      return doCheckout();
+    }
+    return doCheckin();
+  });
+
+  async function doCheckin(){
+    busy = true; $('orb').classList.add('busy');
+    try{
+      const res = await fetch('/api/attendance/checkin', { method:'POST', headers: authHeaders() });
+      const data = await res.json();
+      if(!res.ok || !data.ok){ toast(data.error || 'خطا در ثبت ورود'); return; }
+      const h = tehHour();
+      pop('<div class="em">' + (h < 12 ? '🌤️' : '☀️') + '</div><h2>روز خوبی داشته باشی' + ((data.operator || (session && session.name)) ? '، ' + esc(dn(data.operator || session.name)) : '') + '!</h2><p>ورود شما ساعت <b>' + fa(new Date(nowMs()).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'Asia/Tehran'})) + '</b> ثبت شد.</p><p style="font-size:.78rem;color:var(--muted)">' + (data.firstToday ? (tehNowMin() <= SHIFT_IN ? 'به‌موقع رسیدید 👏 ساعت کاری امروز ۹ تا ۱۷' : 'ساعت کاری از ۹ صبح است · ' + fmtHM(tehNowMin() - SHIFT_IN) + ' تأخیر') : 'خوش برگشتید 🙌') + '</p><button class="btn btn-pri" data-close>شروع کار</button>', '', 5000);
+      await refreshState(); loadSummary();
+    }catch(e){ toast('اتصال به سرور برقرار نشد'); }
+    finally{ busy = false; $('orb').classList.remove('busy'); }
+  }
+
+  const tehDay = () => new Date(nowMs() + 210*60000).toISOString().slice(0,10);
+  async function todayMinutesFallback(){
+    try{ const d = tehDay(), res = await fetch('/api/attendance/report?from=' + d + '&to=' + d, { headers: authHeaders() }), j = await res.json();
+      const op = (j.operators || []).find(o => o.operator === (session && session.name)) || (j.operators || [])[0];
+      return op ? Number(op.total_minutes) || 0 : 0; }catch(e){ return NaN; }
+  }
+  async function proformasFallback(name){
+    try{ const res = await fetch('/api/orders', { headers: authHeaders() }), list = await res.json(), d = tehDay();
+      if(!Array.isArray(list)) return NaN;
+      return list.filter(o => { const p = o.payload || {}, who = p.createdByOperator || o.operator || ''; const c = Date.parse(o.created_at);
+        return who === name && !o.deleted_at && isFinite(c) && new Date(c + 210*60000).toISOString().slice(0,10) === d; }).length;
+    }catch(e){ return NaN; }
+  }
+  async function doCheckout(){
+    busy = true; $('orb').classList.add('busy');
+    try{
+      const res = await fetch('/api/attendance/checkout', { method:'POST', headers: authHeaders() });
+      const data = await res.json();
+      if(!res.ok || !data.ok){
+        if(data.code === 'too_soon') pop('<div class="em">⏳</div><h2>کمی صبر کنید</h2><p>' + esc(data.error) + '</p><p><b>' + fa(data.wait) + ' ثانیه</b> دیگر دوباره امتحان کنید.</p><button class="btn btn-sec" data-close>باشه</button>', 'warn', 4000);
+        else toast(data.error || 'خطا در ثبت خروج');
+        return;
+      }
+      // اگر سرور هنوز نسخهٔ قدیمی باشد، این مقادیر را خودمان از گزارش امروز و لیست سفارش‌ها می‌سازیم (هیچ‌وقت NaN/undefined نشان داده نمی‌شود)
+      const name = dn(data.operator || (session && session.name) || '');
+      let mins = Number(data.todayMinutes), pf = Number(data.proformasToday);
+      if(!isFinite(mins)) mins = await todayMinutesFallback();
+      if(!isFinite(pf)) pf = await proformasFallback(name);
+      const hasPf = isFinite(pf);
+      pop('<div class="em">🌙</div><h2>خسته نباشید' + (name ? '، ' + esc(name) : '') + '!</h2><p>خروج شما ثبت شد.</p>' +
+        '<div class="stats"><div><b>' + (isFinite(mins) ? fmtShort(mins) : '—') + '</b><span>کارکرد امروز (ساعت)</span></div><div><b>' + (hasPf ? fa(pf) : '—') + '</b><span>پیش‌فاکتور امروز</span></div></div>' +
+        '<p>' + (isFinite(mins) ? 'کارکرد امروز شما <b>' + fmtHM(mins) + '</b> بوده است.' : 'خروج شما ثبت شد.') + '<br>' +
+        (!hasPf ? '' : pf > 0 ? 'شما امروز <b>' + fa(pf) + ' پیش‌فاکتور</b> ثبت کردید. 👏' : 'امروز پیش‌فاکتوری صادر نکردید.') + '</p>' +
+        (function(){ if(!isFinite(mins)) return ''; const n = tehNowMin(), ot = Math.max(0, mins - DAY_TARGET); if(n < SHIFT_OUT) return '<p style="font-size:.8rem;color:#a26a00">⏱ ' + fmtHM(SHIFT_OUT - n) + ' زودتر از پایان ساعت کاری (۱۷:۰۰)</p>'; return ot ? '<p style="font-size:.8rem;color:#0f6e56">💪 ' + fmtHM(ot) + ' بیشتر از ۸ ساعت کار کردید</p>' : ''; })() +
+        '<button class="btn btn-pri" data-close>ممنون، تا فردا 👋</button>');
+      await refreshState(); loadSummary();
+    }catch(e){ toast('اتصال به سرور برقرار نشد'); }
+    finally{ busy = false; $('orb').classList.remove('busy'); }
+  }
+
+  /* ---------------- تایم‌لاین امروز ---------------- */
+  function renderTimeline(){
+    if(!ST) return;
+    const T0 = 7*60, T1 = 22*60, span = T1 - T0, box = $('tl');
+    const pos = m => (Math.max(0, Math.min(span, m - T0)) / span * 100);
+    const toMin = s => +s.slice(11,13)*60 + +s.slice(14,16);
+    const d = new Date(nowMs() + 210*60000), nowMin = d.getUTCHours()*60 + d.getUTCMinutes();
+    let h = '<div class="track"></div><div class="shift" style="right:' + pos(SHIFT_IN) + '%;width:' + (pos(SHIFT_OUT)-pos(SHIFT_IN)) + '%"><span>ساعت کاری ۹ تا ۱۷</span></div>';
+    ST.today.sessions.forEach(s=>{
+      const a = toMin(s.in), b = s.out ? toMin(s.out) : nowMin;
+      h += '<div class="seg' + (s.out ? (s.auto ? ' auto' : '') : ' open') + '" style="right:' + pos(a) + '%;width:' + Math.max(.6, pos(b)-pos(a)) + '%" data-tip="' + esc((s.out?'':'در حال حضور · ') + 'ورود ' + fa(s.in.slice(11,16)) + (s.out ? ' تا خروج ' + fa(s.out.slice(11,16)) + (s.auto?' (خودکار)':'') : '')) + '"></div>';
+    });
+    for(let t = 8; t <= 22; t += 2) h += '<span class="tick" style="right:' + pos(t*60) + '%">' + fa(t) + '</span>';
+    h += '<div class="auto9" style="right:' + pos(21*60) + '%"><span>خروج خودکار</span></div>';
+    if(nowMin > T0 && nowMin < T1) h += '<div class="now" style="right:' + pos(nowMin) + '%"></div>';
+    box.innerHTML = h;
+  }
+
+  /* ---------------- داشبورد گرافیکی ---------------- */
+  function ringSvg(p, color){
+    const r = 24, c = 2*Math.PI*r; return '<svg class="ring" viewBox="0 0 58 58"><circle cx="29" cy="29" r="'+r+'" fill="none" stroke="#e9efee" stroke-width="7"/><circle cx="29" cy="29" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="7" stroke-linecap="round" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+(c*(1-Math.min(1,p))).toFixed(1)+'" transform="rotate(-90 29 29)"/><text x="29" y="33" text-anchor="middle" font-size="12" font-weight="800" fill="#0f3d3a">'+fa(Math.round(p*100))+'٪</text></svg>';
+  }
+  async function loadSummary(){
+    if(!session || !session.token) return;
+    const op = $('dashOp').value || '';
+    try{
+      const res = await fetch('/api/attendance/summary?days=35' + (op ? '&operator=' + encodeURIComponent(op) : ''), { headers: authHeaders() });
+      const data = await res.json(); if(!res.ok || !data.ok) return;
+      SUM = data; renderDash();
+    }catch(e){}
+  }
+  function renderDash(){
+    const days = SUM.days, today = SUM.today, [cy, cm] = jOf(today);
+    const last7 = days.slice(-7), weekMin = last7.reduce((a,d)=>a+d.minutes,0);
+    const month = days.filter(d=>{ const j = jOf(d.date); return j[0]===cy && j[1]===cm; });
+    const monthMin = month.reduce((a,d)=>a+d.minutes,0), present = month.filter(d=>d.minutes>0);
+    const firsts = days.filter(d=>d.first).map(d=>+d.first.slice(0,2)*60 + +d.first.slice(3,5));
+    const avgIn = firsts.length ? Math.round(firsts.reduce((a,b)=>a+b,0)/firsts.length) : null;
+    const pf30 = days.reduce((a,d)=>a+(d.proformas||0),0), autoN = month.filter(d=>d.auto).length;
+    const td = days[days.length-1];
+    const lateDays = present.filter(d=>d.first && hm2m(d.first) > SHIFT_IN).length;
+    const otMonth = present.reduce((a,d)=>a+Math.max(0, d.minutes-DAY_TARGET),0);
+    $('kpis').innerHTML = [
+      '<div class="kpi">' + ringSvg(td.minutes/DAY_TARGET, '#13a37a') + '<div><b>' + fmtShort(td.minutes) + '</b><span>کارکرد امروز</span><small>' + fa(td.proformas||0) + ' پیش‌فاکتور امروز</small></div></div>',
+      '<div class="kpi">' + ringSvg(weekMin/(DAY_TARGET*6), '#1f8a7f') + '<div><b>' + fmtShort(weekMin) + '</b><span>۷ روز اخیر</span><small>میانگین ' + fmtShort(Math.round(weekMin/Math.max(1,last7.filter(d=>d.minutes).length))) + ' در روز</small></div></div>',
+      '<div class="kpi">' + ringSvg(monthMin/MONTHLY_TARGET_MINUTES, '#0f3d3a') + '<div><b>' + fmtShort(monthMin) + '</b><span>' + PERSIAN_MONTHS[cm-1] + ' · هدف ۱۹۲ ساعت</span><small>' + fa(present.length) + ' روز حضور' + (otMonth ? ' · ' + fmtShort(otMonth) + ' اضافه‌کار' : '') + (autoN ? ' · ' + fa(autoN) + ' خروج خودکار' : '') + '</small></div></div>',
+      '<div class="kpi"><div class="ico">⏰</div><div><b>' + (avgIn!=null ? fa(String(Math.floor(avgIn/60)).padStart(2,'0') + ':' + String(avgIn%60).padStart(2,'0')) : '—') + '</b><span>میانگین ورود · ساعت کاری ۹ تا ۱۷</span><small>' + (lateDays ? fa(lateDays) + ' روز تأخیر این ماه' : 'بدون تأخیر این ماه ✓') + ' · ' + fa(pf30) + ' پیش‌فاکتور در ۳۵ روز</small></div></div>'
+    ].join('');
+    // نمودار ستونی ۱۴ روز
+    const b14 = days.slice(-14), W = 560, H = 190, pl = 26, pb = 34, pt = 14, cw = (W-pl-6)/14;
+    const maxM = Math.max(10*60, ...b14.map(d=>d.minutes)), y = m => pt + (H-pt-pb)*(1-m/maxM);
+    let s = '';
+    [0, 4, 8].forEach(hh=>{ s += '<line x1="'+pl+'" x2="'+W+'" y1="'+y(hh*60)+'" y2="'+y(hh*60)+'" stroke="'+(hh===8?'#e0a63a':'#eef2f1')+'" stroke-dasharray="'+(hh===8?'4 4':'0')+'"/><text class="ax" x="'+(pl-5)+'" y="'+(y(hh*60)+3)+'" text-anchor="end">'+fa(hh)+'</text>'; });
+    b14.forEach((d,i)=>{
+      const x = pl + i*cw + cw*.18, w = cw*.64, hgt = (H-pt-pb)*d.minutes/maxM, wd = weekdayOf(d.date), [, , jd] = jOf(d.date), isT = d.date===today;
+      const col = d.auto ? '#f0b44c' : (d.minutes >= DAY_TARGET ? '#13a37a' : '#5fd0ac');
+      if(d.minutes) s += '<rect x="'+x.toFixed(1)+'" y="'+(y(d.minutes)).toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+Math.max(2,hgt).toFixed(1)+'" rx="4" fill="'+col+'"/>' + (cw > 30 ? '<text class="vl" x="'+(x+w/2).toFixed(1)+'" y="'+(y(d.minutes)-4).toFixed(1)+'" text-anchor="middle">'+fmtShort(d.minutes)+'</text>' : '');
+      s += '<text class="ax" x="'+(x+w/2).toFixed(1)+'" y="'+(H-pb+13)+'" text-anchor="middle" '+(isT?'style="font-weight:800;fill:#0f3d3a"':'')+'>'+WEEKDAYS[wd]+'</text><text class="ax" x="'+(x+w/2).toFixed(1)+'" y="'+(H-pb+25)+'" text-anchor="middle">'+fa(jd)+'</text>';
+      s += '<rect x="'+(pl+i*cw).toFixed(1)+'" y="0" width="'+cw.toFixed(1)+'" height="'+H+'" fill="transparent" data-tip="'+esc('<b>'+toJalaliDisplay(d.date)+'</b><br>کارکرد: '+fmtHM(d.minutes)+(d.first?'<br>ورود: '+fa(d.first)+(hm2m(d.first)>SHIFT_IN?' ('+fmtHM(hm2m(d.first)-SHIFT_IN)+' تأخیر)':' (به‌موقع)')+(d.last?' · خروج: '+fa(d.last.slice(11,16)):''):'')+(d.auto?'<br>⚠️ خروج خودکار ساعت ۲۱':'')+'<br>پیش‌فاکتور: '+fa(d.proformas||0))+'"/>';
+    });
+    $('bars').innerHTML = '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+    // تقویم حضور ماه جاری شمسی
+    $('calTitle').textContent = '(' + PERSIAN_MONTHS[cm-1] + ' ' + fa(cy) + ')';
+    const byDate = {}; days.forEach(d=>byDate[d.date]=d);
+    const range = jalaliMonthRange(cy, cm), first = range.from, nD = Math.round((Date.parse(range.to)-Date.parse(first))/864e5)+1;
+    const offset = (weekdayOf(first) + 1) % 7;   // شنبه = ستون اول
+    let c = ['ش','ی','د','س','چ','پ','ج'].map(w=>'<div class="h">'+w+'</div>').join('');
+    for(let i=0;i<offset;i++) c += '<div></div>';
+    for(let i=0;i<nD;i++){
+      const ds = new Date(Date.parse(first)+i*864e5).toISOString().slice(0,10), d = byDate[ds], m = d ? d.minutes : 0;
+      const lv = !m ? '' : m < 240 ? ' l1' : m < 360 ? ' l2' : m < DAY_TARGET ? ' l3' : ' l4';
+      c += '<div class="d'+lv+(ds===today?' today':'')+(d&&d.auto?' auto':'')+'" data-tip="'+esc('<b>'+toJalaliDisplay(ds)+'</b><br>'+(m?fmtHM(m):'بدون حضور'))+'">'+fa(i+1)+'</div>';
+    }
+    $('cal').innerHTML = c;
+  }
+  document.addEventListener('mousemove', e=>{
+    const t = e.target.closest && e.target.closest('[data-tip]'), tip = $('tip');
+    if(!t){ tip.style.display = 'none'; return; }
+    tip.innerHTML = t.getAttribute('data-tip'); tip.style.display = 'block';
+    const r = tip.getBoundingClientRect(); let x = e.clientX + 12, y = e.clientY - r.height - 10;
+    if(x + r.width > innerWidth - 8) x = e.clientX - r.width - 12; if(y < 6) y = e.clientY + 14;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  });
+
+  /* ---------------- گزارش ماهانه + ویرایش ---------------- */
+  function setupReportControls(){
+    const [curJy, curJm] = todayJalali();
+    $('jalaliMonthSelect').innerHTML = PERSIAN_MONTHS.map((m,i)=>'<option value="'+(i+1)+'">'+m+'</option>').join(''); $('jalaliMonthSelect').value = curJm;
+    const years = []; for(let y=curJy; y >= curJy-4; y--) years.push(y);
+    $('jalaliYearSelect').innerHTML = years.map(y=>'<option value="'+y+'">'+fa(y)+'</option>').join(''); $('jalaliYearSelect').value = curJy;
+    if(session && ADMIN_NAMES.indexOf(session.name) >= 0){
+      const ops = ["سیمنی","زمردی","شیرازی","هاشمی","نوری"];
+      $('opPicker').style.display = 'inline-block';
+      $('opPicker').innerHTML = '<option value="ALL">همهٔ اپراتورها</option>' + ops.map(n=>'<option value="'+n+'">'+esc(dn(n))+'</option>').join('');
+      $('dashOpRow').style.display = 'flex';
+      $('dashOp').innerHTML = ops.map(n=>'<option value="'+n+'"'+(n===session.name?' selected':'')+'>'+esc(dn(n))+'</option>').join('');
+      $('dashOp').onchange = loadSummary;
+    }
+  }
+  async function loadReport(){
+    const box = $('reportBox'); $('btnExportExcel').style.display = 'none'; if($('btnPrintRep')) $('btnPrintRep').style.display = 'none'; lastReportData = null;
+    box.innerHTML = '<div class="empty">در حال بارگذاری…</div>';
+    if(!session || !session.token){ box.innerHTML = '<div class="empty">لطفاً ابتدا وارد سامانه شوید.</div>'; return; }
+    const jy = +$('jalaliYearSelect').value, jm = +$('jalaliMonthSelect').value, range = jalaliMonthRange(jy, jm);
+    $('reportSub').textContent = '(' + PERSIAN_MONTHS[jm-1] + ' ' + fa(jy) + ')';
+    let url = '/api/attendance/report?from=' + range.from + '&to=' + range.to;
+    if($('opPicker').style.display !== 'none' && $('opPicker').value) url += '&operator=' + encodeURIComponent($('opPicker').value);
+    try{
+      const res = await fetch(url, { headers: authHeaders() }); const data = await res.json(); if(data && data.names){ window.__NAMES = data.names; document.querySelectorAll('#opPicker option, #dashOp option, #aOp option').forEach(o=>{ if(o.value && o.value!=='ALL') o.textContent = dn(o.value); }); }
+      if(!res.ok || !data.ok){ box.innerHTML = '<div class="empty">' + esc(data.error || 'خطا در دریافت گزارش') + '</div>'; return; }
+      lastReportData = data; lastReportJalali = { jy, jm }; renderReport(data);
+      if(data.operators && data.operators.length){ $('btnExportExcel').style.display = 'inline-block'; $('btnPrintRep').style.display = 'inline-block'; }
+    }catch(e){ box.innerHTML = '<div class="empty">اتصال به سرور برقرار نشد.</div>'; }
+  }
+  function renderReport(data){
+    const box = $('reportBox'), ed = !!data.canEdit;
+    if(!data.operators || !data.operators.length){ box.innerHTML = '<div class="empty">برای این ماه رکوردی ثبت نشده است.</div>'; return; }
+    let html = '';
+    for(const op of data.operators){
+      const pct = Math.max(0, Math.min(100, Math.round(op.total_minutes / MONTHLY_TARGET_MINUTES * 100)));
+      html += '<div class="op-block"><div class="op-title"><span>👤 ' + esc(dn(op.operator)) + '</span><span class="chip">جمع ماه: ' + fmtHM(op.total_minutes) + ' · ' + fa(pct) + '٪ هدف · ' + fa(op.days.filter(d=>d.total_minutes>0).length) + ' روز</span>' + (()=>{ const fo = op.days.filter(d=>d.sessions.some(s=>s.auto)).length, op2 = op.days.filter(d=>d.sessions.some(s=>!s.out)).length, mn = op.days.filter(d=>d.sessions.some(s=>s.manual||s.manualOut)).length; return (fo ? '<span class="chip warn" title="خروج زده نشده و ساعت ۲۱ خودکار بسته شده">⚠ ' + fa(fo) + ' روز خروج فراموش‌شده</span>' : '') + (mn ? '<span class="chip man">✍️ ' + fa(mn) + ' روز ثبت دستی</span>' : ''); })() + '</div><div class="bar-mini"><i style="width:' + pct + '%"></i></div>';
+      if(!op.days.length){ html += '<div class="empty">رکوردی نیست.</div></div>'; continue; }
+      html += '<table><thead><tr><th>روز</th><th>بازه‌ها</th><th>جمع روز</th></tr></thead><tbody>';
+      for(const d of op.days){
+        const ranges = d.sessions.map(s=>{
+          const inT = s.in.slice(11,16), cls = !s.out ? ' open' : (s.auto ? ' auto' : '');
+          const btn = ed ? '<button class="e" title="ویرایش" onclick="openEdit(' + s.inId + ',' + (s.outId||'null') + ',\'' + inT + '\',\'' + (s.out ? s.out.slice(11,16) : '') + '\',\'' + esc(op.operator) + '\',\'' + d.date + '\')">✎</button>' : '';
+          return '<span class="time-chip' + cls + '">' + fa(inT) + ' – ' + (s.out ? fa(s.out.slice(11,16)) : 'باز') + (s.auto ? '<span class="tag auto">خودکار ۲۱</span>' : '') + (s.manual ? '<span class="tag man" title="ثبت دستی توسط ' + esc(dn(s.manual)) + '">دستی: ' + esc(dn(s.manual)) + '</span>' : s.manualOut ? '<span class="tag man" title="خروج دستی توسط ' + esc(dn(s.manualOut)) + '">خروج دستی: ' + esc(dn(s.manualOut)) + '</span>' : s.edited ? '<span class="tag ed" title="ویرایش توسط ' + esc(dn(s.edited)) + '">ویرایش: ' + esc(dn(s.edited)) + '</span>' : '') + btn + '</span>';
+        }).join(' ');
+        html += '<tr><td>' + toJalaliDisplay(d.date) + '</td><td>' + ranges + '</td><td>' + fmtHM(d.total_minutes) + (d.open ? ' <b style="color:var(--out1)">(باز)</b>' : '') + '</td></tr>';
+      }
+      html += '</tbody></table></div>';
+    }
+    box.innerHTML = html;
+  }
+  window.openEdit = function(inId, outId, inT, outT, op, date){
+    pop('<div class="em">✏️</div><h2>ویرایش ساعت</h2><p style="font-size:.82rem">' + esc(dn(op)) + ' · ' + toJalaliDisplay(date) + '</p>' +
+      '<div class="row2"><label class="field">ساعت ورود<input type="time" id="eIn" value="' + inT + '"></label><label class="field">ساعت خروج<input type="time" id="eOut" value="' + outT + '"></label></div>' +
+      '<div class="msg" id="eMsg"></div><button class="btn btn-pri" id="eSave">💾 ذخیره</button><button class="btn btn-dan" id="eDel">🗑 حذف این جلسه</button><button class="btn btn-sec" data-close>انصراف</button>');
+    $('eSave').onclick = async ()=>{ const r = await post('/api/attendance/edit', { inId, outId, in: $('eIn').value, out: $('eOut').value || null }); if(r.ok){ closePop(); toast('✓ ساعت ویرایش شد'); afterEdit(); } else $('eMsg').textContent = r.error; };
+    $('eDel').onclick = async ()=>{ if(!confirm('این جلسهٔ ورود/خروج حذف شود؟')) return; const r = await post('/api/attendance/delete', { inId, outId }); if(r.ok){ closePop(); toast('✓ حذف شد'); afterEdit(); } else $('eMsg').textContent = r.error; };
+  };
+  window.openAdd = function(){
+    const ops = ["سیمنی","زمردی","شیرازی","هاشمی","نوری"], today = new Date(nowMs()+210*60000).toISOString().slice(0,10);
+    const pre = ($('opPicker') && $('opPicker').value && $('opPicker').value!=='ALL') ? $('opPicker').value : '';
+    pop('<div class="em">🖐️</div><h2>ثبت ساعت دستی</h2><p style="font-size:.8rem;color:var(--muted)">برای همکاری که ورود یا خروجش را فراموش کرده (ساعت را از خودش یا همکاران بپرسید)</p>' +
+      '<div class="am-modes" id="aMode"><button type="button" data-m="out" class="on">🚪 فقط خروج فراموش شده</button><button type="button" data-m="full">📅 کل روز (ورود و خروج)</button><button type="button" data-m="in">🌅 فقط ورود امروز</button></div>' +
+      '<div class="am-hint" id="aHint"></div>' +
+      '<label class="field">کاربر<select id="aOp">' + ops.map(n=>'<option value="'+n+'"'+(n===pre?' selected':'')+'>'+esc(dn(n))+'</option>').join('') + '</select></label>' +
+      '<div class="field">تاریخ (شمسی)<div class="jd-row"><select id="aJD" aria-label="روز"></select><select id="aJM" aria-label="ماه"></select><select id="aJY" aria-label="سال"></select></div>' +
+      '<div class="jd-quick" id="aJQ"><button type="button" data-q="0">امروز</button><button type="button" data-q="1">دیروز</button><button type="button" data-q="2">پریروز</button></div></div>' +
+      '<input type="hidden" id="aDate" value="' + today + '"><div class="field" id="aJal" style="color:var(--brand)"></div>' +
+      '<div class="row2"><label class="field" id="aInF">ساعت ورود<input type="time" id="aIn" value="09:00"></label><label class="field" id="aOutF">ساعت خروج<input type="time" id="aOut" value="17:00"></label></div>' +
+      '<div class="msg" id="aMsg"></div><div class="am-acts"><button class="btn btn-pri" id="aSave">💾 ثبت</button><button class="btn btn-sec" data-close>انصراف</button></div>', 'am');
+    const HINT = { out:'کاربر ورود زده ولی خروج یادش رفته (سیستم ساعت ۲۱ خودکار بسته). فقط ساعت واقعی خروج را بنویسید؛ جای «خروج خودکار» می‌نشیند.',
+      full:'آن روز هیچ ورود و خروجی ثبت نشده؛ هر دو ساعت را بنویسید.', in:'کاربر امروز یادش رفته ورود بزند و الان سر کار است؛ ورود ثبت می‌شود و عصر خودش خروج می‌زند.' };
+    let mode = 'out';
+    const setMode = m => { mode = m; $('aMode').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x.dataset.m===m)); $('aHint').textContent = HINT[m];
+      $('aInF').style.display = m==='out' ? 'none' : ''; $('aOutF').style.display = m==='in' ? 'none' : '';
+      if(m==='in') setJ(today); ['aJD','aJM','aJY'].forEach(id=>$(id).disabled = m==='in'); $('aJQ').style.display = m==='in' ? 'none' : ''; $('aMsg').textContent = ''; };
+    /* انتخاب تاریخ شمسی ← تاریخ میلادی پنهان برای سرور */
+    const WD = ['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];
+    const tj = jOf(today), pad = n => String(n).padStart(2, '0');
+    const isLeapJ = jy => { const g = jalaliToGregorian(jy, 12, 30), b = gregorianToJalali(g[0], g[1], g[2]); return b[1]===12 && b[2]===30; };
+    const mDays = (jy, jm) => jm <= 6 ? 31 : jm <= 11 ? 30 : (isLeapJ(jy) ? 30 : 29);
+    $('aJY').innerHTML = [tj[0]-1, tj[0]].map(y=>'<option value="'+y+'">'+fa(y)+'</option>').join('');
+    $('aJM').innerHTML = PERSIAN_MONTHS.map((n,i)=>'<option value="'+(i+1)+'">'+n+'</option>').join('');
+    const fillDays = ()=>{ const jy = +$('aJY').value, jm = +$('aJM').value, cur = +$('aJD').value || 1, n = mDays(jy, jm);
+      $('aJD').innerHTML = Array.from({length:n}, (_, i)=>'<option value="'+(i+1)+'">'+fa(i+1)+'</option>').join(''); $('aJD').value = Math.min(cur, n); };
+    const sj = ()=>{ const g = jalaliToGregorian(+$('aJY').value, +$('aJM').value, +$('aJD').value), iso = g[0] + '-' + pad(g[1]) + '-' + pad(g[2]);
+      $('aDate').value = iso; const fut = iso > today;
+      $('aJal').innerHTML = fut ? '<span style="color:#c0392b">⚠ تاریخ آینده قابل ثبت نیست</span>' : '= ' + WD[weekdayOf(iso)] + ' ' + toJalaliDisplay(iso);
+      $('aSave').disabled = fut; };
+    const setJ = iso => { const j = jOf(iso); $('aJY').value = j[0]; $('aJM').value = j[1]; fillDays(); $('aJD').value = j[2]; sj(); };
+    $('aJY').onchange = $('aJM').onchange = ()=>{ fillDays(); sj(); }; $('aJD').onchange = sj;
+    $('aJQ').onclick = e => { const q = e.target.closest('button[data-q]'); if(!q) return; const d = new Date(today + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() - +q.dataset.q); setJ(d.toISOString().slice(0,10)); };
+    setJ(today);
+    $('aMode').onclick = e => { const x = e.target.closest('button[data-m]'); if(x) setMode(x.dataset.m); };
+    setMode('out');
+    $('aSave').onclick = async ()=>{ const r = await post('/api/attendance/add', { mode, operator:$('aOp').value, date:$('aDate').value, in:$('aIn').value, out:$('aOut').value });
+      if(r.ok){ closePop(); toast(mode==='out' ? '✓ خروج ثبت شد (ورود همان روز: ' + fa(r.in||'') + ')' : mode==='in' ? '✓ ورود امروز ثبت شد' : '✓ ورود و خروج ثبت شد'); afterEdit(); } else $('aMsg').textContent = r.error; };
+  };
+  /* چاپ / PDF گزارش ماه — هر کاربر در یک صفحه */
+  window.printReport = function(){
+    const box = $('reportBox'); if(!box || !box.querySelector('.op-block')) return;
+    const w = window.open('', '_blank'); if(!w){ alert('پنجرهٔ چاپ باز نشد (Pop-up را مجاز کنید)'); return; }
+    const title = ($('reportSub') && $('reportSub').textContent) || '';
+    const css = [...document.querySelectorAll('style')].map(x=>x.textContent).join('\n');
+    w.document.write('<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>گزارش ساعت کاری ' + esc(title) + '</title><style>' + css +
+      '\nbody{background:#fff!important;padding:14px}.e,button{display:none!important}.op-block{page-break-after:always;break-after:page;box-shadow:none!important}.op-block:last-child{page-break-after:auto}.pr-h{text-align:center;margin:0 0 10px;font-size:15px;color:#0f3d3a}</style></head><body>' +
+      '<h2 class="pr-h">🕒 گزارش ساعت کاری — ' + esc(title) + '</h2>' + box.innerHTML + '</body></html>');
+    w.document.close(); setTimeout(()=>{ w.focus(); w.print(); }, 400);
+  };
+  async function post(url, body){ try{ const res = await fetch(url, { method:'POST', headers: authHeaders(true), body: JSON.stringify(body) }); const d = await res.json(); return res.ok && d.ok ? d : { ok:false, error:d.error || 'خطا' }; }catch(e){ return { ok:false, error:'اتصال به سرور برقرار نشد' }; } }
+  function afterEdit(){ loadReport(); refreshState(); loadSummary(); }
+
+  function sanitizeSheetName(name){ return String(name).replace(/[\\\/\?\*\[\]:]/g, '').slice(0,31) || 'Sheet'; }
+  function exportToExcel(){
+    if(!lastReportData || !lastReportData.operators || !lastReportData.operators.length) return;
+    if(typeof XLSX === 'undefined'){ toast('کتابخانهٔ اکسل بارگذاری نشد؛ اتصال اینترنت را بررسی کنید.'); return; }
+    const summaryRows = [['اپراتور', 'جمع ساعت ماه']], sheets = [];
+    for(const op of lastReportData.operators){
+      const rows = [['تاریخ (شمسی)', 'ساعت ورود', 'ساعت خروج', 'جمع ساعت روز', 'توضیح']];
+      for(const d of op.days){ d.sessions.forEach((s, idx)=>rows.push([idx===0 ? toJalaliDisplay(d.date) : '', s.in.slice(11,16), s.out ? s.out.slice(11,16) : 'باز', idx===0 ? fmtHM(d.total_minutes) : '', [s.auto ? 'خروج خودکار ساعت ۲۱' : '', s.edited ? 'ویرایش توسط ' + s.edited : ''].filter(Boolean).join(' · ')])); }
+      rows.push(['', '', 'جمع کل ماه', fmtHM(op.total_minutes), '']);
+      sheets.push({ name: sanitizeSheetName(op.operator), rows }); summaryRows.push([op.operator, fmtHM(op.total_minutes)]);
+    }
+    const wb = XLSX.utils.book_new();
+    if(sheets.length > 1){ const ws = XLSX.utils.aoa_to_sheet(summaryRows); ws['!cols'] = [{wch:18},{wch:22}]; XLSX.utils.book_append_sheet(wb, ws, 'خلاصه'); }
+    for(const sh of sheets){ const ws = XLSX.utils.aoa_to_sheet(sh.rows); ws['!cols'] = [{wch:18},{wch:12},{wch:12},{wch:20},{wch:28}]; XLSX.utils.book_append_sheet(wb, ws, sh.name); }
+    XLSX.writeFile(wb, 'گزارش-حضور-غیاب-' + lastReportJalali.jy + '-' + String(lastReportJalali.jm).padStart(2,'0') + '.xlsx');
+  }
+  window.loadReport = loadReport; window.exportToExcel = exportToExcel;
+
+  (function init(){ setupReportControls(); tick(); refreshState().then(()=>{ loadSummary(); loadReport(); }); setInterval(refreshState, 60000); })();
+
+</script>
+</body>
+</html>

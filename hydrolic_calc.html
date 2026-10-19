@@ -1,0 +1,1764 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاسبه‌گر جک و پاور یونیت + قیمت</title>
+    <style>
+        /* ===== Reset & Base ===== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f6fa;
+            color: #1e293b;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 28px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            padding: 30px 35px;
+        }
+        @media (max-width: 700px) {
+            .container {
+                padding: 20px 15px;
+            }
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        h1 small {
+            font-size: 16px;
+            font-weight: 400;
+            color: #64748b;
+        }
+        .subtitle {
+            color: #475569;
+            font-size: 14px;
+            border-bottom: 2px solid #e9edf2;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+
+        /* ===== Grid ===== */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1.1fr;
+            gap: 30px;
+        }
+        @media (max-width: 900px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px 22px;
+            transition: box-shadow 0.2s;
+        }
+        .panel:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+        .panel h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 18px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9edf2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .panel h2 .step {
+            background: #1e293b;
+            color: #fff;
+            font-size: 13px;
+            border-radius: 40px;
+            padding: 0 12px;
+            line-height: 26px;
+        }
+
+        /* ===== Inputs ===== */
+        .field-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+            margin-bottom: 14px;
+        }
+        .field-group label {
+            font-weight: 500;
+            font-size: 14px;
+            color: #1e293b;
+            min-width: 120px;
+        }
+        .field-group input,
+        .field-group select {
+            flex: 1;
+            min-width: 100px;
+            padding: 8px 12px;
+            border: 1.5px solid #d1d9e6;
+            border-radius: 10px;
+            font-size: 14px;
+            background: #fafbfc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .field-group input:focus,
+        .field-group select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+            background: #fff;
+        }
+        .field-group .unit {
+            font-size: 12px;
+            color: #64748b;
+            min-width: 30px;
+        }
+        .field-group .hint {
+            font-size: 12px;
+            color: #94a3b8;
+            width: 100%;
+            margin-top: 2px;
+            padding-right: 10px;
+        }
+        .row-flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 16px;
+        }
+
+        /* ===== Buttons ===== */
+        .btn-calc {
+            background: #1e293b;
+            color: #fff;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 40px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            margin-top: 10px;
+            width: 100%;
+        }
+        .btn-calc:hover {
+            background: #0f172a;
+        }
+        .btn-calc:active {
+            transform: scale(0.98);
+        }
+
+        /* ===== Results ===== */
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .result-item .label {
+            color: #475569;
+            font-size: 14px;
+        }
+        .result-item .value {
+            font-weight: 600;
+            font-size: 15px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            direction: ltr;
+            text-align: left;
+        }
+        .result-item .value .unit {
+            font-weight: 400;
+            color: #64748b;
+            font-size: 13px;
+            margin-right: 4px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 12px 0 16px;
+        }
+        .kpi-card {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 14px 12px;
+            text-align: center;
+        }
+        .kpi-card .kpi-label {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .kpi-card .kpi-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+            font-family: 'Consolas', monospace;
+        }
+        .kpi-card .kpi-value .unit {
+            font-size: 14px;
+            font-weight: 400;
+            color: #64748b;
+        }
+
+        .check-list {
+            margin: 14px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            font-size: 13.5px;
+            font-weight: 500;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            transition: transform 0.15s;
+        }
+        .check-item:hover {
+            transform: translateX(-2px);
+        }
+        .check-item .icon {
+            font-size: 18px;
+            flex-shrink: 0;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        .check-item.pass {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+        .check-item.pass .icon {
+            background: #dcfce7;
+        }
+        .check-item.fail {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+        .check-item.fail .icon {
+            background: #fee2e2;
+        }
+        .check-item.warn {
+            background: #fffbeb;
+            border-color: #fde68a;
+            color: #92400e;
+        }
+        .check-item.warn .icon {
+            background: #fef3c7;
+        }
+
+        /* ===== Price Card ===== */
+        .price-card {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #fff;
+            border-radius: 16px;
+            padding: 24px 28px;
+            margin-top: 20px;
+            display: none;
+        }
+        .price-card.visible {
+            display: block;
+            animation: fadeUp 0.4s ease;
+        }
+        @keyframes fadeUp {
+            0% {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .price-card .price-title {
+            font-size: 14px;
+            color: #94a3b8;
+            letter-spacing: 0.3px;
+        }
+        .price-card .price-amount {
+            font-size: 40px;
+            font-weight: 700;
+            margin: 6px 0 16px;
+            font-family: 'Consolas', monospace;
+            direction: ltr;
+            text-align: right;
+        }
+        .price-card .price-amount .curr {
+            font-size: 18px;
+            font-weight: 400;
+            color: #94a3b8;
+            margin-right: 6px;
+        }
+        .price-card .price-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding-top: 16px;
+        }
+        .price-card .price-details .det-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .price-card .price-details .det-label {
+            font-size: 11px;
+            color: #94a3b8;
+            text-transform: uppercase;
+        }
+        .price-card .price-details .det-value {
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+        .price-card .not-found {
+            color: #fbbf24;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        /* ===== Price Row (ویتور + شکیب کنار هم) ===== */
+        .price-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .price-row .price-card {
+            margin-top: 0;
+        }
+        @media (max-width: 900px) {
+            .price-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .price-card.shakib-card {
+            background: linear-gradient(135deg, #1f1305, #3a2408);
+        }
+        .price-card.shakib-card .price-amount {
+            color: #f0a830;
+        }
+        .valve-toggle-mini {
+            display: flex;
+            gap: 8px;
+            margin: 4px 0 10px;
+        }
+        .valve-toggle-mini .sv-btn {
+            flex: 1;
+            padding: 8px 6px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.04);
+            color: #cbd5e1;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .valve-toggle-mini .sv-btn.active {
+            background: rgba(240, 168, 48, 0.18);
+            border-color: #f0a830;
+            color: #f0a830;
+        }
+        .shakib-breakdown {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 14px;
+            font-size: 13px;
+        }
+        .shakib-breakdown td {
+            padding: 7px 4px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: #e2e8f0;
+        }
+        .shakib-breakdown td.num {
+            font-family: 'Consolas', monospace;
+            direction: ltr;
+            text-align: right;
+            color: #cbd5e1;
+        }
+        .shakib-breakdown tr.total-row td {
+            font-weight: 700;
+            color: #f0a830;
+            border-top: 1px solid rgba(240, 168, 48, 0.4);
+        }
+
+        /* ===== Custom Build Suggestion Card ===== */
+        .custom-build-card {
+            display: none;
+            margin-top: 16px;
+            background: #fffbeb;
+            border: 1.5px solid #f59e0b;
+            border-radius: 16px;
+            padding: 18px 20px;
+        }
+        .custom-build-card.visible { display: block; }
+        .custom-build-card .cb-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #92400e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .custom-build-card .cb-sub {
+            font-size: 12.5px;
+            color: #78716c;
+            margin-bottom: 14px;
+        }
+        .custom-build-card .cb-verdict {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 40px;
+            padding: 4px 14px;
+            margin-bottom: 14px;
+        }
+        .custom-build-card .cb-verdict.pass {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .custom-build-card .cb-verdict.fail {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .custom-build-card .cb-verdict.review {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .custom-build-card .cb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+        }
+        .custom-build-card .cb-item {
+            background: #fff;
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+            padding: 8px 10px;
+        }
+        .custom-build-card .cb-item .cb-label {
+            font-size: 11px;
+            color: #a16207;
+        }
+        .custom-build-card .cb-item .cb-value {
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Consolas', 'Courier New', monospace;
+            color: #1e293b;
+            direction: ltr;
+            text-align: left;
+        }
+        .custom-build-card .cb-checks {
+            margin-top: 12px;
+            font-size: 12.5px;
+            color: #57534e;
+            line-height: 1.9;
+        }
+
+        .debug-box {
+            margin-top: 20px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 14px 18px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            color: #334155;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #d1d9e6;
+            display: none;
+        }
+        .debug-box.show {
+            display: block;
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 600px) {
+            .container {
+                padding: 12px;
+            }
+            .field-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .field-group label {
+                min-width: unset;
+            }
+            .field-group input,
+            .field-group select {
+                min-width: unset;
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .price-card .price-amount {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <h1>
+            محاسبه‌گر جک و پاور یونیت
+        </h1>
+
+        <!-- ===== GRID ===== -->
+        <div class="grid-2">
+
+            <!-- ===== LEFT: INPUT PANEL ===== -->
+            <div class="panel">
+                <h2><span class="step">۱</span> اطلاعات پروژه</h2>
+
+                <div class="field-group">
+                    <label>تعداد نفرات</label>
+                    <input type="number" id="B10" value="600" step="10">
+                    <span class="unit">kg</span>
+                    <div class="hint">وزن بار معادل (معمولاً ۷۵ کیلوگرم به ازای هر نفر)</div>
+                </div>
+
+                <div class="field-group">
+                    <label>وزن کابین</label>
+                    <input type="number" id="B11" value="600" step="10">
+                    <span class="unit">kg</span>
+                </div>
+
+                <div class="field-group">
+                    <label>وزن پولی + سیم‌بکسل</label>
+                    <input type="number" id="B12" value="0" step="5">
+                    <span class="unit">kg</span>
+                    <div class="hint">در حالت کنار (غیرمستقیم) وارد شود</div>
+                </div>
+
+                <div class="field-group">
+                    <label>وزن کارسلینگ</label>
+                    <input type="number" id="B13" value="0" step="5">
+                    <span class="unit">kg</span>
+                </div>
+
+                <div class="field-group">
+                    <label>سیستم تعلیق (نسبت)</label>
+                    <input type="number" id="B14" value="2" step="1">
+                    <span class="unit">×۱</span>
+                    <div class="hint">۱ = مستقیم (۱ به ۱) — ۲ = غیرمستقیم (۱ به ۲)</div>
+                </div>
+
+                <div class="field-group">
+                    <label>سرعت</label>
+                    <input type="number" id="B15" value="0.5" step="0.01">
+                    <span class="unit">m/s</span>
+                </div>
+
+                <div class="field-group">
+                    <label>تعداد جک</label>
+                    <input type="number" id="B17" value="1" step="1">
+                    <span class="unit">عدد</span>
+                </div>
+
+                <div class="field-group">
+                    <label>ضخامت پیستون</label>
+                    <input type="number" id="B19" value="5" step="1">
+                    <span class="unit">mm</span>
+                </div>
+
+                <div class="field-group">
+                    <label>تراول (مسیر حرکت)</label>
+                    <input type="number" id="B24" value="370" step="1">
+                    <span class="unit">cm</span>
+                </div>
+
+                <div class="field-group">
+                    <label>افزایش کورس (مارجین)</label>
+                    <input type="number" id="courseMargin" value="18" step="0.5">
+                    <span class="unit">cm</span>
+                    <div class="hint" id="courseMarginHint">سیستم غیرمستقیم (۱ به ۲): بازه مجاز ۱۵ الی ۲۰ سانتی‌متر</div>
+                </div>
+
+                <div class="field-group">
+                    <label>ارتفاع پولی</label>
+                    <input type="number" id="B25" value="0" step="1">
+                    <span class="unit">cm</span>
+                </div>
+
+                <div class="field-group">
+                    <label>اور تراول بالا</label>
+                    <input type="number" id="B26" value="0" step="1">
+                    <span class="unit">cm</span>
+                </div>
+
+                <div class="field-group">
+                    <label>اور تراول پایین</label>
+                    <input type="number" id="B27" value="350" step="1">
+                    <span class="unit">cm</span>
+                </div>
+
+                <div class="field-group">
+                    <label>کورس جک (استروک)</label>
+                    <input type="number" id="B28" value="400" step="1" readonly style="background:#eef1f6;color:#334155;cursor:not-allowed;">
+                    <span class="unit">cm</span>
+                    <div class="hint">محاسبه خودکار از تراول ÷ نسبت تعلیق + مارجین، گرد به بالا به نزدیک‌ترین ۵۰</div>
+                </div>
+
+                <div class="field-group">
+                    <label>دور موتور</label>
+                    <input type="number" id="B29" value="2800" step="100">
+                    <span class="unit">rpm</span>
+                </div>
+
+                <div class="field-group">
+                    <label>مدول الاستیسیته E</label>
+                    <input type="number" id="B51" value="2100000" step="10000">
+                    <span class="unit">kg/cm²</span>
+                </div>
+
+                <div class="field-group">
+                    <label>مقاومت کششی فولاد</label>
+                    <input type="number" id="B52" value="510" step="10">
+                    <span class="unit">N/mm²</span>
+                </div>
+
+                <div class="field-group">
+                    <label>کلیرانس شعاعی سیلندر</label>
+                    <input type="number" id="clearance" value="4" step="0.5">
+                    <span class="unit">mm</span>
+                    <div class="hint">برای محاسبه قطر خارجی سیلندر</div>
+                </div>
+
+                <button class="btn-calc" id="calcBtn">محاسبه و بروزرسانی قیمت</button>
+            </div>
+
+            <!-- ===== RIGHT: RESULTS & PRICE ===== -->
+            <div class="panel">
+                <h2><span class="step">۲</span> نتیجه مهندسی و قیمت</h2>
+
+                <!-- KPI -->
+                <div class="kpi-grid" id="kpiGrid">
+                    <div class="kpi-card">
+                        <div class="kpi-label">قطر پیستون</div>
+                        <div class="kpi-value" id="kpiD18">— <span class="unit">mm</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">قطر خارجی سیلندر</div>
+                        <div class="kpi-value" id="kpiD42">— <span class="unit">mm</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">توان موتور استاندارد</div>
+                        <div class="kpi-value" id="kpiMotor">— <span class="unit">kW</span></div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">دبی پمپ استاندارد</div>
+                        <div class="kpi-value" id="kpiFlow">— <span class="unit">L/min</span></div>
+                    </div>
+                </div>
+
+                <!-- Checks -->
+                <div id="checksContainer" class="check-list"></div>
+
+                <!-- Price Cards: ویتور + شکیب کنار هم -->
+                <div class="price-row" id="priceRow">
+                    <!-- Price Card: WITTUR -->
+                    <div class="price-card" id="priceCard">
+                        <div class="price-title">قیمت ویتور (WITTUR)</div>
+                        <div class="price-amount" id="priceAmount">
+                            <span id="priceNumber">—</span>
+                            <span class="curr">ریال</span>
+                        </div>
+                        <div class="price-details" id="priceDetails">
+                            <div class="det-item">
+                                <span class="det-label">مدل جک</span>
+                                <span class="det-value" id="pJack">—</span>
+                            </div>
+                            <div class="det-item">
+                                <span class="det-label">پاور یونیت</span>
+                                <span class="det-value" id="pPower">—</span>
+                            </div>
+                            <div class="det-item">
+                                <span class="det-label">تعداد نفرات</span>
+                                <span class="det-value" id="pPass">—</span>
+                            </div>
+                            <div class="det-item">
+                                <span class="det-label">سرعت</span>
+                                <span class="det-value" id="pSpeed">—</span>
+                            </div>
+                            <div class="det-item">
+                                <span class="det-label">حداکثر تراول</span>
+                                <span class="det-value" id="pTravel">—</span>
+                            </div>
+                            <div class="det-item">
+                                <span class="det-label">سایز سیلندر</span>
+                                <span class="det-value" id="pSize">—</span>
+                            </div>
+                        </div>
+                        <div id="priceNotFound" style="display:none;" class="not-found">
+                            ⚠️ قیمت این ترکیب در لیست موجود نیست.
+                        </div>
+                    </div>
+
+                    <!-- Price Card: SHAKIB -->
+                    <div class="price-card shakib-card" id="priceCardShakib">
+                        <div class="price-title">قیمت شکیب (SHAKIB)</div>
+
+                        <div class="valve-toggle-mini" id="shakibValveToggle">
+                            <button type="button" id="btnShakibBelin" class="sv-btn active">شیر بلین اصل آلمان</button>
+                            <button type="button" id="btnShakibShakib" class="sv-btn">شیر ۳/۴ شکیب</button>
+                        </div>
+
+                        <div class="price-amount" id="shakibPriceAmount">
+                            <span id="shakibPriceNumber">—</span>
+                            <span class="curr">ریال</span>
+                        </div>
+
+                        <div class="price-details" id="shakibDetails">
+                            <div class="det-item">
+                                <span class="det-label">تعداد طبقات</span>
+                                <span class="det-value" id="sFloor">—</span>
+                            </div>
+                            <div class="det-item">
+                                <span class="det-label">ظرفیت</span>
+                                <span class="det-value" id="sCap">—</span>
+                            </div>
+                            <div class="det-item">
+                                <span class="det-label">سرعت</span>
+                                <span class="det-value" id="sSpeed">—</span>
+                            </div>
+                            <div class="det-item">
+                                <span class="det-label">حداکثر تراول</span>
+                                <span class="det-value" id="sTravel">—</span>
+                            </div>
+                            <div class="det-item">
+                                <span class="det-label">سایز پاوریونیت</span>
+                                <span class="det-value" id="sSize">—</span>
+                            </div>
+                            <div class="det-item">
+                                <span class="det-label">جریان</span>
+                                <span class="det-value" id="sCurrent">—</span>
+                            </div>
+                        </div>
+
+                        <table class="shakib-breakdown" id="shakibBreakdown">
+                            <tbody>
+                                <tr><td>شیر مکانیکی</td><td class="num" id="sValvePrice">—</td></tr>
+                                <tr><td>لوله سیلندر <span id="sPipeSize"></span></td><td class="num" id="sPipePrice">—</td></tr>
+                                <tr><td>رپچر <span id="sRuptureSize"></span></td><td class="num" id="sRupturePrice">—</td></tr>
+                                <tr class="total-row"><td>جمع کل</td><td class="num" id="sTotalPrice">—</td></tr>
+                            </tbody>
+                        </table>
+
+                        <div id="shakibNotFound" style="display:none;" class="not-found">
+                            ⚠️ این ترکیب (طبقه/ظرفیت/سرعت) در لیست شکیب موجود نیست.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Build Suggestion Card (fallback when catalog has no match) -->
+                <div class="custom-build-card" id="customBuildCard">
+                    <div class="cb-title">🔧 پیشنهاد ساخت سفارشی (خارج از کاتالوگ استاندارد)</div>
+                    <div class="cb-sub">این ترکیب در لیست قیمت/کاتالوگ موجود نیست؛ مشخصات زیر مستقیماً از فرمول‌های فیزیکی فایل محاسبه شده و برای سفارش ساخت اختصاصی به کارخانه قابل استفاده است.</div>
+                    <div class="cb-verdict" id="cbVerdict">—</div>
+                    <div class="cb-grid">
+                        <div class="cb-item">
+                            <div class="cb-label">قطر پیستون لازم</div>
+                            <div class="cb-value" id="cbD18">— mm</div>
+                        </div>
+                        <div class="cb-item">
+                            <div class="cb-label">قطر خارجی سیلندر</div>
+                            <div class="cb-value" id="cbD42">— mm</div>
+                        </div>
+                        <div class="cb-item">
+                            <div class="cb-label">توان موتور لازم</div>
+                            <div class="cb-value" id="cbMotor">— kW</div>
+                        </div>
+                        <div class="cb-item">
+                            <div class="cb-label">دبی پمپ لازم</div>
+                            <div class="cb-value" id="cbFlow">— L/min</div>
+                        </div>
+                        <div class="cb-item">
+                            <div class="cb-label">حجم روغن تانک</div>
+                            <div class="cb-value" id="cbOil">— L</div>
+                        </div>
+                        <div class="cb-item">
+                            <div class="cb-label">تعداد نفرات محاسبه‌شده</div>
+                            <div class="cb-value" id="cbPax">—</div>
+                        </div>
+                    </div>
+                    <div class="cb-checks" id="cbChecks"></div>
+                </div>
+
+                <!-- Debug toggle -->
+                <button id="debugToggle" style="margin-top:12px; background:transparent; border:1px solid #d1d9e6; border-radius:40px; padding:4px 16px; font-size:12px; cursor:pointer;">نمایش Debug</button>
+                <div class="debug-box" id="debugBox"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================================
+        // 1. PRICE DATA — استخراج‌شده از PDF (OMARLIFT / WITTUR)
+        // ================================================================
+        const PRICE_DATA = [{
+            jackModel: "2 طبقه",
+            powerUnits: [{
+                model: "5.9kw-75L",
+                capacities: [
+                    { passengers: 3, price: 8895960000, speed: "0.5 m/s", travel: "3600 mm",
+                    size: "80*5*2000" }
+                ]
+            }, {
+                model: "7.7kw-75L",
+                capacities: [
+                    { passengers: 4, price: 9033120000, speed: "0.5 m/s", travel: "3600 mm",
+                    size: "80*5*2000" }
+                ]
+            }, {
+                model: "7.7kw-100L",
+                capacities: [
+                    { passengers: 5, price: 8930520000, speed: "0.5 m/s", travel: "3600 mm",
+                    size: "90*5*2000" }
+                ]
+            }, {
+                model: "9.6kw-125L",
+                capacities: [
+                    { passengers: 6, price: 9543960000, speed: "0.5 m/s", travel: "3600 mm",
+                    size: "100*5*2000" }
+                ]
+            }, {
+                model: "12.5kw-150L",
+                capacities: [
+                    { passengers: 8, price: 9748080000, speed: "0.5 m/s", travel: "3600 mm",
+                    size: "100*5*2000" },
+                    { passengers: 10, price: 10238400000, speed: "0.5 m/s", travel: "3600 mm",
+                        size: "110*5*2000" }
+                ]
+            }]
+        }, {
+            jackModel: "3 طبقه",
+            powerUnits: [{
+                model: "5.9kw-75L",
+                capacities: [
+                    { passengers: 3, price: 8935920000, speed: "0.5 m/s", travel: "6600 mm",
+                    size: "80*5*3500" },
+                    { passengers: 3, price: 9074160000, speed: "0.5 m/s", travel: "7600 mm",
+                        size: "80*5*4000" }
+                ]
+            }, {
+                model: "7.7kw-75L",
+                capacities: [
+                    { passengers: 4, price: 9073080000, speed: "0.5 m/s", travel: "6600 mm",
+                    size: "80*5*3500" },
+                    { passengers: 4, price: 9211320000, speed: "0.5 m/s", travel: "7600 mm",
+                        size: "80*5*4000" }
+                ]
+            }, {
+                model: "7.7kw-100L",
+                capacities: [
+                    { passengers: 5, price: 9408960000, speed: "0.5 m/s", travel: "6600 mm",
+                    size: "90*5*3500" },
+                    { passengers: 5, price: 9522360000, speed: "0.5 m/s", travel: "7600 mm",
+                        size: "90*5*4000" }
+                ]
+            }, {
+                model: "9.6kw-125L",
+                capacities: [
+                    { passengers: 6, price: 9681120000, speed: "0.5 m/s", travel: "6600 mm",
+                    size: "100*5*3500" },
+                    { passengers: 6, price: 9843120000, speed: "0.5 m/s", travel: "7600 mm",
+                        size: "100*5*4000" }
+                ]
+            }, {
+                model: "11kw-150L",
+                capacities: [
+                    { passengers: 8, price: 10305360000, speed: "0.5 m/s", travel: "6600 mm",
+                    size: "110*5*3500" },
+                    { passengers: 8, price: 10420920000, speed: "0.5 m/s", travel: "7600 mm",
+                        size: "110*5*4000" }
+                ]
+            }, {
+                model: "12.5kw-180L",
+                capacities: [
+                    { passengers: 10, price: 11856240000, speed: "0.5 m/s", travel: "6600 mm",
+                        size: "120*5*3500" },
+                    { passengers: 10, price: 11811520000, speed: "0.5 m/s", travel: "7600 mm",
+                        size: "120*5*4000" }
+                ]
+            }]
+        }, {
+            jackModel: "4 طبقه",
+            powerUnits: [{
+                model: "7.7kw-100L",
+                capacities: [
+                    { passengers: 3, price: 9535320000, speed: "0.63 m/s", travel: "9600 mm",
+                    size: "80*5*5000" },
+                    { passengers: 3, price: 9755640000, speed: "0.63 m/s", travel: "10600 mm",
+                        size: "80*5*5500" }
+                ]
+            }, {
+                model: "9.6kw-100L",
+                capacities: [
+                    { passengers: 4, price: 9662760000, speed: "0.63 m/s", travel: "9600 mm",
+                    size: "80*5*5000" },
+                    { passengers: 4, price: 10112040000, speed: "0.63 m/s", travel: "10600 mm",
+                        size: "90*5*5500" }
+                ]
+            }, {
+                model: "9.6kw-125L",
+                capacities: [
+                    { passengers: 5, price: 9900360000, speed: "0.63 m/s", travel: "9600 mm",
+                    size: "90*5*5000" },
+                    { passengers: 5, price: 10112040000, speed: "0.63 m/s", travel: "10600 mm",
+                        size: "90*5*5500" }
+                ]
+            }, {
+                model: "11kw-150L",
+                capacities: [
+                    { passengers: 6, price: 10217880000, speed: "0.63 m/s", travel: "9600 mm",
+                    size: "100*5*5000" },
+                    { passengers: 6, price: 10410120000, speed: "0.63 m/s", travel: "10600 mm",
+                        size: "100*5*5500" }
+                ]
+            }, {
+                model: "12.5kw-180L",
+                capacities: [
+                    { passengers: 8, price: 11931840000, speed: "0.63 m/s", travel: "9600 mm",
+                    size: "110*5*5000" },
+                    { passengers: 8, price: 12097080000, speed: "0.63 m/s", travel: "10600 mm",
+                        size: "110*5*5500" }
+                ]
+            }, {
+                model: "18.4kw-210L",
+                capacities: [
+                    { passengers: 10, price: 12736440000, speed: "0.63 m/s", travel: "9600 mm",
+                        size: "120*5*5000" },
+                    { passengers: 10, price: 12910320000, speed: "0.63 m/s", travel: "10600 mm",
+                        size: "120*5*5500" }
+                ]
+            }]
+        }, {
+            jackModel: "5 طبقه",
+            powerUnits: [{
+                model: "9.6kw-125L",
+                capacities: [
+                    { passengers: 3, price: 10339920000, speed: "0.63 m/s", travel: "12600 mm",
+                    size: "90*5*6500" },
+                    { passengers: 4, price: 10339920000, speed: "0.63 m/s", travel: "12600 mm",
+                        size: "90*5*6500" }
+                ]
+            }, {
+                model: "9.6kw-150L",
+                capacities: [
+                    { passengers: 3, price: 10653120000, speed: "0.63 m/s", travel: "13600 mm",
+                    size: "100*5*7000" },
+                    { passengers: 4, price: 10653120000, speed: "0.63 m/s", travel: "13600 mm",
+                        size: "100*5*7000" }
+                ]
+            }, {
+                model: "11kw-150L",
+                capacities: [
+                    { passengers: 5, price: 10652040000, speed: "0.63 m/s", travel: "12600 mm",
+                    size: "100*5*6500" },
+                    { passengers: 5, price: 10767600000, speed: "0.63 m/s", travel: "13600 mm",
+                        size: "100*5*7000" },
+                    { passengers: 6, price: 10652040000, speed: "0.63 m/s", travel: "12600 mm",
+                        size: "100*5*6500" },
+                    { passengers: 6, price: 10767600000, speed: "0.63 m/s", travel: "13600 mm",
+                        size: "100*5*7000" }
+                ]
+            }, {
+                model: "12.5kw-180L",
+                capacities: [
+                    { passengers: 8, price: 12425400000, speed: "0.63 m/s", travel: "12600 mm",
+                    size: "110*5*6500" },
+                    { passengers: 8, price: 12540960000, speed: "0.63 m/s", travel: "13600 mm",
+                        size: "110*5*7000" }
+                ]
+            }, {
+                model: "18.4kw-210L",
+                capacities: [
+                    { passengers: 10, price: 13215600000, speed: "0.63 m/s", travel: "12600 mm",
+                        size: "120*5*6500" },
+                    { passengers: 10, price: 13556160000, speed: "0.63 m/s", travel: "13600 mm",
+                        size: "120*5*7000" }
+                ]
+            }]
+        }, {
+            jackModel: "6 طبقه",
+            powerUnits: [{
+                model: "11kw-150L",
+                capacities: [
+                    { passengers: 3, price: 10966500000, speed: "0.63 m/s", travel: "16600 mm",
+                    size: "100*7.5*8500" },
+                    { passengers: 4, price: 10966500000, speed: "0.63 m/s", travel: "16600 mm",
+                        size: "100*7.5*8500" },
+                    { passengers: 5, price: 11723400000, speed: "0.63 m/s", travel: "16600 mm",
+                        size: "100*7.5*8500" },
+                    { passengers: 6, price: 11723400000, speed: "0.63 m/s", travel: "16600 mm",
+                        size: "100*7.5*8500" }
+                ]
+            }, {
+                model: "12.5kw-180L",
+                capacities: [
+                    { passengers: 6, price: 14376960000, speed: "0.63 m/s", travel: "16600 mm",
+                    size: "110*7.5*8500" },
+                    { passengers: 8, price: 14514120000, speed: "0.63 m/s", travel: "16600 mm",
+                        size: "110*7.5*8500" }
+                ]
+            }, {
+                model: "14.7kw-180L",
+                capacities: [
+                    { passengers: 8, price: 14514120000, speed: "0.63 m/s", travel: "16600 mm",
+                        size: "110*7.5*8500" }
+                ]
+            }, {
+                model: "18.4kw-210L",
+                capacities: [
+                    { passengers: 10, price: 0, speed: "0.63 m/s", travel: "16600 mm",
+                        size: "120*7.5*8500" }
+                ]
+            }]
+        }];
+
+        // ================================================================
+        // 2. ENGINEERING CALCULATION ENGINE (copied from original HTML)
+        // ================================================================
+
+        // ---------- Standard size tables ----------
+        const G_LIST = [1.5, 2, 3, 4.4, 6, 7.7, 9.5, 11, 12, 13, 14.7, 16, 20, 24, 29, 33, 47, 60, 77, 90];
+        const H_LIST = [8, 12, 15, 20, 23, 25, 30, 35, 45, 55, 75, 100, 125, 150, 180, 210, 250, 270, 300, 330, 380, 440, 500,
+            560, 600, 660, 800, 1000, 1200
+        ];
+
+        // حداقل و حداکثر فشار استاتیکی مجاز برای بالابر
+        const MIN_STATIC_PRESSURE_BAR = 20;
+        const MAX_STATIC_PRESSURE_BAR = 35.79;
+
+        // گرد کردن رو به بالا به نزدیک‌ترین مضرب ۵۰ (استاندارد ساخت جک) — مثلاً ۴۷۰ می‌شود ۵۰۰
+        function ceilTo50(value) {
+            return Math.ceil(value / 50) * 50;
+        }
+
+        // محاسبه خودکار کورس جک از روی تراول:
+        // سیستم ۱ به ۱ (مستقیم، B14==1): کورس = تراول + مارجین (۲۰ الی ۴۰ سانتی‌متر)
+        // سیستم ۱ به ۲ یا بیشتر (غیرمستقیم، B14>1): کورس = (تراول / نسبت تعلیق) + مارجین (۱۵ الی ۲۰ سانتی‌متر)
+        function computeCourseFromTravel(travelCm, ratio, marginCm) {
+            const r = ratio && ratio > 0 ? ratio : 1;
+            const raw = (travelCm / r) + marginCm;
+            return ceilTo50(raw);
+        }
+
+        function standardSelect(value, list) {
+            for (const v of list) { if (value <= v) return v; }
+            return null;
+        }
+
+        function fmt(n, d) {
+            if (n === null || n === undefined || isNaN(n)) return '—';
+            return Number(n).toLocaleString('en-US', { maximumFractionDigits: d, minimumFractionDigits: 0 });
+        }
+
+        function getInputs() {
+            const g = id => parseFloat(document.getElementById(id).value);
+            const B14 = g('B14');
+            const B24 = g('B24');
+            const courseMargin = g('courseMargin');
+            // کورس جک (B28) دیگر دستی وارد نمی‌شود — از روی تراول محاسبه می‌شود
+            const B28 = computeCourseFromTravel(B24, B14, courseMargin);
+            const b28Field = document.getElementById('B28');
+            if (b28Field && parseFloat(b28Field.value) !== B28) b28Field.value = B28;
+            return {
+                B10: g('B10'),
+                B11: g('B11'),
+                B12: g('B12'),
+                B13: g('B13'),
+                B14: B14,
+                B15: g('B15'),
+                B17: g('B17'),
+                B19: g('B19'),
+                B24: B24,
+                B25: g('B25'),
+                B26: g('B26'),
+                B27: g('B27'),
+                B28: B28,
+                B29: g('B29'),
+                B51: g('B51'),
+                B52: g('B52'),
+                clearance: g('clearance')
+            };
+        }
+
+        function deriveForDiameter(d18, inp) {
+            const B20 = d18 - 2 * inp.B19;
+            const B23 = 3.14 * d18 * d18 / 400;
+            const B37 = 3.14 * (d18 * d18 - B20 * B20) / 400;
+            const B40 = inp.B28 * B37 * 7.87 * inp.B17 * 0.001;
+            const B22 = (((inp.B10 + inp.B11 + inp.B13) * inp.B14) + inp.B12 + B40) * 10;
+            const B21 = B23 * inp.B15 * inp.B17 / inp.B14;
+            const B16 = B22 / (inp.B17 * B23);
+            const B32 = ((((inp.B11 + inp.B13) * inp.B14) + inp.B12 + B40) * 9.81) / (inp.B17 * B23 * 10);
+            const B33 = ((((inp.B11 + inp.B13 + inp.B10) * inp.B14) + inp.B12 + B40) * 9.81) / (inp.B17 * B23 * 10);
+            return { B20, B23, B37, B40, B22, B21, B16, B32, B33 };
+        }
+
+        function findPistonDiameter(inp) {
+            const minD = 2 * inp.B19 + 5;
+            for (let d = minD; d <= 500; d += 0.5) {
+                const r = deriveForDiameter(d, inp);
+                if (r.B32 >= MIN_STATIC_PRESSURE_BAR && r.B33 < MAX_STATIC_PRESSURE_BAR) {
+                    return { d18: d, ...r };
+                }
+            }
+            return null;
+        }
+
+        // The main compute function – returns an object with all results
+        function computeAll() {
+            const inp = getInputs();
+            const found = findPistonDiameter(inp);
+            if (!found) {
+                return { error: true, message: 'هیچ قطر پیستونی شرایط را برآورده نمی‌کند.' };
+            }
+
+            const D18_raw = found.d18;
+            const D18 = Math.ceil(D18_raw / 5) * 5;
+            const final = deriveForDiameter(D18, inp);
+            const { B20, B23, B37, B40, B22, B21, B16, B32, B33 } = final;
+
+            const C32 = B32 >= MIN_STATIC_PRESSURE_BAR;
+            const C33 = B33 < MAX_STATIC_PRESSURE_BAR;
+
+            const B34 = B21 * 60 * 0.1;
+            const C34 = standardSelect(B34, H_LIST.slice(1));
+            const B35 = B23 * inp.B28 * 0.001;
+            const B36 = 2750 * B34 / inp.B29;
+            const C36 = standardSelect(B36, H_LIST);
+            const B38 = (B36 * (B33 + 7)) / 488;
+            const C38 = standardSelect(B38, G_LIST);
+
+            const targetID_m = (D18 + inp.clearance) / 1000;
+            const k = (2.3 * 1.7 * B33) / 3550;
+            const D42 = (targetID_m + 0.002) / (1 - 0.002 * k);
+            const B41 = (2.3 * 1.7 * B33 * D42 / 3550) + 1;
+            const B44 = D42 - (0.001 * B41 * 2);
+            const B43 = 7.87 * 3.14 * (D42 * D42 - B44 * B44) / 4;
+
+            const C62 = inp.B28 + 4;
+            const B45 = C62 + (inp.B25 / 2);
+            const B48 = 3.14 * (D18 ** 4 - B20 ** 4) / 640000;
+            const B46 = Math.sqrt(B48 / B37);
+            const B47 = B45 / B46;
+            const B49 = 1.4 * 0.981 * inp.B14 * ((inp.B10 + inp.B11 + inp.B13) / inp.B17) + 0.64 * B40 + inp.B12;
+            let B50 = null,
+                C39 = null,
+                bucklingValid = true;
+            if (B47 >= 100) {
+                B50 = 4.9298 * inp.B51 * B48 / (B45 ** 2);
+                C39 = B49 <= B50;
+            } else {
+                bucklingValid = false;
+            }
+
+            const C61 = B20 * B20 * 3.14 / 4;
+            const C63 = (C34 * inp.B14) / (inp.B17 * 6 * B23);
+            const C64 = C38 * 488 / C34;
+
+            return {
+                inp,
+                D18,
+                B20,
+                B23,
+                B37,
+                B40,
+                B22,
+                B21,
+                B16,
+                B32,
+                B33,
+                C32,
+                C33,
+                B34,
+                C34,
+                B35,
+                B36,
+                C36,
+                B38,
+                C38,
+                D42,
+                B41,
+                B44,
+                B43,
+                B45,
+                B46,
+                B47,
+                B48,
+                B49,
+                B50,
+                C39,
+                bucklingValid,
+                C61,
+                C63,
+                C64,
+                error: false
+            };
+        }
+
+        // ================================================================
+        // 3-B. SHAKIB PRICE DATA — استخراج‌شده از سیستم استعلام جک شکیب
+        // ================================================================
+        const SHAKIB_DATA = [
+// ---------- 2 طبقه (تراول ثابت 3600mm) ----------
+{floor:2, cap:"۳ نفره - ۲۲۵ کیلوگرم", travel:3600, speed:"0.5", current:"15A", sizeBelin:"5.8kw-75L", sizeShakib:"طرح 5.8kw-75L", pipeSize:"80*5*2000", pipePrice:878400000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4500000000, valveShakib:3225700000},
+{floor:2, cap:"۴ نفره - ۳۰۰ کیلوگرم", travel:3600, speed:"0.5", current:"19A", sizeBelin:"7.7kw-75L", sizeShakib:"طرح 7.7kw-75L", pipeSize:"80*5*2000", pipePrice:878400000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4773000000, valveShakib:3519400000},
+{floor:2, cap:"۵ نفره - ۳۷۵ کیلوگرم", travel:3600, speed:"0.5", current:"19A", sizeBelin:"7.7kw-100L", sizeShakib:"طرح 7.7kw-100L", pipeSize:"90*5*2000", pipePrice:896500000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4773000000, valveShakib:3519400000},
+{floor:2, cap:"۶ نفره - ۴۵۰ کیلوگرم", travel:3600, speed:"0.5", current:"25A", sizeBelin:"9.5kw-125L", sizeShakib:"طرح 9.5kw-125L", pipeSize:"100*5*2000", pipePrice:996500000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4841000000, valveShakib:3592750000},
+{floor:2, cap:"۸ نفره - ۶۰۰ کیلوگرم", travel:3600, speed:"0.5", current:"29A", sizeBelin:"11kw-125L", sizeShakib:"طرح 11kw-125L", pipeSize:"100*5*2000", pipePrice:996500000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4898000000, valveShakib:3653200000},
+{floor:2, cap:"۱۰ نفره - ۷۵۰ کیلوگرم", travel:3600, speed:"0.5", current:"29A", sizeBelin:"12.5kw-150L", sizeShakib:null, pipeSize:"110*5*2000", pipePrice:1052500000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5619000000, valveShakib:null},
+
+// ---------- 3 طبقه (تراول 6600 / 7600) ----------
+{floor:3, cap:"۳ نفره - ۲۲۵ کیلوگرم", travel:6600, speed:"0.5", current:"15A", sizeBelin:"5.8kw-75L", sizeShakib:"طرح 5.8kw-75L", pipeSize:"80*5*3500", pipePrice:1216600000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4500000000, valveShakib:3225700000},
+{floor:3, cap:"۳ نفره - ۲۲۵ کیلوگرم", travel:7600, speed:"0.5", current:"15A", sizeBelin:"5.8kw-75L", sizeShakib:"طرح 5.8kw-75L", pipeSize:"80*5*4000", pipePrice:1316600000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4500000000, valveShakib:3225700000},
+{floor:3, cap:"۴ نفره - ۳۰۰ کیلوگرم", travel:6600, speed:"0.5", current:"19A", sizeBelin:"7.7kw-75L", sizeShakib:"طرح 7.7kw-75L", pipeSize:"80*5*3500", pipePrice:1216600000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4773000000, valveShakib:3519400000},
+{floor:3, cap:"۴ نفره - ۳۰۰ کیلوگرم", travel:7600, speed:"0.5", current:"19A", sizeBelin:"7.7kw-75L", sizeShakib:"طرح 7.7kw-75L", pipeSize:"80*5*4000", pipePrice:1316600000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4773000000, valveShakib:3519400000},
+{floor:3, cap:"۵ نفره - ۳۷۵ کیلوگرم", travel:6600, speed:"0.5", current:"19A", sizeBelin:"7.7kw-100L", sizeShakib:"طرح 7.7kw-100L", pipeSize:"90*5*3500", pipePrice:1244600000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4773000000, valveShakib:3519400000},
+{floor:3, cap:"۵ نفره - ۳۷۵ کیلوگرم", travel:7600, speed:"0.5", current:"19A", sizeBelin:"7.7kw-100L", sizeShakib:"طرح 7.7kw-100L", pipeSize:"90*5*4000", pipePrice:1450700000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4773000000, valveShakib:3519400000},
+{floor:3, cap:"۶ نفره - ۴۵۰ کیلوگرم", travel:6600, speed:"0.5", current:"25A", sizeBelin:"9.6kw-125L", sizeShakib:"طرح 9.6kw-125L", pipeSize:"100*5*3500", pipePrice:1386700000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4841000000, valveShakib:3592800000},
+{floor:3, cap:"۶ نفره - ۴۵۰ کیلوگرم", travel:7600, speed:"0.5", current:"25A", sizeBelin:"9.6kw-125L", sizeShakib:"طرح 9.6kw-125L", pipeSize:"100*5*4000", pipePrice:1630800000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4841000000, valveShakib:3592800000},
+{floor:3, cap:"۸ نفره - ۶۰۰ کیلوگرم", travel:6600, speed:"0.5", current:"27A", sizeBelin:"11kw-150L", sizeShakib:null, pipeSize:"110*5*3500", pipePrice:1524700000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5434000000, valveShakib:null},
+{floor:3, cap:"۸ نفره - ۶۰۰ کیلوگرم", travel:7600, speed:"0.5", current:"27A", sizeBelin:"11kw-150L", sizeShakib:null, pipeSize:"110*5*4000", pipePrice:1740800000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5434000000, valveShakib:null},
+{floor:3, cap:"۱۰ نفره - ۷۵۰ کیلوگرم", travel:6600, speed:"0.5", current:"29A", sizeBelin:"12.5kw-180L", sizeShakib:null, pipeSize:"120*5*3500", pipePrice:1796850000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5996000000, valveShakib:null},
+{floor:3, cap:"۱۰ نفره - ۷۵۰ کیلوگرم", travel:7600, speed:"0.5", current:"29A", sizeBelin:"12.5kw-180L", sizeShakib:null, pipeSize:"120*5*4000", pipePrice:1950900000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5996000000, valveShakib:null},
+
+// ---------- 4 طبقه (تراول 9600 / 10600) ----------
+{floor:4, cap:"۳ نفره - ۲۲۵ کیلوگرم", travel:9600, speed:"0.5", current:"19A", sizeBelin:"7.7kw-100L", sizeShakib:"طرح 7.7kw-100L", pipeSize:"80*5*5000", pipePrice:1470700000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4773000000, valveShakib:3519400000},
+{floor:4, cap:"۳ نفره - ۲۲۵ کیلوگرم", travel:10600, speed:"0.5", current:"19A", sizeBelin:"7.7kw-100L", sizeShakib:"طرح 7.7kw-100L", pipeSize:"80*5*5500", pipePrice:1572800000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4773000000, valveShakib:3519400000},
+{floor:4, cap:"۴ نفره - ۳۰۰ کیلوگرم", travel:9600, speed:"0.63", current:"25A", sizeBelin:"9.6kw-100L", sizeShakib:"طرح 9.6kw-100L", pipeSize:"80*5*5000", pipePrice:1470700000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4841000000, valveShakib:3592800000},
+{floor:4, cap:"۴ نفره - ۳۰۰ کیلوگرم", travel:10600, speed:"0.63", current:"25A", sizeBelin:"9.6kw-100L", sizeShakib:"طرح 9.6kw-100L", pipeSize:"90*5*5500", pipePrice:1804900000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4841000000, valveShakib:3592800000},
+{floor:4, cap:"۵ نفره - ۳۷۵ کیلوگرم", travel:9600, speed:"0.5", current:"25A", sizeBelin:"9.6kw-125L", sizeShakib:"طرح 9.6kw-125L", pipeSize:"90*5*5000", pipePrice:1656800000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4841000000, valveShakib:3592800000},
+{floor:4, cap:"۵ نفره - ۳۷۵ کیلوگرم", travel:10600, speed:"0.5", current:"25A", sizeBelin:"9.6kw-125L", sizeShakib:"طرح 9.6kw-125L", pipeSize:"90*5*5500", pipePrice:1804900000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4841000000, valveShakib:3592800000},
+{floor:4, cap:"۶ نفره - ۴۵۰ کیلوگرم", travel:9600, speed:"0.63", current:"27A", sizeBelin:"11kw-150L", sizeShakib:null, pipeSize:"100*5*5000", pipePrice:1826900000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5434000000, valveShakib:null},
+{floor:4, cap:"۶ نفره - ۴۵۰ کیلوگرم", travel:10600, speed:"0.63", current:"27A", sizeBelin:"11kw-150L", sizeShakib:null, pipeSize:"100*5*5500", pipePrice:2045000000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5434000000, valveShakib:null},
+{floor:4, cap:"۸ نفره - ۶۰۰ کیلوگرم", travel:9600, speed:"0.63", current:"29A", sizeBelin:"12.5kw-180L", sizeShakib:null, pipeSize:"110*5*5000", pipePrice:2104000000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5996000000, valveShakib:null},
+{floor:4, cap:"۸ نفره - ۶۰۰ کیلوگرم", travel:10600, speed:"0.63", current:"29A", sizeBelin:"12.5kw-180L", sizeShakib:null, pipeSize:"110*5*5500", pipePrice:2104000000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5996000000, valveShakib:null},
+{floor:4, cap:"۱۰ نفره - ۷۵۰ کیلوگرم", travel:9600, speed:"0.63", current:"42A", sizeBelin:"18.4kw-210L", sizeShakib:null, pipeSize:"120*5*5000", pipePrice:2259100000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:6391000000, valveShakib:null},
+{floor:4, cap:"۱۰ نفره - ۷۵۰ کیلوگرم", travel:10600, speed:"0.63", current:"42A", sizeBelin:"18.4kw-210L", sizeShakib:null, pipeSize:"120*5*5500", pipePrice:2411150000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:6391000000, valveShakib:null},
+
+// ---------- 5 طبقه (تراول 12600 / 13600) ----------
+{floor:5, cap:"۳ نفره - ۲۲۵ کیلوگرم", travel:12600, speed:"0.63", current:"25A", sizeBelin:"9.6kw-125L", sizeShakib:"طرح 9.6kw-125L", pipeSize:"90*5*6500", pipePrice:1992900000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4841000000, valveShakib:3592800000},
+{floor:5, cap:"۳ نفره - ۲۲۵ کیلوگرم", travel:13600, speed:"0.63", current:"25A", sizeBelin:"11kw-150L", sizeShakib:null, pipeSize:"100*5*7000", pipePrice:2325100000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5434000000, valveShakib:null},
+{floor:5, cap:"۴ نفره - ۳۰۰ کیلوگرم", travel:12600, speed:"0.63", current:"25A", sizeBelin:"9.6kw-125L", sizeShakib:"طرح 9.6kw-125L", pipeSize:"90*5*6500", pipePrice:1992900000, ruptureSize:"1 اینچ", rupturePrice:120000000, valveBelin:4841000000, valveShakib:3592800000},
+{floor:5, cap:"۴ نفره - ۳۰۰ کیلوگرم", travel:13600, speed:"0.63", current:"25A", sizeBelin:"11kw-150L", sizeShakib:null, pipeSize:"100*5*7000", pipePrice:2325100000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5434000000, valveShakib:null},
+{floor:5, cap:"۵ نفره - ۳۷۵ کیلوگرم", travel:12600, speed:"0.63", current:"27A", sizeBelin:"11kw-150L", sizeShakib:null, pipeSize:"100*5*6500", pipePrice:2155000000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5434000000, valveShakib:null},
+{floor:5, cap:"۵ نفره - ۳۷۵ کیلوگرم", travel:13600, speed:"0.63", current:"27A", sizeBelin:"11kw-150L", sizeShakib:null, pipeSize:"100*5*7000", pipePrice:2325100000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5434000000, valveShakib:null},
+{floor:5, cap:"۶ نفره - ۴۵۰ کیلوگرم", travel:12600, speed:"0.63", current:"27A", sizeBelin:"11kw-150L", sizeShakib:null, pipeSize:"100*5*6500", pipePrice:2155000000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5434000000, valveShakib:null},
+{floor:5, cap:"۶ نفره - ۴۵۰ کیلوگرم", travel:13600, speed:"0.63", current:"27A", sizeBelin:"11kw-150L", sizeShakib:null, pipeSize:"100*5*7000", pipePrice:2325100000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5434000000, valveShakib:null},
+{floor:5, cap:"۸ نفره - ۶۰۰ کیلوگرم", travel:12600, speed:"0.63", current:"33A", sizeBelin:"14.7kw-180L", sizeShakib:null, pipeSize:"110*5*6500", pipePrice:1861500000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5996000000, valveShakib:null},
+{floor:5, cap:"۸ نفره - ۶۰۰ کیلوگرم", travel:13600, speed:"0.63", current:"33A", sizeBelin:"14.7kw-180L", sizeShakib:null, pipeSize:"110*5*7000", pipePrice:2433100000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5996000000, valveShakib:null},
+{floor:5, cap:"۱۰ نفره - ۷۵۰ کیلوگرم", travel:12600, speed:"0.63", current:"42A", sizeBelin:"18.4kw-210L", sizeShakib:null, pipeSize:"120*5*6500", pipePrice:2718250000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:6391000000, valveShakib:null},
+{floor:5, cap:"۱۰ نفره - ۷۵۰ کیلوگرم", travel:13600, speed:"0.63", current:"42A", sizeBelin:"18.4kw-210L", sizeShakib:null, pipeSize:"120*5*7000", pipePrice:2873300000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:6391000000, valveShakib:null},
+
+// ---------- 6 طبقه (تراول 16600) ----------
+{floor:6, cap:"۳ نفره - ۲۲۵ کیلوگرم", travel:16600, speed:"0.63", current:"27A", sizeBelin:"11kw-150L", sizeShakib:null, pipeSize:"100*5*8500", pipePrice:2665200000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5434000000, valveShakib:null},
+{floor:6, cap:"۴ نفره - ۳۰۰ کیلوگرم", travel:16600, speed:"0.63", current:"29A", sizeBelin:"12.5kw-180L", sizeShakib:null, pipeSize:"110*5*8500", pipePrice:2836350000, ruptureSize:"1*1/2 اینچ", rupturePrice:95000000, valveBelin:5996000000, valveShakib:null},
+{floor:6, cap:"۵ نفره - ۳۷۵ کیلوگرم", travel:16600, speed:"0.63", current:"29A", sizeBelin:"12.5kw-180L", sizeShakib:null, pipeSize:"110*5*8500", pipePrice:2836350000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5996000000, valveShakib:null},
+{floor:6, cap:"۶ نفره - ۴۵۰ کیلوگرم (استاندارد)", travel:16600, speed:"0.63", current:"29A", sizeBelin:"12.5kw-180L", sizeShakib:null, pipeSize:"110*5*8500", pipePrice:2836350000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:5996000000, valveShakib:null},
+{floor:6, cap:"۶ نفره - ۴۵۰ کیلوگرم (توان بالا)", travel:16600, speed:"0.63", current:"29A", sizeBelin:"12.5kw-210L", sizeShakib:null, pipeSize:"120*5*8500", pipePrice:3365550000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:6173000000, valveShakib:null},
+{floor:6, cap:"۸ نفره - ۶۰۰ کیلوگرم", travel:16600, speed:"0.63", current:"33A", sizeBelin:"14.7kw-210L", sizeShakib:null, pipeSize:"120*5*8500", pipePrice:3365550000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:6173000000, valveShakib:null},
+{floor:6, cap:"۱۰ نفره - ۷۵۰ کیلوگرم", travel:16600, speed:"0.63", current:"42A", sizeBelin:"18.4kw-210L", sizeShakib:null, pipeSize:"120*7.5*8500", pipePrice:3738000000, ruptureSize:"1*1/2 اینچ", rupturePrice:135000000, valveBelin:6391000000, valveShakib:null},
+];
+
+        // ================================================================
+        // 3. PRICE LOOKUP ENGINE
+        // ================================================================
+
+        function parsePowerUnit(model) {
+            // e.g., "12.5kw-150L" -> {kw:12.5, L:150}
+            const parts = model.split('-');
+            if (parts.length !== 2) return null;
+            const kw = parseFloat(parts[0].replace('kw', ''));
+            const L = parseInt(parts[1].replace('L', ''));
+            if (isNaN(kw) || isNaN(L)) return null;
+            return { kw, L };
+        }
+
+        function findPrice(engineeringResult) {
+            const { inp, D18, C34, C38, B35, B32, B33 } = engineeringResult;
+            const requiredTravelCm = inp.B24;
+            const requiredSpeed = inp.B15;
+            const requiredPassengers = inp.B10 / 75; // assuming 75kg per passenger, but we use the input as kg? Actually B10 is "وزن نفرات" in kg. The price data uses passengers count. We need to convert weight to passengers. Typically each passenger 75kg. So passengers = Math.round(B10 / 75). But the user might input passenger count directly? In the original calculator, B10 is "وزن نفرات". But in the price data, we have passenger count. We need to map B10 to number of passengers: we can set passengers = Math.round(B10 / 75). However, the user might want to input passenger count directly instead of weight. But the form has B10 as weight. We'll compute passengers = Math.round(inp.B10 / 75). Also ensure it's at least 1.
+            let passengerCount = Math.round(inp.B10 / 75);
+            if (passengerCount < 1) passengerCount = 1;
+
+            // Determine jack model (floor) based on travel
+            const travelM = requiredTravelCm / 100; // convert to meters
+            let selectedJackModel = null;
+            const floorMap = [
+                { model: "2 طبقه", maxTravel: 3.6 },
+                { model: "3 طبقه", maxTravel: 7.6 },
+                { model: "4 طبقه", maxTravel: 10.6 },
+                { model: "5 طبقه", maxTravel: 13.6 },
+                { model: "6 طبقه", maxTravel: 16.6 }
+            ];
+            for (const f of floorMap) {
+                if (travelM <= f.maxTravel) {
+                    selectedJackModel = f.model;
+                    break;
+                }
+            }
+            if (!selectedJackModel) {
+                return { found: false, reason: "تراول بیشتر از حداکثر مجاز (۱۶.۶ متر) است." };
+            }
+
+            // Find jack entry
+            const jackEntry = PRICE_DATA.find(d => d.jackModel === selectedJackModel);
+            if (!jackEntry) {
+                return { found: false, reason: "مدل جک در لیست قیمت وجود ندارد." };
+            }
+
+            // Filter power units that have sufficient kW and L
+            const requiredKw = C38 || 0;
+            const requiredL = B35 || 0;
+            let candidates = [];
+            for (const pu of jackEntry.powerUnits) {
+                const parsed = parsePowerUnit(pu.model);
+                if (!parsed) continue;
+                if (parsed.kw >= requiredKw && parsed.L >= requiredL) {
+                    // Also speed must match exactly
+                    // We'll filter later by speed and passenger count
+                    candidates.push(pu);
+                }
+            }
+
+            // Further filter by speed and passenger count
+            let bestMatch = null;
+            for (const pu of candidates) {
+                for (const cap of pu.capacities) {
+                    // speed match (string comparison)
+                    if (cap.speed !== requiredSpeed + " m/s") continue;
+                    if (cap.passengers !== passengerCount) continue;
+                    // Also check that piston diameter (size) is >= D18? Not strict, but we can check.
+                    // We'll prefer the one with smallest kW and L (already sorted by iteration)
+                    if (!bestMatch) {
+                        bestMatch = { powerUnit: pu, capacity: cap };
+                    } else {
+                        // choose smaller power unit
+                        const curParsed = parsePowerUnit(pu.model);
+                        const bestParsed = parsePowerUnit(bestMatch.powerUnit.model);
+                        if (curParsed.kw < bestParsed.kw || (curParsed.kw === bestParsed.kw && curParsed.L < bestParsed.L)) {
+                            bestMatch = { powerUnit: pu, capacity: cap };
+                        }
+                    }
+                }
+            }
+
+            if (!bestMatch) {
+                return { found: false, reason: `هیچ ترکیب معتبری برای سرعت ${requiredSpeed} m/s، تعداد ${passengerCount} نفر و توان مورد نیاز ${requiredKw} kW یافت نشد.` };
+            }
+
+            // Check if price is zero (invalid)
+            if (bestMatch.capacity.price === 0) {
+                return { found: false, reason: "قیمت این ترکیب در لیست صفر ثبت شده است." };
+            }
+
+            return {
+                found: true,
+                jackModel: selectedJackModel,
+                powerUnit: bestMatch.powerUnit.model,
+                capacity: bestMatch.capacity,
+                price: bestMatch.capacity.price,
+                speed: bestMatch.capacity.speed,
+                travel: bestMatch.capacity.travel,
+                size: bestMatch.capacity.size,
+                passengers: bestMatch.capacity.passengers
+            };
+        }
+
+        // ================================================================
+        // 3-C. SHAKIB PRICE LOOKUP ENGINE — با همان مشخصات فنی محاسبه‌شده
+        //      (طبقه/تراول/سرعت/تعداد نفرات) رکورد متناظر شکیب پیدا می‌شود
+        // ================================================================
+
+        function faToEnDigits(s) {
+            return String(s).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+        }
+
+        function findShakibPrice(engineeringResult) {
+            const { inp } = engineeringResult;
+            const requiredTravelCm = inp.B24;
+            const requiredSpeed = inp.B15;
+            let passengerCount = Math.round(inp.B10 / 75);
+            if (passengerCount < 1) passengerCount = 1;
+
+            const travelM = requiredTravelCm / 100;
+            const floorMap = [
+                { floor: 2, maxTravel: 3.6 },
+                { floor: 3, maxTravel: 7.6 },
+                { floor: 4, maxTravel: 10.6 },
+                { floor: 5, maxTravel: 13.6 },
+                { floor: 6, maxTravel: 16.6 }
+            ];
+            let selectedFloor = null;
+            for (const f of floorMap) {
+                if (travelM <= f.maxTravel) { selectedFloor = f.floor; break; }
+            }
+            if (!selectedFloor) {
+                return { found: false, reason: "تراول بیشتر از حداکثر مجاز (۱۶.۶ متر) است." };
+            }
+
+            const requiredTravelMm = requiredTravelCm * 10;
+
+            // همه رکوردهای همین طبقه با همین تعداد نفرات (مستقل از نوع شیر)
+            const rowsForCap = SHAKIB_DATA.filter(d => {
+                if (d.floor !== selectedFloor) return false;
+                const capNum = parseInt(faToEnDigits(d.cap), 10);
+                return capNum === passengerCount;
+            });
+
+            if (!rowsForCap.length) {
+                return { found: false, reason: `برای ${selectedFloor} طبقه و ${passengerCount} نفر، ترکیبی در لیست شکیب موجود نیست.` };
+            }
+
+            // ترجیحاً همان سرعت محاسبه‌شده؛ در نبود تطبیق، نزدیک‌ترین رکوردهای موجود لحاظ می‌شود
+            let speedFiltered = rowsForCap.filter(d => Math.abs(parseFloat(d.speed) - requiredSpeed) < 0.001);
+            if (!speedFiltered.length) speedFiltered = rowsForCap;
+
+            // کوچک‌ترین تراولِ >= تراول موردنیاز؛ اگر نبود، بزرگ‌ترین تراول موجود (نزدیک‌ترین) انتخاب می‌شود
+            const sorted = [...speedFiltered].sort((a, b) => a.travel - b.travel);
+            let row = sorted.find(d => d.travel >= requiredTravelMm) || sorted[sorted.length - 1];
+
+            return { found: true, row, floor: selectedFloor, passengers: passengerCount };
+        }
+
+        let shakibValveType = 'belin';
+        let lastShakibResult = null;
+
+        function renderShakibPrice(shakibResult) {
+            lastShakibResult = shakibResult;
+            const card = document.getElementById('priceCardShakib');
+            const notFound = document.getElementById('shakibNotFound');
+            const breakdown = document.getElementById('shakibBreakdown');
+            const details = document.getElementById('shakibDetails');
+            const priceNumber = document.getElementById('shakibPriceNumber');
+
+            card.classList.add('visible');
+
+            if (!shakibResult || !shakibResult.found) {
+                notFound.style.display = 'block';
+                notFound.textContent = '⚠️ ' + (shakibResult ? shakibResult.reason : 'ترکیب یافت نشد.');
+                breakdown.style.display = 'none';
+                details.style.display = 'none';
+                priceNumber.textContent = '—';
+                return;
+            }
+
+            const r = shakibResult.row;
+            const isShakibValve = shakibValveType === 'shakib';
+            const valvePrice = isShakibValve ? r.valveShakib : r.valveBelin;
+            const sizeLabel = isShakibValve ? r.sizeShakib : r.sizeBelin;
+
+            document.getElementById('btnShakibBelin').classList.toggle('active', !isShakibValve);
+            document.getElementById('btnShakibShakib').classList.toggle('active', isShakibValve);
+            document.getElementById('btnShakibShakib').disabled = (r.valveShakib === null || r.valveShakib === undefined);
+
+            if (valvePrice === null || valvePrice === undefined) {
+                notFound.style.display = 'block';
+                notFound.textContent = '⚠️ این ترکیب فقط با «شیر بلین اصل آلمان» قابل ارائه است — شیر شکیب برای این ظرفیت/طبقه موجود نیست.';
+                breakdown.style.display = 'none';
+                details.style.display = 'none';
+                priceNumber.textContent = '—';
+                return;
+            }
+
+            notFound.style.display = 'none';
+            breakdown.style.display = 'table';
+            details.style.display = 'grid';
+
+            const total = valvePrice + r.pipePrice + r.rupturePrice;
+            priceNumber.textContent = total.toLocaleString('en-US');
+
+            document.getElementById('sFloor').textContent = shakibResult.floor + ' طبقه';
+            document.getElementById('sCap').textContent = r.cap;
+            document.getElementById('sSpeed').textContent = r.speed + ' m/s';
+            document.getElementById('sTravel').textContent = r.travel.toLocaleString('en-US') + ' mm';
+            document.getElementById('sSize').textContent = sizeLabel || '—';
+            document.getElementById('sCurrent').textContent = r.current;
+
+            document.getElementById('sValvePrice').textContent = valvePrice.toLocaleString('en-US');
+            document.getElementById('sPipeSize').textContent = '(' + r.pipeSize + ')';
+            document.getElementById('sPipePrice').textContent = r.pipePrice.toLocaleString('en-US');
+            document.getElementById('sRuptureSize').textContent = '(' + r.ruptureSize + ')';
+            document.getElementById('sRupturePrice').textContent = r.rupturePrice.toLocaleString('en-US');
+            document.getElementById('sTotalPrice').textContent = total.toLocaleString('en-US');
+        }
+
+        document.getElementById('btnShakibBelin').addEventListener('click', () => {
+            shakibValveType = 'belin';
+            renderShakibPrice(lastShakibResult);
+        });
+        document.getElementById('btnShakibShakib').addEventListener('click', () => {
+            shakibValveType = 'shakib';
+            renderShakibPrice(lastShakibResult);
+        });
+
+        // ================================================================
+        // 3b. CUSTOM BUILD FALLBACK — وقتی کاتالوگ ثابت مچ نداشت، طبق فرمول‌های
+        //     فیزیکی فایل (D18, D42, C34, C38, buckling) مشخصات واقعی و
+        //     وضعیت پاس/فیل رو نشون بده تا بشه به کارخانه سفارش ساخت داد.
+        // ================================================================
+
+        function renderCustomBuild(result) {
+            const card = document.getElementById('customBuildCard');
+            card.classList.add('visible');
+
+            const passengers = Math.max(1, Math.round(result.inp.B10 / 75));
+
+            document.getElementById('cbD18').textContent = fmt(result.D18, 0) + ' mm';
+            document.getElementById('cbD42').textContent = fmt(result.D42 * 1000, 1) + ' mm';
+            document.getElementById('cbMotor').textContent = (result.C38 !== null ? fmt(result.C38, 1) : '—') + ' kW';
+            document.getElementById('cbFlow').textContent = (result.C34 !== null ? fmt(result.C34, 0) : '—') + ' L/min';
+            document.getElementById('cbOil').textContent = fmt(result.B35, 0) + ' L';
+            document.getElementById('cbPax').textContent = passengers + ' نفر';
+
+            // Verdict: pass only if both pressure checks pass AND buckling either
+            // passes or isn't applicable (slenderness < 100, i.e. no buckling risk).
+            const verdictEl = document.getElementById('cbVerdict');
+            const pressureOk = result.C32 && result.C33;
+            let verdictClass, verdictText;
+
+            if (!pressureOk) {
+                verdictClass = 'fail';
+                verdictText = '❌ رد می‌شود — شرایط فشار هیدرولیک برآورده نمی‌شود';
+            } else if (!result.bucklingValid) {
+                verdictClass = 'review';
+                verdictText = '⚠️ نیاز به بررسی مهندسی دستی — نسبت لاغری خارج از محدوده استاندارد فرمول باکلینگ';
+            } else if (result.C39) {
+                verdictClass = 'pass';
+                verdictText = '✅ طبق فرمول‌های فایل، این مشخصات قابل ساخت است';
+            } else {
+                verdictClass = 'fail';
+                verdictText = '❌ رد می‌شود — از تست باکلینگ (کمانش) عبور نمی‌کند';
+            }
+            verdictEl.className = 'cb-verdict ' + verdictClass;
+            verdictEl.textContent = verdictText;
+
+            // Detail breakdown of each formula-based check, for the engineer/factory.
+            let checksHtml = `<div>• فشار استاتیکی خالی: ${fmt(result.B32,2)} bar ${result.C32 ? '✅ (≥ ۲۰)' : '❌ (باید ≥ ۲۰)'}</div>`;
+            checksHtml += `<div>• فشار استاتیکی پر: ${fmt(result.B33,2)} bar ${result.C33 ? '✅ (< ۳۵.۷۹)' : '❌ (باید < ۳۵.۷۹)'}</div>`;
+            if (result.bucklingValid) {
+                checksHtml += `<div>• باکلینگ: نیروی بحرانی ${fmt(result.B50,1)} daN در برابر بار ${fmt(result.B49,1)} daN ${result.C39 ? '✅' : '❌'}</div>`;
+            } else {
+                checksHtml += `<div>• باکلینگ: نسبت لاغری ${fmt(result.B47,1)} (کمتر از ۱۰۰) — خارج از رنج فرمول ساده، نیاز به تحلیل جداگانه</div>`;
+            }
+            checksHtml += `<div style="margin-top:6px;color:#a8a29e;">این مقادیر، حداقل مشخصات فنی لازم برای جک/پاور یونیت سفارشی هستند — نه یک مدل موجود در کاتالوگ.</div>`;
+            document.getElementById('cbChecks').innerHTML = checksHtml;
+        }
+
+        // ================================================================
+        // 4. UI INTEGRATION
+        // ================================================================
+
+        function updateUI() {
+            const result = computeAll();
+            const debugBox = document.getElementById('debugBox');
+            const debugToggle = document.getElementById('debugToggle');
+
+            if (result.error) {
+                document.getElementById('kpiD18').innerHTML = '— <span class="unit">mm</span>';
+                document.getElementById('kpiD42').innerHTML = '— <span class="unit">mm</span>';
+                document.getElementById('kpiMotor').innerHTML = '— <span class="unit">kW</span>';
+                document.getElementById('kpiFlow').innerHTML = '— <span class="unit">L/min</span>';
+                document.getElementById('checksContainer').innerHTML =
+                    `<div class="check-item fail"><span class="icon">❌</span> ${result.message}</div>`;
+                document.getElementById('priceCard').classList.remove('visible');
+                document.getElementById('priceNumber').textContent = '—';
+                document.getElementById('priceNotFound').style.display = 'none';
+                document.getElementById('customBuildCard').classList.remove('visible');
+                document.getElementById('priceCardShakib').classList.remove('visible');
+                lastShakibResult = null;
+                // debug
+                debugBox.textContent = 'ERROR: ' + result.message;
+                return;
+            }
+
+            // --- KPI ---
+            document.getElementById('kpiD18').innerHTML = fmt(result.D18, 0) + ' <span class="unit">mm</span>';
+            document.getElementById('kpiD42').innerHTML = fmt(result.D42 * 1000, 1) + ' <span class="unit">mm</span>';
+            document.getElementById('kpiMotor').innerHTML = (result.C38 !== null ? fmt(result.C38, 1) : '—') +
+                ' <span class="unit">kW</span>';
+            document.getElementById('kpiFlow').innerHTML = (result.C34 !== null ? fmt(result.C34, 0) : '—') +
+                ' <span class="unit">L/min</span>';
+
+            // --- Checks ---
+            let checksHtml = '';
+            checksHtml +=
+                `<div class="check-item ${result.C32?'pass':'fail'}"><span class="icon">${result.C32?'✅':'❌'}</span> فشار استاتیکی خالی: ${fmt(result.B32,2)} bar (باید ≥ ۲۰)</div>`;
+            checksHtml +=
+                `<div class="check-item ${result.C33?'pass':'fail'}"><span class="icon">${result.C33?'✅':'❌'}</span> فشار استاتیکی پر: ${fmt(result.B33,2)} bar (باید < ۳۵.۷۹)</div>`;
+            if (result.bucklingValid) {
+                const ok = result.C39;
+                checksHtml +=
+                    `<div class="check-item ${ok?'pass':'fail'}"><span class="icon">${ok?'✅':'❌'}</span> باکلینگ: نیروی بحرانی ${fmt(result.B50,1)} daN ≥ ${fmt(result.B49,1)} daN</div>`;
+            } else {
+                checksHtml +=
+                    `<div class="check-item warn"><span class="icon">⚠️</span> باکلینگ: نسبت لاغری ${fmt(result.B47,1)} < ۱۰۰ — نیاز به بررسی مهندسی (طبق فایل مرجع)</div>`;
+            }
+            document.getElementById('checksContainer').innerHTML = checksHtml;
+
+            // --- Price lookup ---
+            const priceResult = findPrice(result);
+            const shakibResult = findShakibPrice(result);
+            renderShakibPrice(shakibResult);
+            const priceCard = document.getElementById('priceCard');
+            const priceNumber = document.getElementById('priceNumber');
+            const priceNotFound = document.getElementById('priceNotFound');
+            const pJack = document.getElementById('pJack');
+            const pPower = document.getElementById('pPower');
+            const pPass = document.getElementById('pPass');
+            const pSpeed = document.getElementById('pSpeed');
+            const pTravel = document.getElementById('pTravel');
+            const pSize = document.getElementById('pSize');
+
+            const customBuildCard = document.getElementById('customBuildCard');
+
+            if (priceResult.found) {
+                priceCard.classList.add('visible');
+                priceNumber.textContent = priceResult.price.toLocaleString('en-US');
+                priceNotFound.style.display = 'none';
+                pJack.textContent = priceResult.jackModel;
+                pPower.textContent = priceResult.powerUnit;
+                pPass.textContent = priceResult.passengers + ' نفر';
+                pSpeed.textContent = priceResult.speed;
+                pTravel.textContent = priceResult.travel;
+                pSize.textContent = priceResult.size;
+                customBuildCard.classList.remove('visible');
+            } else {
+                priceCard.classList.add('visible');
+                priceNumber.textContent = '—';
+                priceNotFound.style.display = 'block';
+                priceNotFound.textContent = '⚠️ ' + priceResult.reason;
+                pJack.textContent = '—';
+                pPower.textContent = '—';
+                pPass.textContent = '—';
+                pSpeed.textContent = '—';
+                pTravel.textContent = '—';
+                pSize.textContent = '—';
+
+                // --- Custom build fallback: engineering values already computed by computeAll(),
+                // independent of the fixed catalog. Show them so the factory has a real spec
+                // to build against, plus a pass/fail verdict from the same formulas.
+                renderCustomBuild(result);
+            }
+
+            // --- Debug ---
+            const debugLines = [];
+            debugLines.push('=== INPUTS ===');
+            const inp = result.inp;
+            for (const [key, val] of Object.entries(inp)) {
+                debugLines.push(`${key} = ${val}`);
+            }
+            debugLines.push('=== INTERMEDIATE ===');
+            debugLines.push(`D18 (raw) = ${result.D18}`);
+            debugLines.push(`B32 (empty pressure) = ${result.B32}`);
+            debugLines.push(`B33 (full pressure) = ${result.B33}`);
+            debugLines.push(`B34 (flow) = ${result.B34}`);
+            debugLines.push(`C34 (std flow) = ${result.C34}`);
+            debugLines.push(`B35 (oil volume) = ${result.B35}`);
+            debugLines.push(`B38 (motor power) = ${result.B38}`);
+            debugLines.push(`C38 (std motor) = ${result.C38}`);
+            debugLines.push(`D42 (cylinder OD) = ${result.D42}`);
+            debugLines.push(`B47 (slenderness) = ${result.B47}`);
+            debugLines.push(`B49 (buckling force) = ${result.B49}`);
+            debugLines.push(`B50 (critical force) = ${result.B50}`);
+            debugLines.push('=== PRICE LOOKUP ===');
+            if (priceResult.found) {
+                debugLines.push(`Found: ${priceResult.jackModel} + ${priceResult.powerUnit} + ${priceResult.passengers} نفر`);
+                debugLines.push(`Price: ${priceResult.price}`);
+            } else {
+                debugLines.push(`Not found: ${priceResult.reason}`);
+            }
+            debugBox.textContent = debugLines.join('\n');
+        }
+
+        // بازه مجاز مارجین کورس بسته به نوع سیستم تعلیق: مستقیم (۱ به ۱) یا غیرمستقیم
+        function syncCourseMarginRange() {
+            const B14 = parseFloat(document.getElementById('B14').value);
+            const marginField = document.getElementById('courseMargin');
+            const hint = document.getElementById('courseMarginHint');
+            const isDirect = B14 === 1;
+            const min = isDirect ? 20 : 15;
+            const max = isDirect ? 40 : 20;
+            marginField.min = min;
+            marginField.max = max;
+            hint.textContent = isDirect
+                ? `سیستم مستقیم (۱ به ۱): بازه مجاز ${min} الی ${max} سانتی‌متر`
+                : `سیستم غیرمستقیم (۱ به ${fmt(B14,0)}): بازه مجاز ${min} الی ${max} سانتی‌متر`;
+            const current = parseFloat(marginField.value);
+            if (isNaN(current) || current < min || current > max) {
+                marginField.value = isDirect ? 30 : 18;
+            }
+        }
+        document.getElementById('B14').addEventListener('input', syncCourseMarginRange);
+        document.getElementById('B14').addEventListener('change', syncCourseMarginRange);
+        syncCourseMarginRange();
+
+        // ----- Event listeners -----
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', updateUI);
+            el.addEventListener('change', updateUI);
+        });
+        document.getElementById('calcBtn').addEventListener('click', updateUI);
+
+        // Debug toggle
+        document.getElementById('debugToggle').addEventListener('click', function() {
+            const box = document.getElementById('debugBox');
+            box.classList.toggle('show');
+            if (box.classList.contains('show')) {
+                this.textContent = 'پنهان کردن Debug';
+            } else {
+                this.textContent = 'نمایش Debug';
+            }
+        });
+
+        // Initial run
+        updateUI();
+
+        console.log('✅ محاسبه‌گر با قیمت‌گذاری خودکار بارگذاری شد.');
+        console.log(`📊 ${PRICE_DATA.length} مدل جک، ${PRICE_DATA.reduce((acc,d)=>acc+d.powerUnits.length,0)} پاور یونیت موجود.`);
+    </script>
+
+</body>
+</html>

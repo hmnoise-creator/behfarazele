@@ -217,8 +217,15 @@ table.sbt2 td.mono{font-family:var(--mono);direction:ltr;text-align:center;font-
 table.sbt2 tr.sbt-g td{background:#E4EAE9;font-weight:800;font-size:.8rem;color:var(--ink);border-top:2px solid var(--ink2)}
 table.sbt2 tr.sbt-g td span{font-weight:600;color:var(--ink2)}
 table.sbt2 tr.sbt-p td{background:#F7F9F9;font-size:.76rem;color:var(--ink2)}
-table.sbt2 tr.sbt-r:nth-child(even) td{background:#FBFCFC}
+table.sbt2 tr.sbt-r:not([class*="sup-"]):nth-child(even) td{background:#FBFCFC}
 table.sbt2 tr.sbt-r:hover td{background:#F0F5F4}
+table.sbt2 tr.sup-sh td{background:#EAF2FD}table.sbt2 tr.sup-sh td:first-child{box-shadow:inset -5px 0 0 #2F6BD8}
+table.sbt2 tr.sup-sh:hover td{background:#DCE9FB}
+table.sbt2 tr.sup-110 td{background:#FFF1E6}table.sbt2 tr.sup-110 td:first-child{box-shadow:inset -5px 0 0 #E2572B}
+table.sbt2 tr.sup-110:hover td{background:#FFE6D3}
+table.sbt2 tr.sup-sena td{background:#F1F3F5}table.sbt2 tr.sup-sena td:first-child{box-shadow:inset -5px 0 0 #9AA3AD}
+table.sbt2 tr.sup-sena:hover td{background:#E6E9EC}
+table.sbt2 tr.sbt-p.sup-sh td{background:#DCE9FB}table.sbt2 tr.sbt-p.sup-110 td{background:#FFE6D3}table.sbt2 tr.sbt-p.sup-sena td{background:#E6E9EC}
 table.sbt2 tr.out td{color:var(--mute)}
 table.sbt2 .st-o{color:var(--mute)}table.sbt2 .st-l{color:#9A6200;font-weight:800}table.sbt2 .st-r{color:var(--ink);font-weight:800}
 .sbx{border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 9px;font-size:.74rem;font-weight:700;cursor:pointer;font-family:inherit;color:var(--ink)}
@@ -1168,7 +1175,7 @@ function sbFacetOpts(items,f,idx){
   return vs.map(function(v){return {v:v,l:sbValLabel(f,v),n:c[v],ex:ex[v]?ex[v].slice(0,3).join('، ')+(ex[v].length>3?' و '+fa(ex[v].length-3)+' مورد دیگر':''):''}});
 }
 var SB_GCOL={jp:'#E2572B',mt:'#5B4FB3',ac:'#1F8A4C',pn:'#2559B8',cm:'#0E7C9E'};
-var SB_SCOL={'شکیب جک':'#E2572B','آسانسور 110':'#2F6BD8','سنا پنل':'#12A08A','سایر':'#8C6BB8'};
+var SB_SCOL={'شکیب جک':'#2F6BD8','آسانسور 110':'#E2572B','سنا پنل':'#8E99A4','سایر':'#8C6BB8'};
 function sbTabIcon(id){for(var i=0;i<DASH.length;i++)for(var j=0;j<DASH[i].tabs.length;j++)if(DASH[i].tabs[j].id===id)return DASH[i].tabs[j].icon;return '📦'}
 function sbChip(attr,o,cur,col,icon){return '<button type="button" class="sbf-chip'+(cur===o.v?' on':'')+'" style="--ac:'+col+'" '+attr+' data-v="'+esc(o.v)+'"'+(o.ex?' title="'+esc(o.ex)+'"':'')+'>'+(icon?'<span>'+icon+'</span>':'<span class="dot"></span>')+'<span class="sbf-cl"><b>'+esc(o.l)+'</b>'+(o.ex?'<small>'+esc(o.ex)+'</small>':'')+'</span>'+(o.n!=null?'<span class="cnt">'+fa(o.n)+'</span>':'')+'</button>'}
 function sbFacetChips(attr,f,opts,cur,gcol){
@@ -1225,6 +1232,8 @@ function sbEditLotEntry(id){
   addLog('اصلاح مقدار ورود',CATS[l.cat].name+' — '+specText(l.cat,l.f)+' | رسید '+(r.no||'')+' | '+before+' ← '+q+' '+l.unit);
   save();renderStock();toast('✓ مقدار اصلاح شد و موجودی به‌روز شد');
 }
+/* رنگ ردیف‌ها بر اساس تأمین‌کننده: شکیب آبی، آسانسور ۱۱۰ نارنجی، سنا پنل نقره‌ای */
+function sbSupCls(sup){return sup==='شکیب جک'?' sup-sh':sup==='آسانسور 110'?' sup-110':sup==='سنا پنل'?' sup-sena':''}
 function sbStagedU(){var m={};xStaged.forEach(function(s){if(s.type==='u')m[s.unitId]=1});return m}
 function sbStagedL(){var m={};xStaged.forEach(function(s){if(s.type==='l')m[s.key]=rnd((m[s.key]||0)+s.qty)});return m}
 function sbTable(items){
@@ -1237,7 +1246,7 @@ function sbTable(items){
   for(i=0;i<list.length;i++){var it=list[i],pk=it.sup+'#'+it.pk;
     if(it.tab!==prevTab){var tn=0;for(j=i;j<list.length&&list[j].tab===it.tab;j++)tn++;
       rows+='<tr class="sbt-g"><td colspan="11">'+esc(sbValLabel('type',it.tab))+' <span>('+fa(tn)+' ردیف)</span></td></tr>';prevTab=it.tab;prevP=''}
-    if(pk!==prevP&&pc[pk].n>1)rows+='<tr class="sbt-p"><td></td><td colspan="2"><b>'+esc(it.title)+'</b>'+(it.sub?' — '+esc(it.sub):'')+'</td><td colspan="2">جمع موجودی: <b>'+fa(pc[pk].q)+'</b> '+esc(pc[pk].unit)+'</td><td colspan="6">'+esc(it.sup)+'</td></tr>';
+    if(pk!==prevP&&pc[pk].n>1)rows+='<tr class="sbt-p'+sbSupCls(it.sup)+'"><td></td><td colspan="2"><b>'+esc(it.title)+'</b>'+(it.sub?' — '+esc(it.sub):'')+'</td><td colspan="2">جمع موجودی: <b>'+fa(pc[pk].q)+'</b> '+esc(pc[pk].unit)+'</td><td colspan="6">'+esc(it.sup)+'</td></tr>';
     prevP=pk;n++;
     var f=it.f,cust=[f.company,f.project].filter(Boolean).join(' / ');
     var lv=it.k==='l'?boardLevel(it.qty,it.unit):'ok';
@@ -1250,7 +1259,7 @@ function sbTable(items){
     }
     act+=it.k==='u'?' <button type="button" class="sbi" data-ued="'+it.id+'" title="ویرایش">✏️</button><button type="button" class="sbi" data-udel="'+it.id+'" title="حذف">🗑️</button>'
                    :' <button type="button" class="sbi'+(sbHist[it.id]?' on':'')+'" data-lh="'+esc(it.id)+'" title="تاریخچهٔ ورود و خروج (قابل اصلاح)">📜</button><button type="button" class="sbi" data-led="'+esc(it.id)+'" title="ویرایش">✏️</button><button type="button" class="sbi" data-ldel="'+esc(it.id)+'" title="حذف">🗑️</button>';
-    rows+='<tr class="sbt-r'+(it.isOut?' out':'')+'"><td class="c">'+fa(n)+'</td><td><b>'+esc(it.title)+'</b><small>'+esc(CATS[it.cat].name)+(f['for']&&it.cat==='acc'?' · ویژهٔ '+esc(f['for']):'')+'</small></td><td>'+esc(it.sub||'—')+'</td>'+
+    rows+='<tr class="sbt-r'+(it.isOut?' out':'')+sbSupCls(it.sup)+'"><td class="c">'+fa(n)+'</td><td><b>'+esc(it.title)+'</b><small>'+esc(CATS[it.cat].name)+(f['for']&&it.cat==='acc'?' · ویژهٔ '+esc(f['for']):'')+'</small></td><td>'+esc(it.sub||'—')+'</td>'+
       '<td class="mono">'+(it.serial?esc(it.serial):'<span class="o">—</span>')+'</td>'+
       '<td class="c"><b>'+fa(it.qty)+'</b> <small class="u">'+esc(it.unit)+'</small>'+(it.k==='l'?'<small>'+(it.inn!==it.qty?'از '+fa(it.inn)+' ورودی · ':'')+fa(it.rnos.length)+' بار ورود</small>':'')+'</td>'+
       '<td>'+esc(it.sup)+'</td><td class="c">'+fdate(it.date)+(it.rnos.length?'<small>رسید '+esc(fa(it.rnos.slice(-3).join('، ')))+'</small>':'')+'</td>'+

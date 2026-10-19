@@ -1986,6 +1986,7 @@
       <button type="button" id="btnSingleTypeFitting">🔗 فقط اتصالات (مغزی)</button>
       <button type="button" id="btnSingleTypeOil">🛢 فقط روغن</button>
       <button type="button" id="btnSingleTypeHose">🧵 فقط شلنگ</button>
+      <button type="button" id="btnSingleTypeOilPipe">🛢️ لوله انتقال روغن</button>
       <button type="button" id="btnSingleTypeKarasling">🏗️ فقط کاراسلینگ</button>
       <button type="button" id="btnSingleTypeStage">🪜 فقط جک دو/سه استیج</button>
       <button type="button" id="btnSingleTypeValveAcc">🧰 شیر و متعلقات</button>
@@ -2097,6 +2098,27 @@
         <div class="manual-field-hint">مجموع روغن: <b class="numlt" id="singleOilTotalL">20</b> لیتر</div>
       </div>
     </div>
+
+    <div class="hose-box" id="singleOilPipeBox" style="display:none;">
+      <div class="hose-head">لوله انتقال روغن</div>
+      <div class="hose-meters-row">
+        <label>متراژ لوله:</label>
+        <input type="text" inputmode="decimal" class="numlt" id="singleOilPipeMeters" placeholder="مثلاً 6">
+        <span class="unit">متر</span>
+      </div>
+      <div class="hose-meters-row">
+        <label>قیمت هر متر:</label>
+        <input type="text" inputmode="numeric" class="numlt" id="singleOilPipePrice" placeholder="قیمت دستی" style="min-width:150px;">
+        <span class="unit">ریال</span>
+      </div>
+      <div class="hose-meters-row">
+        <label>مشخصات (اختیاری):</label>
+        <input type="text" id="singleOilPipeSpec" placeholder="مثلاً سایز / جنس لوله" style="min-width:220px;text-align:right;direction:rtl;font-family:inherit;">
+      </div>
+      <div class="hose-info-line" id="singleOilPipeInfo"></div>
+    </div>
+
+    <div id="bfxSingleHost" class="no-print"></div>
 
     <div class="hose-box" id="singleHoseBox" style="display:none;">
       <div class="hose-head">انتخاب شلنگ</div>
@@ -2358,6 +2380,8 @@
       <button class="print-btn" id="btnManualClearAdded" type="button" style="background:#7a2a2a;display:none;">🗑 خالی کردن اقلام افزوده‌شده</button>
     </div>
     <div class="manual-field-hint" id="manualAddHint" style="margin-bottom:18px;">با تکمیل «قطر، ضخامت و کورس جک» و درج قیمت، دکمهٔ افزودن جک فعال می‌شود؛ با تکمیل «kW، پمپ و تانک» و درج قیمت، دکمهٔ افزودن پاوریونیت. دو دکمهٔ اول فقط همان یک قلم را (با همان تعداد) اضافه می‌کنند؛ دکمهٔ «افزودن کل سفارش» همهٔ آنچه نوشته‌اید (جک، پاوریونیت، رپچر، اتصالات و اقلام جانبی) را یک‌جا اضافه می‌کند تا بتوانید سفارش بعدی را پشت سرش بنویسید.</div>
+
+    <div id="bfxManualHost" class="no-print"></div>
 
     <div class="result empty" id="manualResult">
       برای مشاهده جمع کل، حداقل قیمت واحد یکی از اقلام (جک، پاوریونیت یا اقلام جانبی) را وارد کنید.
@@ -5333,6 +5357,7 @@ function resetSingleItemSelectionOnly(){
   qtySingleOilInput.value = 1; singleOilTotalL.textContent = '20';
   if(typeof resetSingleStageForm==='function') resetSingleStageForm();
   if(typeof resetSingleVA==='function') resetSingleVA();
+  if(typeof bfOilPipeReset==='function') bfOilPipeReset();
 }
 
 // بازنشانی کامل — هنگام ورود به تب «سفارش تکی» یا تعویض حالت، کل پیش‌سفارش (singleCart) هم خالی می‌شود
@@ -5365,6 +5390,7 @@ function hideAllSingleTypeGrids(){
   singleFittingGrid.style.display = 'none';
   singleOilGrid.style.display = 'none';
   singleHoseBox.style.display = 'none';
+  { const _op=document.getElementById('singleOilPipeBox'); if(_op) _op.style.display='none'; const _ob=document.getElementById('btnSingleTypeOilPipe'); if(_ob) _ob.classList.remove('active'); }
   singleChromeBox.style.display = 'none';
   singleDryMotorGrid.style.display = 'none';
   dryIncludePanel.style.display = 'none';
@@ -5930,6 +5956,13 @@ function computeSingleItem(){
       unitPrice: kTotal,
       qty: 1
     };
+  }
+  if(singleItemType==='oilpipe'){
+    const m = Math.max(0, Number(bfOilPipe.meters)||0), pr = Math.max(0, Number(bfOilPipe.price)||0);
+    if(!(m>0) || !(pr>0)) return null;
+    return { kind:'oilpipe', title:'لوله انتقال روغن',
+      spec: (bfOilPipe.spec ? bfOilPipe.spec + ' · ' : '') + 'متراژ ' + m + ' متر · قیمت واحد ' + fmt(pr) + ' ریال/متر',
+      unitPrice: pr, qty: m };
   }
   if(singleItemType==='hose'){
     const row = hoseFindRow(hoseProduct, hoseSize);
@@ -6519,6 +6552,7 @@ let manualAdded = []; // اقلام «تکی» افزوده‌شده با دکم
 btnManualMode.addEventListener('click', ()=>switchSubOrderMode('manual'));
 
 function resetManualForm(){
+  if(typeof bfxManualItems!=='undefined'){ bfxManualItems = []; if(typeof bfxMiniRenderAll==='function') bfxMiniRenderAll(); }
   manDia.value=''; manThickness.value=''; manLength.value=''; manKw.value=''; manPump.value=''; manTank.value='';
   manJackPrice.value=''; manJackQty.value=1;
   manPuPrice.value=''; manPuQty.value=1;
@@ -6573,6 +6607,11 @@ function updateManualSumCells(){
 }
 
 function computeManualItems(formOnly){
+  const _r = computeManualItems0(formOnly);
+  if(!formOnly && typeof bfxManualItems!=='undefined') bfxManualItems.forEach(it=>_r.push({ ...it, _bfx:true }));
+  return _r;
+}
+function computeManualItems0(formOnly){
   if(manualAdded.length && !formOnly) return manualAdded.map(it=>({ ...it }));
   const items = [];
   const jackPrice = Number(manJackPrice.value);
@@ -6681,7 +6720,7 @@ function renderManualResult(){
     <table style="width:100%;border-collapse:collapse;font-size:13px;">
       <thead><tr><th style="text-align:right;padding:6px 0;color:var(--text-dim);font-weight:600;">شرح</th><th style="text-align:right;padding:6px 0;color:var(--text-dim);font-weight:600;">مشخصات</th><th style="text-align:left;padding:6px 0;color:var(--text-dim);font-weight:600;">تعداد</th><th style="text-align:left;padding:6px 0;color:var(--text-dim);font-weight:600;">جمع (ریال)</th></tr></thead>
       <tbody>
-        ${items.map((it,i)=>`<tr><td style="padding:6px 0;">${manualAdded.length ? `<button type="button" class="man-added-del" data-idx="${i}" title="حذف این قلم" style="border:none;background:none;color:#b8305f;cursor:pointer;font-size:14px;font-weight:900;padding:0 6px 0 0;">✕</button>` : ''}${it.title}</td><td style="padding:6px 0;color:var(--text-dim);">${it.spec}</td><td style="padding:6px 0;text-align:left;font-family:'JetBrains Mono',monospace;">×${it.qty}</td><td style="padding:6px 0;text-align:left;font-family:'JetBrains Mono',monospace;">${fmt(it.unitPrice*it.qty)}</td></tr>`).join('')}
+        ${items.map((it,i)=>`<tr><td style="padding:6px 0;">${manualAdded.length && !it._bfx ? `<button type="button" class="man-added-del" data-idx="${i}" title="حذف این قلم" style="border:none;background:none;color:#b8305f;cursor:pointer;font-size:14px;font-weight:900;padding:0 6px 0 0;">✕</button>` : ''}${it.title}</td><td style="padding:6px 0;color:var(--text-dim);">${it.spec}</td><td style="padding:6px 0;text-align:left;font-family:'JetBrains Mono',monospace;">×${it.qty}</td><td style="padding:6px 0;text-align:left;font-family:'JetBrains Mono',monospace;">${fmt(it.unitPrice*it.qty)}</td></tr>`).join('')}
       </tbody>
     </table>
     <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;border-top:1px dashed var(--line);">
@@ -6971,6 +7010,7 @@ function bfSnapshotManualSelection(){
     discountPct: manualDiscountInput.value, isOfficial: manualOfficialToggle.checked,
     persons: manQtyExtra.persons, staticCap: manQtyExtra.staticCap,
     addedItems: manualAdded.map(it=>({ ...it })),
+    bfxItems: (typeof bfxManualItems!=='undefined' ? bfxManualItems : []).map(it=>({ ...it })),
     extras: {
       chromeInclude: chromeInclude, chromeMeters: chromeMeters, chromeMetersManual: chromeMetersManual,
       oilBrand: oilBrand, oilRate: oilRate, oilInclude: oilInclude, oilPuMode: oilPuMode, oilQtyOverride: oilQtyOverride,
@@ -7714,6 +7754,8 @@ function bfRestoreManualOrder(o){
   manExtraPrice.value = sel.extraPrice||''; manExtraQty.value = sel.extraQty||1;
   manualDiscountInput.value = sel.discountPct||0; manualOfficialToggle.checked = !!sel.isOfficial;
   manualAdded = Array.isArray(sel.addedItems) ? sel.addedItems.map(it=>({ ...it })) : [];
+  bfxManualItems = Array.isArray(sel.bfxItems) ? sel.bfxItems.map(it=>({ ...it })) : [];
+  if(typeof bfxMiniRenderAll==='function') bfxMiniRenderAll();
   bfApplyManualExtras(sel);
   updateManualDescCells();
   updateManualSumCells();
@@ -10334,6 +10376,87 @@ window.shkUpdateSavedOrder = shkUpdateSavedOrder;
   };
 })();
 (function(){ function go(){ bfCollapseList({list:'shkSavedOrdersList', search:'shkSavedSearchQuery', scrollTo:'shkSavedPanel'}); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go(); })();
+</script>
+<script id="bfxMiniScript">
+/* ===== «لوله انتقال روغن» در سفارش تکی + «◀ محصولات تکمیلی سفارش» در سفارش تکی و سفارش کاملا دستی ===== */
+var bfOilPipe = { meters:'', price:'', spec:'' };
+var bfxManualItems = [];
+function bfOilPipeReset(){
+  bfOilPipe = { meters:'', price:'', spec:'' };
+  ['singleOilPipeMeters','singleOilPipePrice','singleOilPipeSpec'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+  var inf=document.getElementById('singleOilPipeInfo'); if(inf) inf.textContent='';
+}
+(function(){
+  function dig(s){ return String(s==null?'':s).replace(/[۰-۹]/g,function(d){return String(d.charCodeAt(0)-0x06F0);}).replace(/[٠-٩]/g,function(d){return String(d.charCodeAt(0)-0x0660);}); }
+  function num(s){ var t=dig(s).replace(/[^\d]/g,''); return t?parseInt(t,10):0; }
+  function f(n){ return Math.round(Number(n)||0).toLocaleString('en-US'); }
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  /* ---- لوله انتقال روغن ---- */
+  var btn=document.getElementById('btnSingleTypeOilPipe'), box=document.getElementById('singleOilPipeBox');
+  var mIn=document.getElementById('singleOilPipeMeters'), pIn=document.getElementById('singleOilPipePrice'), sIn=document.getElementById('singleOilPipeSpec'), inf=document.getElementById('singleOilPipeInfo');
+  function info(){ var m=Number(bfOilPipe.meters)||0, p=Number(bfOilPipe.price)||0; inf.innerHTML = (m>0&&p>0) ? 'جمع: <b class="numlt">'+f(m*p)+'</b> ریال' : 'متراژ و قیمت هر متر را وارد کنید.'; }
+  if(btn){
+    btn.addEventListener('click', function(){
+      singleItemType='oilpipe'; hideAllSingleTypeGrids(); btn.classList.add('active'); box.style.display='';
+      mIn.value=bfOilPipe.meters; pIn.value=bfOilPipe.price?f(bfOilPipe.price):''; sIn.value=bfOilPipe.spec; info(); renderSingleResult();
+    });
+    mIn.addEventListener('input', function(){ var v=dig(mIn.value).replace(/[^0-9.]/g,''); var i=v.indexOf('.'); if(i>=0) v=v.slice(0,i+1)+v.slice(i+1).replace(/\./g,''); mIn.value=v; bfOilPipe.meters=v; info(); renderSingleResult(); });
+    pIn.addEventListener('input', function(){ var n=num(pIn.value); pIn.value=n?f(n):''; bfOilPipe.price=n||''; info(); renderSingleResult(); });
+    sIn.addEventListener('input', function(){ bfOilPipe.spec=sIn.value.trim(); renderSingleResult(); });
+  }
+  /* ---- محصولات تکمیلی سفارش (سفارش تکی / کاملا دستی) ---- */
+  var inst = {};
+  function make(hostId, cfg){
+    var st = { open:false, rows:[{name:'',spec:'',qty:'1',price:''}] };
+    function render(){
+      var host=document.getElementById(hostId); if(!host) return;
+      var added = cfg.list();
+      host.innerHTML = '<div class="bfx-tab'+(st.open?' bfx-open':'')+'" style="margin:14px 0 16px;">'
+        + '<button type="button" class="bfx-head" data-a="t"><span class="bfx-arrow">◀</span><span class="bfx-title">محصولات تکمیلی سفارش</span>'
+        + (added.length?'<span class="bfx-badge">'+added.length+' ردیف در پیش‌فاکتور</span>':'')+'</button>'
+        + '<div class="bfx-body"'+(st.open?'':' hidden')+'><div class="bfx-scroll"><table class="bfx-table"><thead><tr><th>#</th><th>نام محصول</th><th>مشخصات</th><th>تعداد</th><th>قیمت واحد (ریال)</th><th>جمع (ریال)</th><th></th></tr></thead><tbody>'
+        + added.map(function(it,i){ return '<tr class="bfx-added"><td class="bfx-idx">'+(i+1)+'</td><td>'+esc(it.title)+'</td><td>'+(it.spec&&it.spec!=='—'?esc(it.spec):'—')+'</td><td class="bfx-line">×'+it.qty+'</td><td class="bfx-line">'+f(it.unitPrice)+'</td><td class="bfx-line">'+f(it.unitPrice*it.qty)+'</td><td class="bfx-ops"><span class="bfx-tag">✓ در پیش‌فاکتور</span>'+(cfg.remove?'<button type="button" class="bfx-btn bfx-btn-off" data-a="rm" data-i="'+i+'">برداشتن</button>':'')+'</td></tr>'; }).join('')
+        + st.rows.map(function(r,i){ var lt=(num(r.qty)||1)*num(r.price); return '<tr><td class="bfx-idx">'+(added.length+i+1)+'</td>'
+          + '<td><input class="bfx-in" data-f="name" data-i="'+i+'" value="'+esc(r.name)+'" placeholder="نام محصول"></td>'
+          + '<td><input class="bfx-in" data-f="spec" data-i="'+i+'" value="'+esc(r.spec)+'" placeholder="مشخصات"></td>'
+          + '<td class="bfx-w-qty"><input class="bfx-in bfx-num" inputmode="numeric" dir="ltr" data-f="qty" data-i="'+i+'" value="'+esc(r.qty)+'"></td>'
+          + '<td class="bfx-w-price"><input class="bfx-in bfx-num" inputmode="numeric" dir="ltr" data-f="price" data-i="'+i+'" value="'+(num(r.price)?f(num(r.price)):'')+'" placeholder="قیمت واحد"></td>'
+          + '<td class="bfx-line" data-lt="'+i+'">'+(lt?f(lt):'—')+'</td>'
+          + '<td class="bfx-ops"><button type="button" class="bfx-btn bfx-btn-add" data-a="add" data-i="'+i+'">افزودن به پیش‌فاکتور</button><button type="button" class="bfx-del" data-a="del" data-i="'+i+'">✕</button></td></tr>'; }).join('')
+        + '</tbody></table></div><div class="bfx-actions"><button type="button" class="bfx-btn bfx-btn-line" data-a="row">➕ افزودن ردیف</button><button type="button" class="bfx-btn bfx-btn-main" data-a="all">✅ افزودن همه به پیش‌فاکتور</button></div>'
+        + '<div class="bfx-hint">هر ردیف بعد از «افزودن» به‌صورت یک قلم مستقل در پیش‌فاکتور، چاپ و پشت‌برگ همین سفارش درج می‌شود.</div></div></div>';
+      if(!host.__b){ host.__b=1;
+        host.addEventListener('input', function(e){ var t=e.target, i=+t.dataset.i, k=t.dataset.f; if(!k||!st.rows[i]) return;
+          if(k==='price'){ var n=num(t.value); t.value=n?f(n):''; st.rows[i].price=String(n||''); }
+          else if(k==='qty'){ t.value=dig(t.value).replace(/[^\d]/g,''); st.rows[i].qty=t.value; }
+          else st.rows[i][k]=t.value;
+          var c=host.querySelector('[data-lt="'+i+'"]'); if(c){ var lt=(num(st.rows[i].qty)||1)*num(st.rows[i].price); c.textContent=lt?f(lt):'—'; } });
+        host.addEventListener('click', function(e){ var b=e.target.closest('[data-a]'); if(!b) return; var a=b.dataset.a, i=+b.dataset.i;
+          if(a==='t'){ st.open=!st.open; render(); return; }
+          if(a==='row'){ st.rows.push({name:'',spec:'',qty:'1',price:''}); render(); return; }
+          if(a==='del'){ st.rows.splice(i,1); if(!st.rows.length) st.rows.push({name:'',spec:'',qty:'1',price:''}); render(); return; }
+          if(a==='rm'){ cfg.remove(i); render(); return; }
+          var idxs = a==='all' ? st.rows.map(function(_,j){return j;}) : [i], ok=0, bad=0;
+          idxs.forEach(function(j){ var r=st.rows[j]; if(!r) return; if(!String(r.name).trim()&&!num(r.price)) return;
+            if(!String(r.name).trim()||!num(r.price)){ bad++; return; }
+            cfg.push({ kind:'bfx', title:String(r.name).trim(), spec:String(r.spec||'').trim()||'—', unitPrice:num(r.price), qty:Math.max(1,num(r.qty)||1) }); r.__done=1; ok++; });
+          if(!ok){ alert('برای هر ردیف، نام محصول و قیمت واحد را وارد کنید.'); return; }
+          st.rows=st.rows.filter(function(r){return !r.__done;}); if(!st.rows.length) st.rows.push({name:'',spec:'',qty:'1',price:''});
+          render(); cfg.after(); if(typeof bfToast==='function') bfToast('➕ '+ok+' ردیف به پیش‌فاکتور اضافه شد','ok');
+          if(bad) alert(bad+' ردیف چون نام یا قیمت نداشتند اضافه نشدند.'); });
+      }
+    }
+    inst[hostId]=render; render();
+  }
+  make('bfxSingleHost', { list:function(){ return singleCart.filter(function(it){return it.kind==='bfx';}); },
+    remove:function(i){ var n=-1; for(var k=0;k<singleCart.length;k++){ if(singleCart[k].kind==='bfx' && ++n===i){ singleCart.splice(k,1); break; } } renderSingleResult(); },
+    push:function(it){ singleCart.push(it); }, after:function(){ renderSingleResult(); } });
+  make('bfxManualHost', { list:function(){ return bfxManualItems; }, remove:function(i){ bfxManualItems.splice(i,1); renderManualResult(); },
+    push:function(it){ bfxManualItems.push(it); }, after:function(){ renderManualResult(); } });
+  window.bfxMiniRenderAll = function(){ Object.keys(inst).forEach(function(k){ inst[k](); }); };
+  // بعد از هر بازسازی نتیجهٔ سفارش تکی، جدول تکمیلی هم هماهنگ شود (حذف از سبد / پاک کردن کل)
+  var _rs = renderSingleResult; renderSingleResult = function(){ var r=_rs.apply(this, arguments); if(inst.bfxSingleHost) inst.bfxSingleHost(); return r; };
+})();
 </script>
 </body>
 </html>

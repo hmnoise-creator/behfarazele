@@ -3157,6 +3157,19 @@ function renderTouch(panel){
       } else if(sel.body && isAK300){
         sel.width = '';
       }
+      // «محاسبه ابعاد پنل» بلافاصله زیر «عرض پنل»
+      const dimsWrap = document.createElement('div');
+      dimsWrap.style.marginTop='10px';
+      let touchDefaultDims = null;
+      if(sel.width==='19 - 25 سانتی متر') touchDefaultDims = {length:200, width:25};
+      else if(sel.width==='26 - 30 سانتی متر') touchDefaultDims = {length:200, width:30};
+      else if(sel.width==='ابعاد خاص') touchDefaultDims = {length:200, width:30};   // ابعاد خاص: مبنا 200×30 و مازاد خودکار
+      else if(isAK300 || touchIsOneTouchBody()) touchDefaultDims = {length:AK300_DEFAULT_DIMS.length, width:AK300_DEFAULT_DIMS.width};
+      const dimsUI = dimensionInputs(dimsWrap, dims, (d)=>{
+        dims = d;
+        if(priceBoxRef) priceBoxRef.refresh();
+      }, 'touch', null, touchExtraCalc, touchDefaultDims);
+      body.appendChild(dimsWrap);
       const dispOptions = d.displayOptions || [];
       if(sel.display && sel.display.label){
         const _dm = dispOptions.find(o=>o.label===sel.display.label);
@@ -3190,22 +3203,13 @@ function renderTouch(panel){
         };
         body.appendChild(extraGroup);
       }
-      const dimsWrap = document.createElement('div');
-      dimsWrap.style.marginTop='10px';
-      let touchDefaultDims = null;
-      if(sel.width==='19 - 25 سانتی متر') touchDefaultDims = {length:200, width:25};
-      else if(sel.width==='26 - 30 سانتی متر') touchDefaultDims = {length:200, width:30};
-      else if(isAK300 || touchIsOneTouchBody()) touchDefaultDims = {length:AK300_DEFAULT_DIMS.length, width:AK300_DEFAULT_DIMS.width};
-      const dimsUI = dimensionInputs(dimsWrap, dims, (d)=>{
-        dims = d;
-        if(priceBoxRef) priceBoxRef.refresh();
-      }, 'touch', null, touchExtraCalc, touchDefaultDims);
-      body.appendChild(dimsWrap);
       priceBoxRef = priceBox(body, ()=>{
         if(!sel.body) return null;
         if(!dims.baseLength || !dims.baseWidth) return null;
         let basePrice = null;
-        const prod = d.products.find(p=>p.body===sel.body && (isAK300 || sel.body.includes('توکار لمسی') || p.width===sel.width));
+        // ابعاد خاص: قیمت پایه = قیمت همان بدنه با عرض 200×30؛ سپس هزینهٔ اضافه ابعاد (نسبت به 200×30) جمع می‌شود
+        const _w = sel.width==='ابعاد خاص' ? '26 - 30 سانتی متر' : sel.width;
+        const prod = d.products.find(p=>p.body===sel.body && (isAK300 || sel.body.includes('توکار لمسی') || p.width===_w));
         if(prod) basePrice = prod.price;
         if(basePrice===null) return null;
         let total = basePrice;
@@ -3666,6 +3670,17 @@ function renderSteel(panel, d, title){
         liveDims.style.cssText = 'font-size:13px;font-weight:700;color:#0f6e56;margin:-6px 0 10px';
         liveDims.textContent = 'ابعاد: 2.6 × '+sel.width+' × 200 سانتی‌متر';
         body.appendChild(liveDims);
+        // «محاسبه ابعاد پنل» بلافاصله زیر «عرض پنل»
+        const dimsWrap = document.createElement('div');
+        dimsWrap.style.marginTop='10px';
+        const steelDefaultDims = sel.width!=null ? {length:200, width:sel.width} : null;
+        const dimsUI = dimensionInputs(dimsWrap, dims, (d)=>{
+          dims = d;
+          if(priceBoxRef) priceBoxRef.refresh();
+        }, 'steel', null, calcExtraDim_steel, steelDefaultDims);
+        body.appendChild(dimsWrap);
+        // بعد از تمام‌شدن ویرایش عرض واقعی پنل (خروج از فیلد)، وضعیت فعال/غیرفعال LCD و فتوفریم بر اساس عرض جدید به‌روزرسانی شود
+        dimsUI.baseWidInput.addEventListener('change', ()=>{ rebuild(); if(equipCtl){ equipCtl.rebuild(); steelAutoPlexi(model, effectiveWidth(), equipCtl); } });
         const colors = [...new Set(d.products.filter(p=>p.width===sel.width).map(p=>p.color))];
         ddGroup(body,'رنگ و مدل لبه', colors, v=>pick('color',v), sel.color);
         pillGroup(body,'نوع', ['خشدار','میرور'], v=>pick('surface',v), sel.surface);
@@ -3729,16 +3744,6 @@ function renderSteel(panel, d, title){
         const dispLabels = dispOptions.map(o=>o.label + ' (' + fxLabel(o) + ')');
         pillGroup(body,'نمایشگر', dispOptions, v=>pick('display',v), sel.display, dispLabels, steelLcdDisabled); fxDisplayRateRow(body, sel.display);
       }
-      const dimsWrap = document.createElement('div');
-      dimsWrap.style.marginTop='10px';
-      const steelDefaultDims = sel.width!=null ? {length:200, width:sel.width} : null;
-      const dimsUI = dimensionInputs(dimsWrap, dims, (d)=>{
-        dims = d;
-        if(priceBoxRef) priceBoxRef.refresh();
-      }, 'steel', null, calcExtraDim_steel, steelDefaultDims);
-      body.appendChild(dimsWrap);
-      // بعد از تمام‌شدن ویرایش عرض واقعی پنل (خروج از فیلد)، وضعیت فعال/غیرفعال LCD و فتوفریم بر اساس عرض جدید به‌روزرسانی شود
-      dimsUI.baseWidInput.addEventListener('change', ()=>{ rebuild(); if(equipCtl){ equipCtl.rebuild(); steelAutoPlexi(model, effectiveWidth(), equipCtl); } });
       priceBoxRef = priceBox(body, ()=>{
         if(sel.width==null||!sel.color||!sel.key) return null;
         if(keySubMissing(sel)) return null;
@@ -3895,6 +3900,17 @@ function renderSteel15(panel){
         liveDims.style.cssText = 'font-size:13px;font-weight:700;color:#0f6e56;margin:-6px 0 10px';
         liveDims.textContent = 'ابعاد: 2.6 × '+sel.width+' × 200 سانتی‌متر';
         body.appendChild(liveDims);
+        // «محاسبه ابعاد پنل» بلافاصله زیر «عرض پنل»
+        const dimsWrap = document.createElement('div');
+        dimsWrap.style.marginTop='10px';
+        const steel15DefaultDims = sel.width!=null ? {length:200, width:sel.width} : null;
+        const dimsUI = dimensionInputs(dimsWrap, dims, (d)=>{
+          dims = d;
+          if(priceBoxRef) priceBoxRef.refresh();
+        }, 'steel15', null, calcExtraDim_steel, steel15DefaultDims);
+        body.appendChild(dimsWrap);
+        // بعد از تمام‌شدن ویرایش عرض واقعی پنل (خروج از فیلد)، وضعیت فعال/غیرفعال LCD و فتوفریم بر اساس عرض جدید به‌روزرسانی شود
+        dimsUI.baseWidInput.addEventListener('change', ()=>{ rebuild(); if(equipCtl){ equipCtl.rebuild(); steelAutoPlexi(model, effectiveWidth(), equipCtl); } });
         const colors = [...new Set(variant.products.filter(p=>p.width===sel.width).map(p=>p.color))];
         pillGroup(body,'رنگ', colors, v=>pick('color',v), sel.color);
         pillGroup(body,'نوع', ['خشدار','میرور'], v=>pick('surface',v), sel.surface);
@@ -3946,16 +3962,6 @@ function renderSteel15(panel){
         const dispLabels = dispOptions.map(o=>o.label + ' (' + fxLabel(o) + ')');
         pillGroup(body,'نمایشگر', dispOptions, v=>pick('display',v), sel.display, dispLabels, steel15LcdDisabled); fxDisplayRateRow(body, sel.display);
       }
-      const dimsWrap = document.createElement('div');
-      dimsWrap.style.marginTop='10px';
-      const steel15DefaultDims = sel.width!=null ? {length:200, width:sel.width} : null;
-      const dimsUI = dimensionInputs(dimsWrap, dims, (d)=>{
-        dims = d;
-        if(priceBoxRef) priceBoxRef.refresh();
-      }, 'steel15', null, calcExtraDim_steel, steel15DefaultDims);
-      body.appendChild(dimsWrap);
-      // بعد از تمام‌شدن ویرایش عرض واقعی پنل (خروج از فیلد)، وضعیت فعال/غیرفعال LCD و فتوفریم بر اساس عرض جدید به‌روزرسانی شود
-      dimsUI.baseWidInput.addEventListener('change', ()=>{ rebuild(); if(equipCtl){ equipCtl.rebuild(); steelAutoPlexi(model, effectiveWidth(), equipCtl); } });
       priceBoxRef = priceBox(body, ()=>{
         if(!sel.thickness||sel.width==null||!sel.color||!sel.key) return null;
         if(keySubMissing(sel)) return null;

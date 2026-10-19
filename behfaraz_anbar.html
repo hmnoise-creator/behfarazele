@@ -155,7 +155,33 @@ table.sbt tr.it{cursor:pointer}
 table.sbt tr.it:hover td{background:#F2F6F5}
 table.sbt tr.zero td{color:var(--mute)}
 table.sbt td .sm{display:block;font-size:.7rem;color:var(--mute)}
-.sbf{background:#fff;border:1px solid var(--line);border-radius:var(--r-lg);padding:4px 0;margin-bottom:12px}
+.sbf{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px;box-shadow:0 2px 12px rgba(20,40,40,.06)}
+.sbf-crumb{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:.8rem;font-weight:800;color:var(--ink2);padding:0 2px 12px;border-bottom:1px solid var(--line2);margin-bottom:12px}
+.sbf-crumb b{color:var(--ink)}.sbf-crumb i{font-style:normal;color:var(--mute)}
+.sbf-crumb .sp{flex:1}
+.sbf-crumb button{border:1px solid var(--line);background:#fff;border-radius:20px;padding:4px 12px;font-family:inherit;font-weight:800;font-size:.74rem;cursor:pointer;color:var(--ink2)}
+.sbf-step{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:start;margin-bottom:12px}
+.sbf-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.85rem;background:#EEF2F1;color:var(--mute)}
+.sbf-step.act .sbf-num{background:var(--ac,#0E6B66);color:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--ac,#0E6B66) 20%,transparent)}
+.sbf-step.done .sbf-num{background:var(--ac,#0E6B66);color:#fff}
+.sbf-t{font-size:.74rem;font-weight:800;color:var(--ink2);margin:4px 0 8px}
+.sbf-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(195px,1fr));gap:8px}
+.sbf-tile{position:relative;display:flex;align-items:center;gap:10px;text-align:right;padding:12px;border-radius:14px;border:2px solid var(--line2);background:#fff;cursor:pointer;font-family:inherit;color:var(--ink);transition:transform .1s,border-color .15s,box-shadow .15s}
+.sbf-tile:hover{transform:translateY(-2px);border-color:var(--ac);box-shadow:0 6px 16px rgba(20,40,40,.1)}
+.sbf-tile .ti{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;background:color-mix(in srgb,var(--ac) 14%,#fff);flex:0 0 auto}
+.sbf-tile b{display:block;font-size:.84rem;font-weight:900;line-height:1.4}
+.sbf-tile small{display:block;font-size:.7rem;color:var(--mute);font-weight:700}
+.sbf-tile.on{border-color:var(--ac);background:linear-gradient(135deg,var(--ac),color-mix(in srgb,var(--ac) 70%,#000));color:#fff;box-shadow:0 6px 16px color-mix(in srgb,var(--ac) 35%,transparent)}
+.sbf-tile.on small{color:rgba(255,255,255,.85)}.sbf-tile.on .ti{background:rgba(255,255,255,.2)}
+.sbf-chips{display:flex;flex-wrap:wrap;gap:8px}
+.sbf-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:12px;border:2px solid var(--line2);background:#fff;cursor:pointer;font-family:inherit;font-weight:800;font-size:.82rem;color:var(--ink);transition:border-color .15s,transform .1s}
+.sbf-chip:hover{border-color:var(--ac);transform:translateY(-1px)}
+.sbf-chip .dot{width:10px;height:10px;border-radius:50%;background:var(--ac)}
+.sbf-chip .cnt{min-width:22px;padding:0 7px;height:20px;border-radius:10px;background:#EEF2F1;color:var(--ink2);font-size:.7rem;display:inline-flex;align-items:center;justify-content:center}
+.sbf-chip.on{background:var(--ac);border-color:var(--ac);color:#fff;box-shadow:0 4px 12px color-mix(in srgb,var(--ac) 35%,transparent)}
+.sbf-chip.on .dot{background:#fff}.sbf-chip.on .cnt{background:rgba(255,255,255,.25);color:#fff}
+.sbf-wait{font-size:.78rem;color:var(--mute);padding:6px 0}
+.sbf-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:12px;border-top:1px solid var(--line2)}
 .sbf-row{display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line2);flex-wrap:wrap}
 .sbf-row:last-child{border-bottom:none}
 .sbf-l{min-width:96px;font-size:.74rem;font-weight:800;color:var(--ink2)}
@@ -228,9 +254,15 @@ details>summary{cursor:pointer}
 .doc-no{margin-right:auto;display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ink2)}
 .doc-no input{width:90px;padding:5px 8px;font-family:var(--mono);font-weight:700}
 .sup-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-.rsv{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
-.rsv-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.rsv .lbl{font-size:.76rem;font-weight:700;color:var(--ink2);margin-left:4px}
+.rsv{margin-top:16px;padding:14px 16px;border:2px solid var(--amber);border-radius:14px;background:linear-gradient(135deg,#FFF8E6,#FFF3D6);box-shadow:0 2px 10px rgba(217,142,4,.15)}
+.rsv.ok{border-color:var(--in);background:linear-gradient(135deg,#F1FAF4,#E2F4E9);box-shadow:none}
+.rsv-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rsv .lbl{font-size:.95rem;font-weight:900;color:var(--ink);margin-left:6px;display:flex;align-items:center;gap:8px}
+.rsv .lbl::before{content:"🎯";font-size:1.15rem}
+.rsv #rsvMode .chipb{padding:9px 16px;font-size:.84rem;font-weight:800;border-width:2px;background:#fff}
+.rsv #rsvMode .chipb.on{background:var(--in);border-color:var(--in);color:#fff;box-shadow:0 3px 10px rgba(31,138,76,.3)}
+.rsv #rsvNeed{color:#A86A00;font-weight:800;animation:rsvBlink 1.6s ease-in-out infinite}
+@keyframes rsvBlink{50%{opacity:.45}}
 .sup.add{border-style:dashed;color:var(--tab-d)}
 .sup .xs{font-style:normal;margin-right:4px;color:var(--mute);font-size:.72rem;border-radius:50%;padding:0 4px}
 .sup .xs:hover{background:var(--bad-l);color:var(--bad)}
@@ -383,9 +415,10 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
 .xbox input.err{border-color:#C0392B;background:#FFF5F4}
 /* ====================== نمای ایزومتریک انبار ====================== */
 .vsw{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
-.vsw .seg2{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:30px;padding:3px}
-.vsw .seg2 button{border:0;background:none;padding:7px 16px;border-radius:30px;font-weight:800;font-size:.8rem;color:var(--ink2);cursor:pointer}
-.vsw .seg2 button.on{background:var(--teal-d);color:#fff}
+.vsw .seg2{display:inline-flex;gap:4px;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:5px;box-shadow:0 2px 8px rgba(20,40,40,.08)}
+.vsw .seg2 button{border:0;background:none;padding:11px 22px;border-radius:12px;font-weight:900;font-size:.95rem;color:var(--ink2);cursor:pointer;transition:background .15s,color .15s}
+.vsw .seg2 button:hover{background:#F1F5F4}
+.vsw .seg2 button.on{background:linear-gradient(135deg,#0E6B66,#094B47);color:#fff;box-shadow:0 4px 12px rgba(9,75,71,.3)}
 .vsw .sp{flex:1}
 .whwrap{background:#fff;border:1px solid var(--line);border-radius:22px;padding:14px;box-shadow:0 10px 30px rgba(20,40,40,.08)}
 .whhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 4px 10px}
@@ -655,7 +688,7 @@ var CATS={
   falake:{name:'فلکه',icon:'🛞',serial:'opt',units:['عدد'],fields:[{k:'brand',l:'برند / سازنده',chips:1,ph:'پرهام صنعت یا برند جدید را بنویسید'},{k:'model',l:'مدل فلکه',ph:'از کارت‌های بالا انتخاب کنید یا دستی بنویسید'}]},
   chcab:{name:'شاسی کابین',icon:'🚪',serial:'opt',units:['عدد','دست'],fields:[{k:'model',l:'مدل / ابعاد'}]},
   chflr:{name:'شاسی طبقه',icon:'🏢',serial:'opt',units:['عدد','دست'],fields:[{k:'model',l:'مدل / ابعاد'}]},
-  oil  :{name:'روغن',icon:'🛢️',serial:false,newBrand:'type',units:['لیتر','بشکه','گالن','سطل'],fields:[{k:'type',l:'برند روغن',ph:'از فهرست انتخاب کنید یا برند جدید بنویسید',chips:1},{k:'spec',l:'گرید',ph:'پیش‌فرض H68',chips:1}]},
+  oil  :{name:'روغن',icon:'🛢️',serial:false,newBrand:'type',units:['لیتر'],fields:[{k:'type',l:'برند روغن',ph:'از فهرست انتخاب کنید یا برند جدید بنویسید',chips:1},{k:'spec',l:'گرید',ph:'پیش‌فرض H68',chips:1}]},
   door :{name:'درب',icon:'🛗',serial:'opt',units:['عدد'],fields:[{k:'name',l:'نوع درب',ph:'از فهرست انتخاب کنید',chips:1}]},
   rail :{name:'ریل',icon:'📏',serial:false,units:['شاخه','عدد','دست'],fields:[{k:'name',l:'مدل ریل',ph:'T5 / T9 / T89 / T90 / T125',chips:1},{k:'brand',l:'برند سازنده',chips:1},{k:'spec',l:'توضیحات',ph:'اختیاری — مثلاً طول شاخه'}]},
   panel:{name:'تابلو فرمان',icon:'🎛️',serial:true,multi:['UPS','باطری'],units:['دستگاه','عدد'],fields:[{k:'name',l:'نام قلم',chips:1},{k:'brand',l:'برند',chips:1}]},
@@ -779,7 +812,7 @@ function rsvCheck(){
 function renderRsv(){
   [].forEach.call(document.querySelectorAll('#rsvMode [data-rsv]'),function(b){b.classList.toggle('on',b.dataset.rsv===rsvMode)});
   $('rsvFields').style.display=rsvMode==='res'?'':'none';
-  $('rsvNeed').style.display=rsvMode?'none':'';
+  $('rsvNeed').style.display=rsvMode?'none':'';var rb=document.querySelector('.rsv');if(rb)rb.classList.toggle('ok',!!rsvMode);
 }
 
 
@@ -1093,14 +1126,31 @@ function sbFacetOpts(items,f,idx){
   else vs.sort(function(a,b){return a.localeCompare(b,'fa')});
   return vs.map(function(v){return {v:v,l:sbValLabel(f,v),n:c[v]}});
 }
+var SB_GCOL={jp:'#E2572B',mt:'#5B4FB3',pn:'#2559B8',cm:'#0E7C9E'};
+var SB_SCOL={'شکیب جک':'#E2572B','آسانسور 110':'#2F6BD8','سنا پنل':'#12A08A','سایر':'#8C6BB8'};
+function sbTabIcon(id){for(var i=0;i<DASH.length;i++)for(var j=0;j<DASH[i].tabs.length;j++)if(DASH[i].tabs[j].id===id)return DASH[i].tabs[j].icon;return '📦'}
+function sbChip(attr,o,cur,col,icon){return '<button type="button" class="sbf-chip'+(cur===o.v?' on':'')+'" style="--ac:'+col+'" data-'+attr+'="'+esc(o.v)+'">'+(icon?'<span>'+icon+'</span>':'<span class="dot"></span>')+esc(o.l)+(o.n!=null?'<span class="cnt">'+fa(o.n)+'</span>':'')+'</button>'}
+function sbFacetChips(attr,f,opts,cur,gcol){
+  return '<div class="sbf-chips">'+sbChip(attr,{v:'',l:'همه'},cur,'#46585E','✦')+opts.map(function(o){
+    var col=f==='sup'?(SB_SCOL[o.v]||'#8C7F70'):gcol;return sbChip(attr,o,cur,col,f==='type'?sbTabIcon(o.v):'')}).join('')+'</div>';
+}
 function sbBar(items){
   var gc={};items.forEach(function(it){gc[it.g]=(gc[it.g]||0)+1});
-  var h='<div class="sbf"><div class="sbf-row"><span class="sbf-l">۱ · دسته</span><div class="sb-bar">'+sbChips('sbg',sbG,[{v:'',l:'همه'}].concat(DASH.filter(function(g){return gc[g.id]}).map(function(g){return {v:g.id,l:g.name,n:gc[g.id]}})))+'</div></div>';
-  var fs=sbFacets(sbG);
-  if(fs[0]){var o1=sbFacetOpts(items,fs[0],0);h+='<div class="sbf-row"><span class="sbf-l">۲ · '+SB_FL[fs[0]]+'</span><div class="sb-bar">'+(o1.length?sbChips('sba',sbA,[{v:'',l:'همه'}].concat(o1)):'<span class="o">—</span>')+'</div></div>'}
-  if(fs[1]&&(sbA||fs[0]==='type')){var o2=sbFacetOpts(items,fs[1],1);h+='<div class="sbf-row"><span class="sbf-l">۳ · '+SB_FL[fs[1]]+'</span><div class="sb-bar">'+(o2.length?sbChips('sbb',sbB,[{v:'',l:'همه'}].concat(o2)):'<span class="o">—</span>')+'</div></div>'}
-  else if(fs[1])h+='<div class="sbf-row"><span class="sbf-l">۳ · '+SB_FL[fs[1]]+'</span><span class="o">اول '+SB_FL[fs[0]]+' را انتخاب کنید</span></div>';
-  h+='<div class="sbf-row sbf-tools"><input id="sbQ" placeholder="🔎 جستجو: نام، سایز، سریال، خریدار، پروژه، شماره رسید…" value="'+esc(sbQ)+'" autocomplete="off"><label><input type="checkbox" id="sbOut"'+(sbOut?' checked':'')+'> نمایش خارج‌شده / تمام‌شده</label></div></div>';
+  var g=DASH.filter(function(x){return x.id===sbG})[0],gcol=g?SB_GCOL[g.id]:'#0E6B66',fs=sbFacets(sbG);
+  /* مسیر انتخاب (breadcrumb) */
+  var path=['<b>📦 انبار</b>'];if(g)path.push('<b>'+g.icon+' '+esc(g.name)+'</b>');if(sbA)path.push('<b>'+esc(sbValLabel(fs[0],sbA))+'</b>');if(sbB)path.push('<b>'+esc(sbValLabel(fs[1],sbB))+'</b>');
+  var h='<div class="sbf"><div class="sbf-crumb">'+path.join('<i>‹</i>')+'<span class="sp"></span>'+(sbG?'<button type="button" data-sbg="">↺ از اول</button>':'')+'</div>';
+  /* مرحلهٔ ۱: دسته (کاشی‌های بزرگ) */
+  h+='<div class="sbf-step '+(sbG?'done':'act')+'" style="--ac:'+gcol+'"><span class="sbf-num">۱</span><div><div class="sbf-t">دسته را انتخاب کنید</div><div class="sbf-tiles">'+
+    '<button type="button" class="sbf-tile'+(sbG===''?' on':'')+'" style="--ac:#46585E" data-sbg=""><span class="ti">🏭</span><span><b>همهٔ انبار</b><small>'+fa(items.length)+' ردیف</small></span></button>'+
+    DASH.filter(function(x){return gc[x.id]}).map(function(x){return '<button type="button" class="sbf-tile'+(sbG===x.id?' on':'')+'" style="--ac:'+SB_GCOL[x.id]+'" data-sbg="'+x.id+'"><span class="ti">'+x.icon+'</span><span><b>'+esc(x.name)+'</b><small>'+fa(gc[x.id])+' ردیف</small></span></button>'}).join('')+'</div></div></div>';
+  if(fs[0]){var o1=sbFacetOpts(items,fs[0],0);
+    h+='<div class="sbf-step '+(sbA?'done':'act')+'" style="--ac:'+gcol+'"><span class="sbf-num">۲</span><div><div class="sbf-t">'+SB_FL[fs[0]]+'</div>'+(o1.length?sbFacetChips('sba',fs[0],o1,sbA,gcol):'<div class="sbf-wait">—</div>')+'</div></div>';
+    var o2=(sbA||fs[0]==='type')?sbFacetOpts(items,fs[1],1):null;
+    h+='<div class="sbf-step '+(sbB?'done':(sbA?'act':''))+'" style="--ac:'+gcol+'"><span class="sbf-num">۳</span><div><div class="sbf-t">'+SB_FL[fs[1]]+'</div>'+
+      (o2?(o2.length?sbFacetChips('sbb',fs[1],o2,sbB,gcol):'<div class="sbf-wait">—</div>'):'<div class="sbf-wait">👆 اول «'+SB_FL[fs[0]]+'» را انتخاب کنید</div>')+'</div></div>';
+  }
+  h+='<div class="sbf-tools"><input id="sbQ" placeholder="🔎 جستجو: نام، سایز، سریال، خریدار، پروژه، شماره رسید…" value="'+esc(sbQ)+'" autocomplete="off"><label><input type="checkbox" id="sbOut"'+(sbOut?' checked':'')+'> نمایش خارج‌شده / تمام‌شده</label></div></div>';
   return h;
 }
 function sbStagedU(){var m={};xStaged.forEach(function(s){if(s.type==='u')m[s.unitId]=1});return m}
@@ -1457,9 +1507,9 @@ var MAIN_K=QS_MAINK;
 
 /* ---------- متعلقات هوشمند هر محصول (زیرمجموعهٔ همان کالا ثبت می‌شوند) ---------- */
 var KITS={
-  wjack:{t:'جعبه متعلقات جک ویتور (آسانسور ۱۱۰)',for:'جک',brand:'ویتور',items:[{n:'جعبه متعلقات جک ویتور',ser:1,def:1}]},
-  hevos:{t:'برد هوس (Hevos) — اگر همراه این پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:1,tag:'برد هوس'}]},
-  hevosIT:{t:'تجهیزات پاور هوس مونتاژ ایتالیا — هر کدام همراه پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:1,tag:'برد هوس'},{n:'درایو زیمنس ویتور',ser:1,tag:'درایو زیمنس'},{n:'مقاومت ترمز ویتور',tag:'مقاومت ترمز'}]},
+  wjack:{t:'جعبه متعلقات جک ویتور (آسانسور ۱۱۰)',for:'جک',brand:'ویتور',items:[{n:'جعبه متعلقات جک ویتور',ser:'req',def:1}]},
+  hevos:{t:'برد هوس (Hevos) — اگر همراه این پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:'req',tag:'برد هوس'}]},
+  hevosIT:{t:'برد هوس (Hevos) — اگر همراه این پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:'req',tag:'برد هوس'}]},
   pudrv:{t:'تجهیزات پاور درایودار — هر کدام همراه پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',items:[{n:'درایو زیمنس ویتور',ser:1,tag:'درایو زیمنس'},{n:'مقاومت ترمز ویتور',tag:'مقاومت ترمز'}]},
   wpu:{t:'متعلقات پاوریونیت ویتور',for:'پاوریونیت',brand:'ویتور',items:[{n:'درخت سیم HM ویتور'},{n:'درخت سیم HE ویتور'},{n:'درخت سیم HI ویتور'},{n:'برد هوس ویتور'},{n:'درایو زیمنس ویتور'}]},
   sjack:{t:'متعلقات جک شکیب',for:'جک',brand:'شکیب',items:[{n:'رپچر شکیب 1 اینچ',ser:1},{n:'رپچر شکیب 1-1/2 اینچ',ser:1},{n:'رپچر 4 پیچ 1-1/4 اینچ شکیب',ser:1},{n:'فلوکنترل شکیب'},{n:'مغزی شکیب'}]},
@@ -1538,13 +1588,13 @@ var PARTS={
   ].concat(motorAccItems(),[{id:'misc',n:'متعلقات شکیب',for:'',fields:['توضیحات'],wide:1}])},
   a110:{t:'متعلقات آسانسور ۱۱۰',brand:'110',items:[
     {id:'kar',n:'کاراسلینگ 110',for:'جک',u:'دستگاه',opts:KAR_110.names,optL:'مدل کاراسلینگ',fields:['دهانه ریل','سایز ریل'],fopts:karFopts(KAR_110),multi:['ساپورت بالا','ساپورت پایین']},
-    {id:'wjbox',n:'جعبه متعلقات جک ویتور',for:'جک',ser:1},
+    {id:'wjbox',n:'جعبه متعلقات جک ویتور',for:'جک',ser:'req'},
     {id:'hose',n:'شلنگ استاندارد ۱۱۰',for:'جک',opts:HOSE_110,optL:'سایز (اینچ)',fields:['متراژ (متر)'],num:['متراژ (متر)'],req:['متراژ (متر)']},
     {id:'cool',n:'کولینگ 110',for:'پاوریونیت',opts:['NEG10','NEG13']},
     {id:'whm',n:'درخت سیم HM ویتور',for:'پاوریونیت'},
     {id:'whe',n:'درخت سیم HE ویتور',for:'پاوریونیت'},
     {id:'whi',n:'درخت سیم HI ویتور',for:'پاوریونیت'},
-    {id:'wbrd',n:'برد هوس ویتور',for:'پاوریونیت'},
+    {id:'wbrd',n:'برد هوس ویتور',for:'پاوریونیت',ser:'req'},
     {id:'wdrv',n:'درایو زیمنس ویتور',for:'پاوریونیت'}
   ].concat(motorAccItems())}
 };
@@ -1560,6 +1610,15 @@ var FALAKE=[ /* ردیف، ظرفیت کابین، قطر، عرض، شیاره�
   [9,8,400,105,[5,6],90,50,3,10],[10,12,400,105,[4,5,6],110,50,3,10],[11,18,400,105,[4,5,6],110,60,3,10]
 ].map(function(r){return {row:r[0],cap:r[1],sh:r[2],w:r[3],g:r[4],b:r[5],shaft:r[6],bn:r[7],rope:r[8]}});
 function falakeBrandName(b){b=String(b||'').trim();return (!b||norm(b)===norm('پرهام صنعت')||norm(b)===norm('پرهام'))?'پرهام':b}
+function falakeTitle(){var n=falakeBrandName(inVals.brand);return 'فلکه‌های هرزگرد '+esc(n==='پرهام'?'پرهام صنعت':n)}
+/* مدل فلکه همیشه با نام برند انتخاب‌شده ساخته می‌شود (نه «پرهام») — هم در فرم، هم هنگام افزودن به سبد */
+function falakeSyncModel(){
+  if(inCat!=='falake')return;
+  if(typeof inVals.__fk==='number'&&inVals.__fg){var r=FALAKE.filter(function(x){return x.row===inVals.__fk})[0];if(r)inVals.model=falakeLabel(r,inVals.__fg,inVals.brand)}
+  else if(inVals.model&&/^پرهام\s/.test(inVals.model)&&falakeBrandName(inVals.brand)!=='پرهام')inVals.model=inVals.model.replace(/^پرهام\s/,falakeBrandName(inVals.brand)+' ');
+  var mf=$('inEditor')&&$('inEditor').querySelector('input[data-lf=model]');if(mf&&mf.value!==inVals.model)mf.value=inVals.model||'';
+  var ft=$('inEditor')&&$('inEditor').querySelector('.fk-title');if(ft)ft.textContent=falakeTitle()+' — قطر × عرض (میلی‌متر)';
+}
 function falakeLabel(r,gr,brand){return falakeBrandName(brand)+' '+r.sh+'×'+r.w+' · شیار '+gr+' · بکسل '+r.rope+'mm · بلبرینگ '+r.b+' · شفت '+r.shaft}
 CATALOG['falake.brand']=[{v:'پرهام صنعت'}];
 CATALOG['falake.model']=[];
@@ -1668,10 +1727,10 @@ function selectCat(c){
 
 /* ---------- اجزای کمکی فرم ---------- */
 function stepperHtml(name,val){return '<div class="stepper"><button type="button" data-step="-1" data-q="'+name+'" aria-label="کم">−</button><input class="ltr" inputmode="decimal" data-qi="'+name+'" value="'+esc(val==null?'':val)+'" placeholder="تعداد" autocomplete="off"><button type="button" data-step="1" data-q="'+name+'" aria-label="زیاد">+</button></div>'}
-function serTableHtml(kind,key,st,q){
+function serTableHtml(kind,key,st,q,must){
   var n=Math.min(Math.floor(q)||0,30);if(n<1)return '';
-  st.sers=st.sers||[];
-  var h='<div class="sertable'+(st.noSer?' off':'')+'"><div class="st-head"><span>سریال هر عدد</span><label class="chk mini"><input type="checkbox" data-nos="'+kind+'" data-key="'+esc(key)+'"'+(st.noSer?' checked':'')+'> این قلم سریال ندارد</label></div>';
+  st.sers=st.sers||[];if(must)st.noSer=false;
+  var h='<div class="sertable'+(st.noSer?' off':'')+'"><div class="st-head"><span>سریال هر عدد'+(must?' <span class="req">(اجباری)</span>':'')+'</span>'+(must?'':'<label class="chk mini"><input type="checkbox" data-nos="'+kind+'" data-key="'+esc(key)+'"'+(st.noSer?' checked':'')+'> این قلم سریال ندارد</label>')+'</div>';
   if(!st.noSer)for(var i=0;i<n;i++)h+='<div class="st-row"><span class="st-i">'+fa(i+1)+'</span><input class="ltr" data-sk="'+kind+'" data-key="'+esc(key)+'" data-si="'+i+'" value="'+esc(st.sers[i]||'')+'" placeholder="سریال" autocomplete="off"><span class="sercheck"></span></div>';
   if(q>30&&!st.noSer)h+='<div class="o">'+fa(q-30)+' عدد دیگر بدون سریال ثبت می‌شود</div>';
   return h+'</div>';
@@ -1683,7 +1742,7 @@ function falakePickerHtml(){
   }).join('')+'<button type="button" class="fk manual'+(cur==='manual'?' on':'')+'" data-fk="manual"><b>✍️</b><span>مدل خاص</span><small>مشخصات را دستی بنویسید</small></button>';
   var sel=FALAKE.filter(function(r){return r.row===cur})[0];
   var gr=sel?'<div class="fk-gr"><span>تعداد شیار:</span>'+sel.g.map(function(g){return '<button type="button" class="chipb'+(inVals.__fg===g?' on':'')+'" data-fg="'+g+'">'+fa(g)+' شیار</button>'}).join('')+'</div>':'';
-  return '<div class="fk-wrap"><div class="fk-title">فلکه‌های هرزگرد '+esc(falakeBrandName(inVals.brand)==='پرهام'?'پرهام صنعت':falakeBrandName(inVals.brand))+' (مشخصات استاندارد پرهام) — قطر × عرض (میلی‌متر)</div><div class="fk-grid">'+cards+'</div>'+gr+'</div>';
+  return '<div class="fk-wrap"><div class="fk-title">'+falakeTitle()+' — قطر × عرض (میلی‌متر)</div><div class="fk-grid">'+cards+'</div>'+gr+'</div>';
 }
 
 /* ---------- فرم کالا ---------- */
@@ -1728,6 +1787,7 @@ function renderInForm(){
       if(it.u&&$('inUnit')){inVals.__unit=it.u;[].forEach.call($('inUnit').options,function(o){if(o.text===it.u)$('inUnit').value=o.value})}
       if(it.brand&&k!=='brand'&&!(inVals.brand||'').trim()){var bi=ed.querySelector('input[data-lf=brand]');if(bi){bi.value=it.brand;inVals.brand=it.brand}}
       if(inCat==='falake'&&k==='model'){inVals.__fk=null;inVals.__fg=null}
+      if(inCat==='falake'&&k==='brand'){falakeSyncModel()}
       if(inCat==='pu'&&k==='brand'){renderInForm();var mi=$('inEditor').querySelector('input[data-lf=model]');if(mi)mi.focus();return}
       syncChips();renderXBox();updateHint();renderKit();
       var all=[].slice.call($('inFields').querySelectorAll('input[data-lf]')),nx=all[all.indexOf(inp)+1]||$('inSerials')||ed.querySelector('[data-qi=main]');
@@ -1735,7 +1795,7 @@ function renderInForm(){
     });
   });
   if($('inSerials'))$('inSerials').onkeydown=function(ev){if(ev.key==='Enter'){ev.preventDefault();inAdd()}};
-  renderXBox();updateHint();renderKit();
+  renderXBox();updateHint();renderKit();falakeSyncModel();
 }
 /* ---- انتخاب سریع (چیپ) برای نام/برند ---- */
 function custList(key){var c=(DB.settings&&DB.settings.cust)||{};return c[key]||[]}
@@ -1796,7 +1856,7 @@ function renderKit(){
   box.innerHTML='<div class="kit"><div class="kit-head"><b>🧰 '+esc(K.t)+'</b><span class="o">'+(on?fa(on)+' قلم انتخاب شده — زیرمجموعهٔ همین کالا ثبت می‌شود':'هر قلمی که همراه این کالا رسیده را علامت بزنید')+'</span></div>'+
     K.items.map(function(it){var st=inKit[it.n]||{};
       return '<div class="kit-row'+(st.on?' on':'')+'" data-kn="'+esc(it.n)+'"><label class="kit-l"><input type="checkbox" data-kon'+(st.on?' checked':'')+'><span>'+esc(it.n)+(rec.indexOf(it.n)>=0?' <em class="rec">پیشنهادی برای این مدل</em>':'')+(it.ser?' <em class="sr">جدول سریال</em>':'')+'</span></label>'+
-        (st.on?'<div class="kit-b">'+stepperHtml('k',st.qty==null?1:st.qty)+(it.ser?serTableHtml('k',it.n,st,qtyOf(st.qty==null?1:st.qty)):'')+'</div>':'')+'</div>';
+        (st.on?'<div class="kit-b">'+stepperHtml('k',st.qty==null?1:st.qty)+(it.ser?serTableHtml('k',it.n,st,qtyOf(st.qty==null?1:st.qty),it.ser==='req'):'')+'</div>':'')+'</div>';
     }).join('')+'</div>';
   liveCheckAll();
 }
@@ -1815,7 +1875,7 @@ function renderParts(){
       if(it.multi)b+='<div class="chips"><span class="o">همراه:</span>'+it.multi.map(function(o){var m=(st.multi||{})[o];return '<button type="button" class="chipb chk'+(m?' on':'')+'" data-pmul="'+esc(o)+'">'+(m?'☑ ':'☐ ')+esc(o)+'</button>'}).join('')+'</div>';
       if(it.fields){var FO=it.fopts?it.fopts(st):{};it.fields.forEach(function(fl){var cu=custList('parts.'+S+'.'+it.id+'.'+fl);if(cu.length)FO[fl]=uniq((FO[fl]||[]).concat(cu))});b+='<div class="pf-grid'+(it.wide?' wide':'')+'">'+it.fields.map(function(fl){var cv=(st.vals||{})[fl]||'';return '<label><span>'+esc(fl)+((it.req||[]).indexOf(fl)>=0?' <span class="req">*</span>':'')+'</span>'+(it.wide?'<textarea class="rtl" data-pf="'+esc(fl)+'" rows="2">'+esc(cv)+'</textarea>':'<input data-pf="'+esc(fl)+'" value="'+esc(cv)+'"'+(it.num&&it.num.indexOf(fl)>=0?' class="ltr" inputmode="decimal"':'')+' autocomplete="off">')+((FO[fl]||[]).length?'<span class="chips">'+FO[fl].map(function(o){return '<button type="button" class="chipb'+(cv===o?' on':'')+'" data-pfo="'+esc(fl)+'" data-pfv="'+esc(o)+'">'+esc(o)+'</button>'}).join('')+'</span>':'')+'</label>'}).join('')+'</div>';}
       b+='<div class="pq"><span class="o">تعداد</span>'+stepperHtml('p',st.qty==null?1:st.qty)+'</div>';
-      if(partNeedsSer(it,st))b+=serTableHtml('p',key,st,qtyOf(st.qty==null?1:st.qty));
+      if(partNeedsSer(it,st))b+=serTableHtml('p',key,st,qtyOf(st.qty==null?1:st.qty),it.ser==='req');
     }
     return '<div class="part'+(st.on?' on':'')+'" data-pk="'+esc(key)+'"><label class="part-h"><input type="checkbox" data-pon'+(st.on?' checked':'')+'><b>'+esc(it.n)+'</b>'+(it.ser?'<em class="sr">سریال‌دار</em>':it.serWhen?'<em class="sr">سریال برای چهار بوبین</em>':'')+'</label>'+(b?'<div class="part-b">'+b+'</div>':'')+'</div>';
   }).join('')+'</div>';
@@ -1878,8 +1938,7 @@ $('inEditor').addEventListener('change',function(e){
 $('inEditor').addEventListener('input',function(e){
   var t=e.target;
   if(t.dataset.lf){var k=t.dataset.lf;inVals[k]=t.value;t.classList.remove('err');
-    if(inCat==='falake'&&k==='brand'&&typeof inVals.__fk==='number'&&inVals.__fg){var rf=FALAKE.filter(function(x){return x.row===inVals.__fk})[0];if(rf){inVals.model=falakeLabel(rf,inVals.__fg,inVals.brand);var mf=$('inEditor').querySelector('input[data-lf=model]');if(mf)mf.value=inVals.model}
-      var ft=$('inEditor').querySelector('.fk-title');if(ft)ft.textContent='فلکه‌های هرزگرد '+(falakeBrandName(inVals.brand)==='پرهام'?'پرهام صنعت':falakeBrandName(inVals.brand))+' (مشخصات استاندارد پرهام) — قطر × عرض (میلی‌متر)'}
+    if(inCat==='falake'&&k==='brand')falakeSyncModel();
     if(k==='name'){updateHint();clearTimeout(renderXBox._t);renderXBox._t=setTimeout(renderXBox,300)}
     syncChips();
     if(k==='brand'||k===MAIN_K[inCat]){clearTimeout(renderKit._t);renderKit._t=setTimeout(renderKit,250)}
@@ -1905,7 +1964,7 @@ function kitSerialsOf(it,st,q){
   return (st.sers||[]).slice(0,Math.min(q,30)).map(function(x){return en(x||'').trim()}).filter(Boolean);
 }
 function inAdd(){
-  showMsg('inMsg','');
+  showMsg('inMsg','');falakeSyncModel();
   var rq=rsvCheck();if(rq){showMsg('inMsg',rq);$('rsvMode').scrollIntoView({behavior:'smooth',block:'center'});return}
   var c=CATS[inCat],f={};
   c.fields.forEach(function(fd){f[fd.k]=(inVals[fd.k]||'').trim()});
@@ -1934,8 +1993,8 @@ function inAdd(){
   var miss=[];
   kitOn.forEach(function(it){var st=inKit[it.n],q=qtyOf(st.qty==null?1:st.qty);
     if(q<1){miss.push('تعداد «'+it.n+'»');return}
-    if(it.ser&&!st.noSer&&kitSerialsOf(it,st,q).length<Math.min(q,30))miss.push('سریال همهٔ ردیف‌های «'+it.n+'»')});
-  if(miss.length){showMsg('inMsg','کامل کنید: '+miss.join('، ')+' — اگر سریال ندارد، «این قلم سریال ندارد» را بزنید');return}
+    if(it.ser&&!st.noSer&&kitSerialsOf(it,st,q).length<Math.min(q,30)){miss.push('سریال همهٔ ردیف‌های «'+it.n+'»'+(it.ser==='req'?' (اجباری)':''));if(it.ser!=='req')miss.optSer=1}});
+  if(miss.length){showMsg('inMsg','کامل کنید: '+miss.join('، ')+(miss.optSer?' — اگر سریال ندارد، «این قلم سریال ندارد» را بزنید':''));return}
   var v=validateSerials(formSerials());
   if(v.errs.length){showMsg('inMsg','سریال تکراری ثبت نمی‌شود: '+v.errs.slice(0,4).join(' | '));return}
   if(v.cross.length&&!confirm('این سریال‌ها روی کالای دسته‌ای دیگر ثبت شده‌اند:\n\n'+v.cross.join('\n')+'\n\nمطمئنید که درست است و ثبت شود؟'))return;

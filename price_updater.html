@@ -86,6 +86,48 @@
   }
   .unsupported b{color:var(--err);}
 </style>
+<style id="bfMobileFix">
+/* [BF-MOBILE] نمایش درست روی آیفون / موبایل: هیچ بخشی از صفحه از عرض گوشی بیرون نزند و نیازی به کشیدن صفحه به کنار نباشد.
+   فقط روی صفحهٔ نمایش (screen) اعمال می‌شود؛ روی چاپ و PDF پیش‌فاکتور هیچ اثری ندارد. */
+@media screen and (max-width:820px){
+  html,body{max-width:100%;overflow-x:hidden}
+  body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  img,svg,canvas,video,iframe{max-width:100%}
+  .bf-mscroll{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .order-actions-print-row{flex-wrap:wrap}
+  .order-actions-print-row .btn{min-width:0 !important;flex:1 1 140px}
+  .actions,.btn-row,.order-actions-top{flex-wrap:wrap}
+  pre,code{white-space:pre-wrap;word-break:break-word}
+  .calc-mode-toggle{flex-wrap:wrap}.calc-mode-toggle .mode-tab{flex:1 1 44%;min-width:0}
+  .head .tag{white-space:normal}
+  .cust-grid>*,.grid>*{min-width:0}
+  .inv-footer-print-row,.print-row{flex-wrap:wrap}
+  .inv-footer-print-row .print-btn,.print-row .print-btn{min-width:0 !important;flex:1 1 140px}
+}
+@media screen and (max-width:560px){
+  .cust-grid,.cust-grid.compact-cust{grid-template-columns:minmax(0,1fr) !important}
+}
+@media print{.bf-mscroll{overflow:visible !important;max-width:none !important;display:block}}
+</style>
+<script id="bfMobileFixJs">
+/* جدول‌های پهن روی موبایل داخل یک قاب با اسکرول افقیِ خودشان قرار می‌گیرند (نه کل صفحه). روی دسکتاپ و چاپ تغییری ایجاد نمی‌شود. */
+(function(){
+  function narrow(){return Math.min(window.innerWidth||9999,screen.width||9999)<=820}
+  function fit(root){
+    if(!narrow())return;
+    (root||document).querySelectorAll('table').forEach(function(t){
+      var p=t.parentElement;if(!p||p.classList.contains('bf-mscroll'))return;
+      if(t.closest('#printArea,#printStageWrap,#catalogStage,#printStage,.print-only,[id*="print" i]'))return;
+      var cs=getComputedStyle(p);if(/(auto|scroll)/.test(cs.overflowX))return;if(t.offsetWidth<=p.clientWidth+2&&t.scrollWidth<=p.clientWidth+2)return;
+      var w=document.createElement('div');w.className='bf-mscroll';p.insertBefore(w,t);w.appendChild(t);
+    });
+  }
+  var tm=null;
+  function go(){fit(document);if(!window.MutationObserver||!narrow())return;
+    new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(function(){fit(document)},120)}).observe(document.body,{childList:true,subtree:true});}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
+})();
+</script>
 </head>
 <body>
 <div class="wrap">

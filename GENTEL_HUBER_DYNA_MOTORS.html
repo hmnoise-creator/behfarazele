@@ -741,6 +741,7 @@
   #invoiceArea th{background:#eee; color:#444; border-bottom:1px solid #ccc;}
   #invoiceArea td{background:#fff; border-bottom:1px solid #ccc;}
   #invoiceArea h2{color:var(--accent);}
+  #invoiceArea h2.bf-doc-title, h2.bf-doc-title{color:#111 !important;font-size:17px;font-weight:800;border-bottom:3px solid #111;padding-bottom:8px;margin:0 0 10px;}
   @media print{
     @page{ size:A4; margin:8mm; }
     html,body{ height:auto; }
@@ -4094,8 +4095,8 @@ function buildInvoiceHTML(data, opts){
   // فاکتور با نرخ قدیمی: تاریخ چاپ‌شده همان تاریخ دستی است (data.date)؛ عبارت «اعتبار: روز جاری» با آن تناقض دارد و حذف می‌شود
   const usesOldPrice = !!(data.oldPriceDate && data.items.some(it=>it.priceIsOld));
   return `
-    <div class="bf-print-banner">مرکز فروش تخصصی سیستم های هیدرولیک و گیرلس</div>
-    ${opts.hideTitle ? '' : `<h2 style="margin-top:0; text-align:center;">${data.officialInvoice ? 'فاکتور رسمی موتور آسانسور و قطعات' : 'پیش‌فاکتور موتور آسانسور و قطعات'}</h2>`}
+    <div class="bf-print-banner">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
+    ${opts.hideTitle ? '' : `<h2 class="bf-doc-title" style="margin-top:0; text-align:center;">${data.officialInvoice ? 'فاکتور فروش' : 'پیش فاکتور'} ( موتور )</h2>`}
     ${(opts.hideValidity || usesOldPrice) ? '' : validityNoticeHtml}
     <div class="cust-info-line">
       <b>شماره پیش‌فاکتور:</b> <span class="num">${data.preInvoiceNo || '-'}</span>
@@ -4529,7 +4530,7 @@ initFalakeStandalone();
 
 <!-- ناحیه مخفی — فقط هنگام چاپ/دانلود PDF مستقل یک جدول مشخصات فنی نمایش داده می‌شود -->
 <div id="printStageWrap">
-  <div class="bf-print-banner">مرکز فروش تخصصی سیستم های هیدرولیک و گیرلس</div>
+  <div class="bf-print-banner">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
   <div class="print-logo-wrap">
     <img id="printStageLogo" src="" alt="لوگو">
     <h2 id="printStageTitle" style="font-size:1.05rem; color:#1c2b4a;"></h2>
@@ -4841,6 +4842,67 @@ function mcPrintCatalog(brand){
   };
 })();
 (function(){ function go(){ bfCollapseList({list:'savedInvoicesBody', search:'motorSavedSearchQuery', scrollTo:'savedInvoicesCard'}); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go(); })();
+</script>
+<script id="bfHdrNorm">
+/* [BF-HDR] سربرگ یکسان همهٔ پیش‌فاکتورها — قبل از هر چاپ، سربرگ (حتی پیش‌فاکتورهای ذخیره‌شدهٔ قدیمی) یکسان می‌شود:
+   خط ۱: «مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس» — خط ۲: عنوان محصول — هر دو بالای خط سربرگ */
+(function(){
+  var DEF = 'motor';
+  var NB = 'مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس';
+  var T = {motor:'( موتور )', shakib:'( جک و پاور یونیت ) شکیب', wittur:'( جک و پاور یونیت ) ویتور امار لیفت', panel:'پنل آسانسور', elevator:'( محصولات آسانسور )'};
+  var OLD_B = /^\s*(گروه بهفراز\s*—\s*)?مرکز\s+(فروش\s+تخصصی|تخصصی\s+فروش)\s+سیستم[\s‌]*های\s+هیدرولیک\s+و\s+گیرلس\s*$/;
+  var TITLE_RE = /^\s*(پیش[\s‌]?فاکتور|فاکتور\s+(فروش|رسمی))/;
+  var SKIP_RE = /پشت\s*برگ|گزارش/;
+  function kindOf(t){
+    t = String(t||'');
+    if(/شکیب/.test(t)) return 'shakib';
+    if(/ویتور|wittur|omarlift|امار\s*لیفت/i.test(t)) return 'wittur';
+    if(/محصولات\s+آسانسور/.test(t)) return 'elevator';
+    if(/پنل/.test(t)) return 'panel';
+    if(/موتور/.test(t)) return 'motor';
+    return '';
+  }
+  function styleTitle(el){
+    if(!el.classList.contains('bf-doc-title')) el.classList.add('bf-doc-title');
+    el.style.textAlign = 'center'; el.style.fontWeight = '800';
+  }
+  function norm(root){
+    root = root || document;
+    var bs = [].slice.call(root.querySelectorAll('.bf-print-banner, .ph .t1'));
+    [].slice.call(root.querySelectorAll('div')).forEach(function(d){
+      if(d.children.length===0 && OLD_B.test(d.textContent) && bs.indexOf(d)<0) bs.push(d);
+    });
+    bs.forEach(function(b){
+      if(b.textContent.trim() !== NB) b.textContent = NB;
+      var box = b.parentElement; if(!box) return;
+      var titled = [].slice.call(box.querySelectorAll('.ps-title, h1, h2, .t2, .bf-doc-title'));
+      var hasSkip = titled.some(function(e){ return SKIP_RE.test(e.textContent) && !TITLE_RE.test(e.textContent); }) || /backsheet/.test(box.className||'');
+      var t = null;
+      for(var i=0;i<titled.length;i++){
+        var e = titled[i];
+        if(!(b.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
+        var tx = e.textContent;
+        if(e.getAttribute('data-bf-fixed')){ t = e; break; }
+        if(TITLE_RE.test(tx) && !SKIP_RE.test(tx)){ t = e; break; }
+      }
+      if(t && t.getAttribute('data-bf-fixed')) return;
+      if(!t || hasSkip && !t.classList.contains('bf-doc-title')) return;
+      var official = /^\s*فاکتور\s+(فروش|رسمی)/.test(t.textContent);
+      var k = kindOf(t.textContent) || DEF || kindOf(box.textContent) || '';
+      var txt = (official ? 'فاکتور فروش ' : 'پیش فاکتور ') + (T[k] || '');
+      if(t.textContent.trim() !== txt.trim()) t.textContent = txt.trim();
+      styleTitle(t);
+      if(b.nextElementSibling !== t) b.parentNode.insertBefore(t, b.nextSibling);
+    });
+  }
+  window.bfNormalizeDocHeader = norm;
+  window.addEventListener('beforeprint', function(){ try{ norm(document); }catch(e){} });
+  var op = window.print;
+  if(op && !op.__bfHdr){
+    var wrapped = function(){ try{ norm(document); }catch(e){} return op.apply(window, arguments); };
+    wrapped.__bfHdr = true; window.print = wrapped;
+  }
+})();
 </script>
 </body>
 </html>

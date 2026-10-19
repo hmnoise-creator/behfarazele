@@ -933,6 +933,7 @@
   .ps-head .co small{display:block;font-size:11px;font-weight:500;color:#111;margin-top:2px;}
   .ps-head .meta{text-align:left;font-size:12px;color:#111;line-height:1.9;}
   .ps-title{text-align:center;font-size:16px;font-weight:800;margin:6px 0 18px;letter-spacing:1px;}
+  .ps-title.bf-doc-title{margin:0 0 10px;font-size:17px;}
   /* پیش‌فاکتور: اطلاعات مشتری (کوچک) و اطلاعات پروژه (بولد و مشخص) در دو جدول کنار هم — استفاده بهینه از فضا */
   .ps-info-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:12px;margin-bottom:16px;align-items:start;}
   @media(max-width:640px){.ps-info-grid{grid-template-columns:1fr;}}
@@ -5885,7 +5886,8 @@ function bfBuildSingleCartInvoiceHtml(calc){
   const onlyAccessory = calc.items.length>0 && calc.items.every(it=>it.type==='oil' || it.type==='hose');
   const hasJackOrPu = calc.items.some(it=>it.type==='jack' || it.type==='pu');
   return `
-    <div class="bf-print-banner">مرکز فروش تخصصی سیستم های هیدرولیک و گیرلس</div>
+    <div class="bf-print-banner">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
+    <div class="ps-title bf-doc-title">${isOfficial ? 'فاکتور فروش' : 'پیش فاکتور'} ( جک و پاور یونیت ) ویتور امار لیفت</div>
     <div class="ps-head">
       <div class="co"></div>
       <div class="meta">
@@ -5893,7 +5895,6 @@ function bfBuildSingleCartInvoiceHtml(calc){
         تاریخ صدور: <span class="numlt">${todayFa()}</span>
       </div>
     </div>
-    <div class="ps-title">${isOfficial ? 'فاکتور فروش' : 'پیش‌فاکتور فروش'} ${onlyOil ? 'روغن هیدرولیک' : onlyAccessory ? 'اقلام تکمیلی (روغن/شلنگ)' : 'جک و پاوریونیت هیدرولیک ویتور'} (سفارش تکی محصول — چند قلم)</div>
     <div class="ps-line-box">
       نام و نام خانوادگی: <span>${name}</span>
       نام شرکت: <span>${company}</span>
@@ -6661,7 +6662,8 @@ function witDeleteSavedOrder(id){
    ساخت «عکس فوری» (invoiceHtml) که در payload سفارش ذخیره و برای فوروارد به همکار استفاده می‌شود، به کار می‌رود */
 function bfBuildWitturInvoiceHtml(o){
   return `
-    <div class="bf-print-banner">مرکز فروش تخصصی سیستم های هیدرولیک و گیرلس</div>
+    <div class="bf-print-banner">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
+    <div class="ps-title bf-doc-title">${o.isOfficial ? 'فاکتور فروش' : 'پیش فاکتور'} ( جک و پاور یونیت ) ویتور امار لیفت</div>
     <div class="ps-head">
       <div class="co"><small>Hydraulic &amp; gearless elevator equipment · OMARLIFT (WITTUR) Italy</small></div>
       <div class="meta">
@@ -6670,7 +6672,6 @@ function bfBuildWitturInvoiceHtml(o){
         نوع سند: ${o.isOfficial ? 'فاکتور رسمی' : 'پیش‌فاکتور (غیررسمی)'}
       </div>
     </div>
-    <div class="ps-title">${o.isOfficial ? 'فاکتور فروش' : 'پیش‌فاکتور فروش'} جک و پاوریونیت هیدرولیک ویتور</div>
     ${o.isOfficial ? '' : `<div style="margin:6px 0 14px;padding:9px 14px;border:2px solid #d21f1f;border-radius:8px;background:#fff2f1;color:#111;font-weight:900;text-align:center;font-size:14px;">اعتبار پیش‌فاکتور روز جاری می‌باشد</div>`}
     <div class="ps-info-grid">
       <table class="ps-cust-table">
@@ -7040,7 +7041,7 @@ document.getElementById('witPrintReportBtn').addEventListener('click', ()=>{
     return `<tr><td>${i+1}</td><td>${o.dateStr}</td><td>${name}</td><td>${o.jackSize||'—'} / ${o.puSpec||'—'}</td><td class="num">${fmt(o.total||0)}</td></tr>`;
   }).join('');
   printSheet.innerHTML = `
-    <div class="bf-print-banner">مرکز فروش تخصصی سیستم های هیدرولیک و گیرلس</div>
+    <div class="bf-print-banner">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
     <div class="ps-head">
       <div class="co"><small>Hydraulic &amp; gearless elevator equipment · OMARLIFT (WITTUR) Italy</small></div>
       <div class="meta">تاریخ چاپ گزارش: ${todayFa()}</div>
@@ -7099,7 +7100,8 @@ function bfBuildWitturLiveInvoiceHtml(calc){
   const showPuRow = r.singleItem !== 'jack';
 
   return `
-    <div class="bf-print-banner">مرکز فروش تخصصی سیستم های هیدرولیک و گیرلس</div>
+    <div class="bf-print-banner">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
+    <div class="ps-title bf-doc-title">${isOfficial ? 'فاکتور فروش' : 'پیش فاکتور'} ( جک و پاور یونیت ) ویتور امار لیفت</div>
     <div class="ps-head">
       <div class="co"></div>
       <div class="meta">
@@ -7108,7 +7110,6 @@ function bfBuildWitturLiveInvoiceHtml(calc){
       </div>
     </div>
 
-    <div class="ps-title">${isOfficial ? 'فاکتور فروش' : 'پیش‌فاکتور فروش'} جک و پاوریونیت هیدرولیک ویتور${ r.singleItem ? ' (سفارش تکی محصول)' : '' }</div>
 
     <div class="ps-line-box">
       نام و نام خانوادگی: <span>${name}</span>
@@ -7244,7 +7245,7 @@ printBackBtn.addEventListener('click', ()=>{
 
   printSheet.innerHTML = `
   <div class="backsheet-print">
-    <div class="bf-print-banner">مرکز فروش تخصصی سیستم های هیدرولیک و گیرلس</div>
+    <div class="bf-print-banner">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
     <div class="ps-head">
       <div class="co"></div>
       <div class="meta">
@@ -7656,6 +7657,67 @@ updateResult();
   };
 })();
 (function(){ function go(){ bfCollapseList({list:'witSavedOrdersList', search:'witSavedSearchQuery', scrollTo:'witSavedPanel'}); } if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', go); else go(); })();
+</script>
+<script id="bfHdrNorm">
+/* [BF-HDR] سربرگ یکسان همهٔ پیش‌فاکتورها — قبل از هر چاپ، سربرگ (حتی پیش‌فاکتورهای ذخیره‌شدهٔ قدیمی) یکسان می‌شود:
+   خط ۱: «مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس» — خط ۲: عنوان محصول — هر دو بالای خط سربرگ */
+(function(){
+  var DEF = 'wittur';
+  var NB = 'مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس';
+  var T = {motor:'( موتور )', shakib:'( جک و پاور یونیت ) شکیب', wittur:'( جک و پاور یونیت ) ویتور امار لیفت', panel:'پنل آسانسور', elevator:'( محصولات آسانسور )'};
+  var OLD_B = /^\s*(گروه بهفراز\s*—\s*)?مرکز\s+(فروش\s+تخصصی|تخصصی\s+فروش)\s+سیستم[\s‌]*های\s+هیدرولیک\s+و\s+گیرلس\s*$/;
+  var TITLE_RE = /^\s*(پیش[\s‌]?فاکتور|فاکتور\s+(فروش|رسمی))/;
+  var SKIP_RE = /پشت\s*برگ|گزارش/;
+  function kindOf(t){
+    t = String(t||'');
+    if(/شکیب/.test(t)) return 'shakib';
+    if(/ویتور|wittur|omarlift|امار\s*لیفت/i.test(t)) return 'wittur';
+    if(/محصولات\s+آسانسور/.test(t)) return 'elevator';
+    if(/پنل/.test(t)) return 'panel';
+    if(/موتور/.test(t)) return 'motor';
+    return '';
+  }
+  function styleTitle(el){
+    if(!el.classList.contains('bf-doc-title')) el.classList.add('bf-doc-title');
+    el.style.textAlign = 'center'; el.style.fontWeight = '800';
+  }
+  function norm(root){
+    root = root || document;
+    var bs = [].slice.call(root.querySelectorAll('.bf-print-banner, .ph .t1'));
+    [].slice.call(root.querySelectorAll('div')).forEach(function(d){
+      if(d.children.length===0 && OLD_B.test(d.textContent) && bs.indexOf(d)<0) bs.push(d);
+    });
+    bs.forEach(function(b){
+      if(b.textContent.trim() !== NB) b.textContent = NB;
+      var box = b.parentElement; if(!box) return;
+      var titled = [].slice.call(box.querySelectorAll('.ps-title, h1, h2, .t2, .bf-doc-title'));
+      var hasSkip = titled.some(function(e){ return SKIP_RE.test(e.textContent) && !TITLE_RE.test(e.textContent); }) || /backsheet/.test(box.className||'');
+      var t = null;
+      for(var i=0;i<titled.length;i++){
+        var e = titled[i];
+        if(!(b.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
+        var tx = e.textContent;
+        if(e.getAttribute('data-bf-fixed')){ t = e; break; }
+        if(TITLE_RE.test(tx) && !SKIP_RE.test(tx)){ t = e; break; }
+      }
+      if(t && t.getAttribute('data-bf-fixed')) return;
+      if(!t || hasSkip && !t.classList.contains('bf-doc-title')) return;
+      var official = /^\s*فاکتور\s+(فروش|رسمی)/.test(t.textContent);
+      var k = kindOf(t.textContent) || DEF || kindOf(box.textContent) || '';
+      var txt = (official ? 'فاکتور فروش ' : 'پیش فاکتور ') + (T[k] || '');
+      if(t.textContent.trim() !== txt.trim()) t.textContent = txt.trim();
+      styleTitle(t);
+      if(b.nextElementSibling !== t) b.parentNode.insertBefore(t, b.nextSibling);
+    });
+  }
+  window.bfNormalizeDocHeader = norm;
+  window.addEventListener('beforeprint', function(){ try{ norm(document); }catch(e){} });
+  var op = window.print;
+  if(op && !op.__bfHdr){
+    var wrapped = function(){ try{ norm(document); }catch(e){} return op.apply(window, arguments); };
+    wrapped.__bfHdr = true; window.print = wrapped;
+  }
+})();
 </script>
 </body>
 </html>

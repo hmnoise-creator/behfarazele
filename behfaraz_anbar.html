@@ -2576,7 +2576,7 @@ $('btnSaveOut').onclick=function(){
 function printExit(id){
   var x=eMap()[id];if(!x)return;
   var rows=x.items.map(function(it,i){return '<tr><td>'+fa(i+1)+'</td><td class="r">'+CATS[it.cat].name+'</td><td class="r">'+esc(specText(it.cat,it.f))+'</td><td>'+(it.serial?'<span style="font-family:Consolas,monospace;direction:ltr;unicode-bidi:embed">'+esc(it.serial)+'</span>':'—')+'</td><td>'+fa(it.qty)+' '+esc(it.unit)+'</td></tr>'}).join('');
-  $('printArea').innerHTML='<div class="ph"><div class="t1">گروه بهفراز — مرکز فروش تخصصی سیستم‌های هیدرولیک و گیرلس</div><div class="t2">حواله خروج کالا از انبار'+(x.void?' (باطل‌شده)':'')+'</div></div>'+
+  $('printArea').innerHTML='<div class="ph"><div class="t1">مرکز تخصصی فروش سیستم‌های هیدرولیک و گیرلس</div><div class="t2">حواله خروج کالا از انبار'+(x.void?' (باطل‌شده)':'')+'</div></div>'+
    '<div class="info"><div><b>شماره حواله:</b> '+esc(fa(x.no))+'</div><div><b>تاریخ:</b> '+fa(x.date)+'</div><div><b>تعداد اقلام:</b> '+fa(x.items.length)+'</div>'+
    '<div class="w2"><b>مشتری / تحویل‌گیرنده:</b> '+esc(x.customer)+'</div><div><b>پروژه:</b> '+esc(x.project||'—')+'</div>'+
    '<div class="w3"><b>مقصد:</b> '+esc(x.dest||'—')+'</div>'+

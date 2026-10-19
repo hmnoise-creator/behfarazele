@@ -2263,7 +2263,8 @@ function bfMoltenMetal(host, user){
     const noteHtml = note ? `<div style="margin-bottom:14px;padding:8px 10px;border:1.5px dashed #a6875a;border-radius:9px;font-size:.8rem;"><b>📝 یادداشت ${fromOperator ? 'از '+fromOperator : ''}:</b> ${note}</div>` : '';
     const printHtml = `
       <div style="font-family:'Vazirmatn','Tahoma',sans-serif;direction:rtl;">
-        <div style="text-align:center;font-weight:600;font-size:.85rem;color:#0f3d3a;margin-bottom:6px;">مرکز فروش تخصصی سیستم های هیدرولیک و گیرلس</div>
+        <div class="bf-print-banner" style="text-align:center;font-weight:800;font-size:12px;color:#111;margin-bottom:8px;">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
+        <div class="bf-doc-title" data-bf-fixed="1" style="text-align:center;font-weight:800;font-size:17px;color:#111;padding-bottom:10px;margin-bottom:10px;border-bottom:3px solid #111;">${bfDocTitleFor([ (row.payload&&row.payload.sourceType) || ((BF_SOURCES.find(s=>s.label===row.category)||{}).type) ].filter(Boolean))}</div>
         <div style="text-align:center;font-size:.85rem;color:#555;margin-bottom:18px;">تاریخ: ${now2.toLocaleDateString('fa-IR')} ${now2.toLocaleTimeString('fa-IR')}</div>
         ${noteHtml}
         <div style="margin-bottom:14px;font-size:.95rem;"><b>مشتری/شرکت:</b> ${row.customer_name||'—'} &nbsp;|&nbsp; <b>پروژه:</b> ${row.project_name||'—'}</div>
@@ -3963,6 +3964,15 @@ function bfMoltenMetal(host, user){
     fpSyncToServer(f);
   }
 
+  // عنوان یکسان سربرگ پیش‌فاکتورها (بالای خط سربرگ) — برای فاکتور پلاس چندمحصولی، نام محصولات کنار هم می‌آید
+  function bfDocTitleFor(types){
+    const N = {motor:'موتور', shakib:'جک و پاور یونیت شکیب', wittur:'جک و پاور یونیت ویتور امار لیفت', panel:'پنل آسانسور', elevator:'محصولات آسانسور'};
+    const FULL = {motor:'پیش فاکتور ( موتور )', shakib:'پیش فاکتور ( جک و پاور یونیت ) شکیب', wittur:'پیش فاکتور ( جک و پاور یونیت ) ویتور امار لیفت', panel:'پیش فاکتور پنل آسانسور', elevator:'پیش فاکتور ( محصولات آسانسور )'};
+    const ks = (types||[]).filter(t=>N[t]);
+    if(ks.length===1) return FULL[ks[0]];
+    if(!ks.length) return 'پیش فاکتور';
+    return 'پیش فاکتور ( ' + ks.map(k=>N[k]).join(' + ') + ' )';
+  }
   function fpPrintFactor(factorId){
     const f = fpLoad().find(x=>x.id===factorId);
     if(!f) return;
@@ -4063,7 +4073,8 @@ function bfMoltenMetal(host, user){
     `;
     const printHtml = `
       <div style="font-family:'Vazirmatn','Tahoma',sans-serif;direction:rtl;">
-        <div style="text-align:center;font-weight:600;font-size:.85rem;color:#0f3d3a;margin-bottom:6px;">مرکز فروش تخصصی سیستم های هیدرولیک و گیرلس</div>
+        <div class="bf-print-banner" style="text-align:center;font-weight:800;font-size:12px;color:#111;margin-bottom:8px;">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
+        <div class="bf-doc-title" data-bf-fixed="1" style="text-align:center;font-weight:800;font-size:17px;color:#111;padding-bottom:10px;margin-bottom:10px;border-bottom:3px solid #111;">${bfDocTitleFor(Array.from(new Set((f.items||[]).map(it=>it&&it.sourceType).filter(Boolean))))}</div>
         <div style="text-align:center;font-size:.85rem;color:#555;margin-bottom:18px;">تاریخ: ${now.toLocaleDateString('fa-IR')} ${now.toLocaleTimeString('fa-IR')}</div>
         <div style="margin-bottom:14px;font-size:.95rem;">${f.invoiceNo ? `<b>شماره پیش‌فاکتور:</b> ${fpEsc(f.invoiceNo)} &nbsp;|&nbsp; ` : ''}<b>مشتری/شرکت:</b> ${f.companyDisplay} &nbsp;|&nbsp; <b>پروژه(ها):</b> ${projTxt}</div>
         ${mainTableHtml}
@@ -4205,6 +4216,67 @@ h.style.setProperty('--mx',(x*100).toFixed(1)+'%');h.style.setProperty('--my',(y
         loadUsers(ov);
       }catch(err){ set(err.message); }
     };
+  }
+})();
+</script>
+<script id="bfHdrNorm">
+/* [BF-HDR] سربرگ یکسان همهٔ پیش‌فاکتورها — قبل از هر چاپ، سربرگ (حتی پیش‌فاکتورهای ذخیره‌شدهٔ قدیمی) یکسان می‌شود:
+   خط ۱: «مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس» — خط ۲: عنوان محصول — هر دو بالای خط سربرگ */
+(function(){
+  var DEF = '';
+  var NB = 'مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس';
+  var T = {motor:'( موتور )', shakib:'( جک و پاور یونیت ) شکیب', wittur:'( جک و پاور یونیت ) ویتور امار لیفت', panel:'پنل آسانسور', elevator:'( محصولات آسانسور )'};
+  var OLD_B = /^\s*(گروه بهفراز\s*—\s*)?مرکز\s+(فروش\s+تخصصی|تخصصی\s+فروش)\s+سیستم[\s‌]*های\s+هیدرولیک\s+و\s+گیرلس\s*$/;
+  var TITLE_RE = /^\s*(پیش[\s‌]?فاکتور|فاکتور\s+(فروش|رسمی))/;
+  var SKIP_RE = /پشت\s*برگ|گزارش/;
+  function kindOf(t){
+    t = String(t||'');
+    if(/شکیب/.test(t)) return 'shakib';
+    if(/ویتور|wittur|omarlift|امار\s*لیفت/i.test(t)) return 'wittur';
+    if(/محصولات\s+آسانسور/.test(t)) return 'elevator';
+    if(/پنل/.test(t)) return 'panel';
+    if(/موتور/.test(t)) return 'motor';
+    return '';
+  }
+  function styleTitle(el){
+    if(!el.classList.contains('bf-doc-title')) el.classList.add('bf-doc-title');
+    el.style.textAlign = 'center'; el.style.fontWeight = '800';
+  }
+  function norm(root){
+    root = root || document;
+    var bs = [].slice.call(root.querySelectorAll('.bf-print-banner, .ph .t1'));
+    [].slice.call(root.querySelectorAll('div')).forEach(function(d){
+      if(d.children.length===0 && OLD_B.test(d.textContent) && bs.indexOf(d)<0) bs.push(d);
+    });
+    bs.forEach(function(b){
+      if(b.textContent.trim() !== NB) b.textContent = NB;
+      var box = b.parentElement; if(!box) return;
+      var titled = [].slice.call(box.querySelectorAll('.ps-title, h1, h2, .t2, .bf-doc-title'));
+      var hasSkip = titled.some(function(e){ return SKIP_RE.test(e.textContent) && !TITLE_RE.test(e.textContent); }) || /backsheet/.test(box.className||'');
+      var t = null;
+      for(var i=0;i<titled.length;i++){
+        var e = titled[i];
+        if(!(b.compareDocumentPosition(e) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
+        var tx = e.textContent;
+        if(e.getAttribute('data-bf-fixed')){ t = e; break; }
+        if(TITLE_RE.test(tx) && !SKIP_RE.test(tx)){ t = e; break; }
+      }
+      if(t && t.getAttribute('data-bf-fixed')) return;
+      if(!t || hasSkip && !t.classList.contains('bf-doc-title')) return;
+      var official = /^\s*فاکتور\s+(فروش|رسمی)/.test(t.textContent);
+      var k = kindOf(t.textContent) || DEF || kindOf(box.textContent) || '';
+      var txt = (official ? 'فاکتور فروش ' : 'پیش فاکتور ') + (T[k] || '');
+      if(t.textContent.trim() !== txt.trim()) t.textContent = txt.trim();
+      styleTitle(t);
+      if(b.nextElementSibling !== t) b.parentNode.insertBefore(t, b.nextSibling);
+    });
+  }
+  window.bfNormalizeDocHeader = norm;
+  window.addEventListener('beforeprint', function(){ try{ norm(document); }catch(e){} });
+  var op = window.print;
+  if(op && !op.__bfHdr){
+    var wrapped = function(){ try{ norm(document); }catch(e){} return op.apply(window, arguments); };
+    wrapped.__bfHdr = true; window.print = wrapped;
   }
 })();
 </script>

@@ -1138,11 +1138,12 @@ var DASH=[
   {id:'ajack',name:'متعلقات جک',icon:'🔩',t:function(c,f){return c==='acc'&&accIs(f,['جک'])}},
   {id:'apu',name:'متعلقات پاور یونیت',icon:'⚙️',t:function(c,f){return c==='acc'&&accIs(f,['پاوریونیت'])}},
   {id:'amotor',name:'متعلقات موتور',icon:'🧲',t:function(c,f){return c==='acc'&&accIs(f,['موتور'])}},
-  {id:'apn',name:'متعلقات پنل',icon:'🎛️',t:function(c,f){return c==='acc'&&accIs(f,['شاسی کابین','شاسی طبقه'])}},
   {id:'aoth',name:'سایر متعلقات',icon:'🧰',t:function(c,f){return c==='acc'&&ACC_GROUPS.indexOf((f&&f['for'])||'')<0}}]},
  {id:'pn',name:'شستی آسانسور (پنل)',icon:'🎛️',tabs:[
   {id:'chcab',name:'پنل کابین',icon:'🚪',t:function(c){return c==='chcab'}},
-  {id:'chflr',name:'پنل طبقه',icon:'🏢',t:function(c){return c==='chflr'}}]},
+  {id:'chflr',name:'پنل طبقه',icon:'🏢',t:function(c){return c==='chflr'}},
+  /* متعلقات شاسی (پنل کابین / طبقه) — داخل خود بخش شاسی، نه در «متعلقات» کلی */
+  {id:'apn',name:'متعلقات',icon:'🧰',t:function(c,f){return c==='acc'&&accIs(f,['شاسی کابین','شاسی طبقه'])}}]},
  {id:'cm',name:'قطعات تکمیلی',icon:'🛗',tabs:[
   {id:'falake',name:'فلکه',icon:'🛞',t:function(c){return c==='falake'}},
   {id:'oil',name:'روغن',icon:'🛢️',t:function(c){return c==='oil'}},
@@ -1677,7 +1678,7 @@ var KITS={
   kdoorH:{t:'قطعات درب لولایی — تیک بزنید و تعداد را بنویسید',cat:'door',items:[{n:'قاب درب لولایی'},{n:'شیشه درب لولایی'},{n:'فنر درب لولایی'},{n:'دستگیره درب لولایی'}]},
   kdana:{t:'متعلقات کاراسلینگ اصفهان دانا — قطعه‌هایی که رسیده تیک بزنید و تعداد را بنویسید',cat:'acc',for:'جک',brand:'اصفهان دانا',items:['سرجک (هرزگرد)','گلدانی','زیر جک','بست ستون','بست جک','لنت','لنت T9','لنت T16','فنر','بوش','بست کابین'].map(function(n){return {n:n+' کاراسلینگ اصفهان دانا'}})},
   kgov:{t:'گاورنر — وزنه و محافظ همراه را تیک بزنید و تعداد را بنویسید',cat:'setup',items:[{n:'وزنه گاورنر'},{n:'محافظ گاورنر'}]},
-  motor:{t:'متعلقات موتور',for:'موتور',brand:'',items:[{n:'درخت سیم 6 متری (دیسکی جنتلرایز)'},{n:'درخت سیم 10 متری (بشکه‌ای جنتلرایز)'},{n:'درخت سیم 7 متری (پک خدماتی داینا)'},{n:'درخت سیم (Rope Tree Set هوبر)'},{n:'پک خدماتی (Service Pack)'}]}
+  motor:{t:'متعلقات موتور',for:'موتور',brand:'',items:[{n:'درخت سیم 6 متری (دیسکی جنتلرایز)'},{n:'درخت سیم 10 متری (بشکه‌ای جنتلرایز)'},{n:'درخت سیم (Rope Tree Set هوبر)'},{n:'پک خدماتی (Service Pack)'}]}
 };
 function kitFor(cat,v){
   v=v||{};var b=norm(v.brand||''),sp=supProfile();
@@ -1724,7 +1725,6 @@ function kitRecommended(k){
   var m=String(inVals.model||'').toUpperCase(),b=norm(inVals.brand||'');
   if(/^WT1-B/.test(m))return ['درخت سیم 6 متری (دیسکی جنتلرایز)'];
   if(/^WT2-P/.test(m))return ['درخت سیم 10 متری (بشکه‌ای جنتلرایز)'];
-  if(/^WTD/.test(m))return ['درخت سیم 7 متری (پک خدماتی داینا)'];
   if(/^T\d/.test(m)||b.indexOf(norm('هوبر'))>=0)return ['درخت سیم (Rope Tree Set هوبر)'];
   return [];
 }
@@ -1751,7 +1751,9 @@ var HOSE_110=accCat(/^شلنگ استاندارد ۱۱۰ /).map(function(c){retu
 var PU_KW=[],PU_LIT=[];
 (CATALOG['pu.model']||[]).forEach(function(c){var m=String(c.v).match(/^([\d.]+)kw-(\d+)L$/i);if(!m)return;if(PU_KW.indexOf(+m[1])<0)PU_KW.push(+m[1]);if(PU_LIT.indexOf(+m[2])<0)PU_LIT.push(+m[2])});
 PU_KW.sort(function(a,b){return a-b});PU_LIT.sort(function(a,b){return a-b});
-var MOTOR_ACC=['درخت سیم 6 متری (دیسکی جنتلرایز)','درخت سیم 10 متری (بشکه‌ای جنتلرایز)','درخت سیم 7 متری (پک خدماتی داینا)','درخت سیم (Rope Tree Set هوبر)','پک خدماتی (Service Pack)'];
+/* پک خدماتی داینا از متعلقات حذف شد */
+CATALOG['acc.name']=(CATALOG['acc.name']||[]).filter(function(c){return !/پک خدماتی داینا/.test(c.v)});
+var MOTOR_ACC=['درخت سیم 6 متری (دیسکی جنتلرایز)','درخت سیم 10 متری (بشکه‌ای جنتلرایز)','درخت سیم (Rope Tree Set هوبر)','پک خدماتی (Service Pack)'];
 function motorAccItems(){return MOTOR_ACC.map(function(n,i){return {id:'mot'+i,n:n,for:'موتور'}})}
 var PARTS={
   shakib:{t:'متعلقات شکیب',brand:'شکیب',items:[

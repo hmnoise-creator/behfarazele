@@ -540,6 +540,12 @@ input.bf-need::placeholder,textarea.bf-need::placeholder{color:#B26A00;opacity:1
 .bf-done{border-color:#2E9E5B !important;background:#F3FBF6 !important;transition:background .4s,border-color .4s}
 @keyframes bfReqPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,154,28,.55)}50%{box-shadow:0 0 0 6px rgba(232,154,28,0)}}
 @media (prefers-reduced-motion:reduce){.bf-need{animation:none}}
+/* [BF-ROLE] دسترسی فقط مشاهده (حسابداری) */
+body.bf-ro #nav [data-t="in"],body.bf-ro #nav [data-t="out"],body.bf-ro #pendBanner,body.bf-ro #mDel,body.bf-ro #mEdit,body.bf-ro #mLDel,body.bf-ro #mLEd,body.bf-ro #mMove,
+body.bf-ro [data-ued],body.bf-ro [data-udel],body.bf-ro [data-led],body.bf-ro [data-ldel],body.bf-ro [data-voidx],body.bf-ro [data-voidr],body.bf-ro #hVoid,body.bf-ro #rVoid,
+body.bf-ro [data-delsup],body.bf-ro [data-newsup],body.bf-ro [data-mvto],body.bf-ro [data-gox],body.bf-ro #amGo,body.bf-ro [data-amu],body.bf-ro #cpAdd,body.bf-ro #cpBorrow,
+body.bf-ro [data-cpo],body.bf-ro [data-cpr],body.bf-ro [data-cpi],body.bf-ro [data-cpb],body.bf-ro [data-cpbi],body.bf-ro label:has(#fileRestore),body.bf-ro #eSave,body.bf-ro .sb-dock{display:none !important}
+.bf-ro-bar{background:#EEF3FB;border:1.5px solid #9DB7E3;color:#23457F;border-radius:12px;padding:8px 14px;margin:8px 0;font-size:.82rem;font-weight:700}
 </style>
 <style id="bfMobileFix">
 /* [BF-MOBILE] نمایش درست روی آیفون / موبایل: هیچ بخشی از صفحه از عرض گوشی بیرون نزند و نیازی به کشیدن صفحه به کنار نباشد.
@@ -3719,6 +3725,33 @@ if(memOnly)alert('هشدار: مرورگر اجازهٔ ذخیره‌سازی ن
   document.addEventListener('input',later,true);document.addEventListener('change',later,true);document.addEventListener('click',later,true);
   try{new MutationObserver(later).observe(document.body,{childList:true,subtree:true})}catch(e){}
   setInterval(scan,2000);later();
+})();
+</script>
+<script>
+/* [BF-ROLE] سطح دسترسی انبار بر اساس کاربر واردشده در صفحهٔ اصلی
+   - سیمنی، نوری: دسترسی کامل
+   - هاشمی (حسابداری) و بقیه: فقط مشاهده، تاریخچه و گزارش؛ ثبت ورود، حواله خروج، ویرایش، حذف/ابطال و سرمایه بسته است */
+var BF_WH_FULL=['سیمنی','نوری'];
+function bfWhOperator(){
+  try{if(window.parent&&window.parent!==window&&typeof window.parent.bfGetOperator==='function'){var p=window.parent.bfGetOperator();if(p&&p.name)return p}}catch(e){}
+  try{var o=JSON.parse(sessionStorage.getItem('bf_operator_session_v1')||'null')||JSON.parse(localStorage.getItem('bf_operator_session_v1')||'null');if(o&&o.name)return o}catch(e){}
+  return null;
+}
+var BF_WH_RO=(function(){var o=bfWhOperator();if(!o)return location.protocol!=='file:';return BF_WH_FULL.indexOf(String(o.name).trim())<0})();
+(function(){
+  var o=bfWhOperator();
+  if(o&&o.name){var u=document.getElementById('userName');if(u){u.value=o.name;u.readOnly=true;try{DB.settings.user=o.name}catch(e){}}}
+  if(!BF_WH_RO)return;
+  document.body.classList.add('bf-ro');
+  var bar=document.createElement('div');bar.className='bf-ro-bar';
+  bar.textContent='👁️ دسترسی فقط مشاهده'+(o&&o.name?' ('+o.name+')':'')+' — موجودی، تاریخچه و گزارش اکسل باز است؛ ثبت ورود، حواله خروج، ویرایش و حذف فقط برای آقای سیمنی و نوری.';
+  var nav=document.getElementById('nav');if(nav)nav.parentNode.insertBefore(bar,nav);
+  var BLOCK='[data-t="in"],[data-t="out"],#mDel,#mEdit,#mLDel,#mLEd,#mMove,[data-ued],[data-udel],[data-led],[data-ldel],[data-voidx],[data-voidr],#hVoid,#rVoid,[data-delsup],[data-newsup],[data-mvto],[data-gox],#amGo,[data-amu],#cpAdd,#cpBorrow,[data-cpo],[data-cpr],[data-cpi],[data-cpb],[data-cpbi],#fileRestore,#eSave,#dOk,#rsnOk,#btnSaveIn,#btnSaveOut,#cmOk';
+  function deny(){try{toast('⛔ دسترسی شما فقط مشاهده است')}catch(e){alert('دسترسی شما فقط مشاهده است')}}
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest(BLOCK);if(b){e.preventDefault();e.stopImmediatePropagation();deny()}},true);
+  document.addEventListener('change',function(e){if(e.target&&e.target.id==='fileRestore'){e.stopImmediatePropagation();e.target.value='';deny()}},true);
+  if(typeof go==='function'){var _go=go;go=function(t){if(t==='in'||t==='out'){deny();t='stock'}return _go.apply(this,[t].concat([].slice.call(arguments,1)))};window.go=go}
+  try{if(curTab==='in'||curTab==='out')go('stock')}catch(e){}
 })();
 </script>
 </body>

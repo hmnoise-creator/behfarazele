@@ -653,6 +653,7 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
   <section id="t-out" style="display:none">
     <div class="card">
       <h2><span>۱</span> مشخصات حواله و تحویل‌گیرنده</h2>
+      <div id="xAmNote" class="pend-banner" style="display:none;background:#FBF3E8;border-color:#E7C9A0;color:#6B4316"></div>
       <div class="grid">
         <div class="s2"><label class="f">مشتری / تحویل‌گیرنده <span class="req">*</span></label><input id="xCust" list="dl_customer" autocomplete="off"></div>
         <div class="s2"><label class="f">نام پروژه <span class="req">*</span></label><input id="xProj" list="dl_project" autocomplete="off"></div>
@@ -1502,7 +1503,7 @@ $('statCards').addEventListener('click',function(e){
   if(t=e.target.closest('[data-sbg]')){sbG=t.dataset.sbg;sbSel=[];renderStock();return}
   if(t=e.target.closest('[data-sbf]')){var fi=+t.dataset.sbf,v=t.dataset.v;sbSel=sbSel.slice(0,fi);if(v)sbSel[fi]=v;renderStock();return}
   if(t=e.target.closest('[data-xu]')){var id=t.dataset.xu,ix=-1;xStaged.forEach(function(s,k){if(s.type==='u'&&s.unitId===id)ix=k});
-    if(ix>=0)xStaged.splice(ix,1);else{xStaged.push({type:'u',unitId:id});toast('✓ به حوالهٔ خروج اضافه شد')}sbRefreshTable();return}
+    if(ix>=0)xStaged.splice(ix,1);else{var uu=uMap()[id],er1=xCanAdd(uu&&uu.f);if(er1){toast('⚠️ '+er1);return}xStaged.push({type:'u',unitId:id});toast('✓ به حوالهٔ خروج اضافه شد')}sbRefreshTable();return}
   if(t=e.target.closest('[data-xl]')){var key=t.dataset.xl,g=availLotGroups().filter(function(x){return x.key===key})[0],cur=sbStagedL()[key]||0;
     var max=rnd((g?g.rem:0)+cur);
     var v=prompt('مقدار خروج'+' (موجودی: '+fa(max)+' '+(g?g.unit:'')+')'+(cur?'\nالان '+fa(cur)+' در حواله است؛ عدد جدید جایگزین می‌شود (۰ = حذف از حواله)':''),cur?String(cur):'');
@@ -2639,6 +2640,24 @@ function availLotGroups(){
   xStaged.forEach(function(s){if(s.type==='l'&&m[s.key])m[s.key].rem-=s.qty});
   return Object.keys(m).map(function(k){return m[k]}).filter(function(g){return g.rem>0});
 }
+/* ===== حوالهٔ امانی: فقط به همان خریدار/پروژهٔ کالای امانی؛ کالای انبار در آن نمایش داده نمی‌شود ===== */
+function xItemF(s){if(s.type==='u'){var u=uMap()[s.unitId];return u?u.f:{}}return s.f||{}}
+function xAmCtx(){for(var i=0;i<xStaged.length;i++){var f=xItemF(xStaged[i]);if(f&&f.amani)return {company:f.company||'',project:f.project||'',asup:f.asup||''}}return null}
+function xSameBuyer(f,c){return norm(f.company||'')===norm(c.company)&&norm(f.project||'')===norm(c.project)}
+function xPickOK(f){var c=xAmCtx();f=f||{};return c?(!!f.amani&&xSameBuyer(f,c)):!f.amani}
+/* اجازهٔ افزودن یک قلم به حواله: حوالهٔ امانی و انبار با هم قاطی نمی‌شوند؛ امانی فقط از یک خریدار */
+function xCanAdd(f){var c=xAmCtx();f=f||{};
+  if(!xStaged.length)return '';
+  if(c&&!f.amani)return 'حوالهٔ جاری امانی است — کالای انبار بهفراز در آن ثبت نمی‌شود. اول حوالهٔ امانی را ثبت یا پاک کنید.';
+  if(!c&&f.amani)return 'حوالهٔ جاری کالای انبار بهفراز دارد — کالای امانی جدا حواله می‌شود. اول حوالهٔ فعلی را ثبت یا پاک کنید.';
+  if(c&&!xSameBuyer(f,c))return 'حوالهٔ امانی فقط برای یک خریدار است ('+c.company+' / '+c.project+').';
+  return ''}
+function xSyncAm(){
+  var c=xAmCtx(),cu=$('xCust'),pj=$('xProj'),nt=$('xAmNote');if(!cu)return;
+  if(c){cu.value=c.company;pj.value=c.project;cu.readOnly=pj.readOnly=true;cu.dataset.amLock=1;
+    if(nt){nt.style.display='';nt.innerHTML='🤝 <b>حوالهٔ امانی</b> — تحویل فقط به خریدار همین کالاها: <b>'+esc(c.company)+'</b> / پروژه <b>'+esc(c.project)+'</b>'+(c.asup?' · تأمین‌کننده: '+esc(c.asup):'')+' · کالای انبار بهفراز در این حواله نمایش داده نمی‌شود.'}}
+  else{if(cu.dataset.amLock){cu.readOnly=pj.readOnly=false;delete cu.dataset.amLock;cu.value='';pj.value=''}if(nt)nt.style.display='none'}
+}
 function renderOut(){
   var cur=$('xCat').value;
   $('xCat').innerHTML='<option value="">همه دسته‌ها</option>'+CAT_ORDER.map(function(c){return '<option value="'+c+'">'+CATS[c].name+'</option>'}).join('');
@@ -2655,10 +2674,10 @@ function xInfo(cat,f,rid){
 function xSortCmp(a,b){return String(a.title).localeCompare(String(b.title),'fa',{numeric:true})||String(a.sub).localeCompare(String(b.sub),'fa',{numeric:true})||String(a.proj).localeCompare(String(b.proj),'fa',{numeric:true})||String(a.serial||'').localeCompare(String(b.serial||''),'en',{numeric:true})}
 function renderPick(){
   var q=norm($('xSearch').value),cat=$('xCat').value,st=stagedUnitIds();
-  var units=stockUnits().filter(function(u){return !st[u.id]&&!isAm(u)&&(!cat||u.cat===cat)})
+  var units=stockUnits().filter(function(u){return !st[u.id]&&xPickOK(u.f)&&(!cat||u.cat===cat)})
     .map(function(u){var o=xInfo(u.cat,u.f,u.rid);o.k='u';o.cat=u.cat;o.u=u;o.serial=u.serial;o.qty=1;o.unit='عدد';o.st=specText(u.cat,u.f);return o});
   /* اقلام تعدادی (بدون سریال) هم در همین جدول — مقدار قابل خروج = موجودی منهای آنچه در همین حواله است */
-  var lots=availLotGroups().filter(function(g){return !isAm(g)&&(!cat||g.cat===cat)}).map(function(g){
+  var lots=availLotGroups().filter(function(g){return xPickOK(g.f)&&(!cat||g.cat===cat)}).map(function(g){
     var l=DB.lots.filter(function(x){return x.key===g.key&&x.status!=='void'&&x.rem>0}).sort(function(a,b){return (b.seqn||0)-(a.seqn||0)})[0]||{};
     var o=xInfo(g.cat,g.f,l.rid);o.k='l';o.cat=g.cat;o.key=g.key;o.serial=(g.f&&g.f.bser)||'';o.qty=g.rem;o.unit=g.unit;o.st=specText(g.cat,g.f);return o});
   var list=units.concat(lots).filter(function(o){
@@ -2681,13 +2700,13 @@ function renderPick(){
     :'<div class="empty">'+(q||cat?'موردی با این فیلتر در انبار نیست':'کالایی در انبار موجود نیست')+'</div>';
 }
 function renderQtyBox(){
-  var gs=availLotGroups().sort(function(a,b){return CAT_ORDER.indexOf(a.cat)-CAT_ORDER.indexOf(b.cat)});
+  var gs=availLotGroups().filter(function(g){return xPickOK(g.f)}).sort(function(a,b){return CAT_ORDER.indexOf(a.cat)-CAT_ORDER.indexOf(b.cat)});
   var keep=$('xLotSel')?$('xLotSel').value:'';
   if(!gs.length){$('xQtyBox').innerHTML='<div class="note">اقلام تعدادی (روغن، شاسی، درب، ریل، تابلو فرمان، لوازم برقی و راه‌اندازی، متعلقات) موجودی ندارد یا همه در حواله جاری انتخاب شده‌اند.</div>';return}
   $('xQtyBox').innerHTML='<label class="f">📦 اقلام تعدادی (بدون سریال)</label><div class="grid g3"><div class="s2"><select id="xLotSel">'+gs.map(function(g){return '<option value="'+esc(g.key)+'">'+CATS[g.cat].name+' — '+esc(specText(g.cat,g.f))+'  (موجودی: '+fa(g.rem)+' '+esc(g.unit)+')</option>'}).join('')+'</select></div><div style="display:flex;gap:8px"><input id="xLotQty" class="ltr" inputmode="decimal" placeholder="مقدار" autocomplete="off"><button class="btn pri sm" id="xLotAdd">افزودن</button></div></div>';
   if(keep)$('xLotSel').value=keep;
 }
-function addUnitToOut(id){xStaged.push({type:'u',unitId:id});renderPick();renderXStaged();showMsg('xMsg','')}
+function addUnitToOut(id){var u0=uMap()[id],er=xCanAdd(u0&&u0.f);if(er){showMsg('xMsg',er);return}xStaged.push({type:'u',unitId:id});renderPick();renderXStaged();showMsg('xMsg','')}
 $('xPick').addEventListener('click',function(e){var b=e.target.closest('[data-addu]');if(b){addUnitToOut(b.dataset.addu);return}
   var l=e.target.closest('[data-addl]');if(!l)return;var key=l.dataset.addl,inp=[].filter.call($('xPick').querySelectorAll('input[data-xlq]'),function(i){return i.dataset.xlq===key})[0];
   var qv=parseFloat(en(inp?inp.value:'').replace(/[^\d.]/g,'')),err=xAddLot(key,qv);
@@ -2722,11 +2741,11 @@ $('xSearch').addEventListener('input',renderPick);$('xCat').addEventListener('ch
 function xProdItems(){
   var st=stagedUnitIds(),m={},arr=[];
   stockUnits().forEach(function(u){
-    if(st[u.id]||isAm(u))return;var lb=specText(u.cat,u.f),k=u.cat+'|'+lb;
+    if(st[u.id]||!xPickOK(u.f))return;var lb=specText(u.cat,u.f),k=u.cat+'|'+lb;
     var g=m[k]||(m[k]={cat:u.cat,label:lb,n:0,ser:[],proj:[(u.f||{}).company,(u.f||{}).project].filter(Boolean).join(' / ')});g.n++;g.ser.push(u.serial);
   });
   Object.keys(m).forEach(function(k){var g=m[k];arr.push({v:CATS[g.cat].name+' — '+g.label,h:'موجودی: '+fa(g.n)+' عدد (سریال‌دار) · '+(g.proj?'🏷️ پروژه: '+g.proj:'📦 انبار (بدون پروژه)'),x:norm(g.ser.join(' ')),n:g.n,o:0,sel:{t:'u',cat:g.cat,label:g.label}})});
-  availLotGroups().forEach(function(g){if(isAm(g))return;var pj=[(g.f||{}).company,(g.f||{}).project].filter(Boolean).join(' / ');arr.push({v:CATS[g.cat].name+' — '+specText(g.cat,g.f),h:'موجودی: '+fa(g.rem)+' '+g.unit+' · '+(pj?'🏷️ پروژه: '+pj:'📦 انبار (بدون پروژه)'),n:0,o:1,sel:{t:'l',key:g.key}})});
+  availLotGroups().forEach(function(g){if(!xPickOK(g.f))return;var pj=[(g.f||{}).company,(g.f||{}).project].filter(Boolean).join(' / ');arr.push({v:CATS[g.cat].name+' — '+specText(g.cat,g.f),h:'موجودی: '+fa(g.rem)+' '+g.unit+' · '+(pj?'🏷️ پروژه: '+pj:'📦 انبار (بدون پروژه)'),n:0,o:1,sel:{t:'l',key:g.key}})});
   return arr;
 }
 function xSelUnits(){
@@ -2771,6 +2790,7 @@ function refreshProdPanel(){
 }
 function xAddLot(key,q){
   var g=availLotGroups().filter(function(x){return x.key===key})[0];
+  if(g&&!xStaged.some(function(s){return s.type==='l'&&s.key===key})){var er0=xCanAdd(g.f);if(er0)return er0}
   if(!g)return 'موجودی این کالا تمام شده است';if(!(q>0))return 'مقدار را وارد کنید';
   if(q>g.rem+1e-9)return 'مقدار درخواستی از موجودی بیشتر است (موجودی: '+fa(g.rem)+' '+g.unit+')';
   var ex=xStaged.filter(function(s){return s.type==='l'&&s.key===key})[0];
@@ -2793,6 +2813,7 @@ $('xProdPanel').addEventListener('keydown',function(e){
     e.preventDefault();var q=nser(e.target.value);if(!q)return;
     var list=xSerFiltered(),hit=list.filter(function(u){return nser(u.serial)===q})[0]||(list.length===1?list[0]:null);
     if(!hit){showMsg('xMsg',list.length?'چند سریال با این عبارت وجود دارد؛ از لیست انتخاب کنید':'سریالی با این عبارت در موجودی این کالا نیست');return}
+    var erH=xCanAdd(hit.f);if(erH){showMsg('xMsg',erH);return}
     xStaged.push({type:'u',unitId:hit.id});showMsg('xMsg','');e.target.value='';renderPick();renderXStaged();toast('✓ '+hit.serial+' افزوده شد');
     var f=$('xSerQ');if(f)f.focus();
   }else if(e.target.id==='xPQty'){e.preventDefault();$('xPQAdd').click()}
@@ -2809,6 +2830,7 @@ $('xProdPanel').addEventListener('click',function(e){
   else if(t.id==='xSerAdd'){
     var ids=xSelUnits().map(function(u){return u.id}).filter(function(i){return xChecked[i]});
     if(!ids.length){showMsg('xMsg','حداقل یک سریال را تیک بزنید');return}
+    var erS=xCanAdd((uMap()[ids[0]]||{}).f);if(erS){showMsg('xMsg',erS);return}
     ids.forEach(function(i){xStaged.push({type:'u',unitId:i})});xChecked={};showMsg('xMsg','');
     renderPick();renderXStaged();toast('✓ '+fa(ids.length)+' سریال به حواله افزوده شد');
   }
@@ -2822,6 +2844,7 @@ $('xProdPanel').addEventListener('click',function(e){
 function xMismatch(o){if(!o.co&&!o.pj)return '';var c=norm(($('xCust')||{}).value||''),p=norm(($('xProj')||{}).value||''),w=[];
   if(o.co&&c&&norm(o.co)!==c)w.push('خریدار «'+o.co+'»');if(o.pj&&p&&norm(o.pj)!==p)w.push('پروژه «'+o.pj+'»');return w.join(' و ')}
 function renderXStaged(){
+  xSyncAm();
   var um=uMap(),lm={};DB.lots.forEach(function(l){if(!lm[l.key])lm[l.key]=l});
   var rows=xStaged.map(function(s,i){
     if(s.type==='u'){var u=um[s.unitId],o=xInfo(u.cat,u.f,u.rid);o.i=i;o.cat=u.cat;o.serial=u.serial;o.qty='۱ عدد';return o}
@@ -2845,6 +2868,9 @@ $('btnSaveOut').onclick=function(){
   var cust=$('xCust').value.trim();if(!cust){toast('نام مشتری / تحویل‌گیرنده را وارد کنید');$('xCust').classList.add('err');$('xCust').focus();return}$('xCust').classList.remove('err');
   var proj=$('xProj').value.trim();if(!proj){toast('نام پروژه را وارد کنید');$('xProj').classList.add('err');$('xProj').focus();return}$('xProj').classList.remove('err');
   if(!xStaged.length){toast('هیچ کالایی برای خروج انتخاب نشده');return}
+  var amC=xAmCtx();if(amC){var bad=xStaged.filter(function(s){var f=xItemF(s);return !f.amani||!xSameBuyer(f,amC)});
+    if(bad.length){toast('⚠️ حوالهٔ امانی فقط شامل کالاهای امانیِ همان خریدار می‌شود');return}
+    if(norm(cust)!==norm(amC.company)||norm(proj)!==norm(amC.project)){toast('⚠️ حوالهٔ امانی فقط به خریدار همان کالا ('+amC.company+' / '+amC.project+') صادر می‌شود');return}}
   var no=$('xNo').value.trim();if(!no){toast('شماره حواله را وارد کنید');$('xNo').classList.add('err');$('xNo').focus();return}
   /* هشدار: کالای رزروی خریدار/پروژهٔ دیگر */
   var umm=uMap(),lmm={};DB.lots.forEach(function(l){if(!lmm[l.key])lmm[l.key]=l});
@@ -3443,7 +3469,7 @@ $('amQ').addEventListener('input',renderAmani);$('amShowOut').addEventListener('
 ['amHQ','amFrom','amTo'].forEach(function(i){$(i).addEventListener('input',renderAmHist)});
 $('amTable').addEventListener('click',function(e){var t;
   if(t=e.target.closest('[data-amu]')){var id=t.dataset.amu,ix=-1;xStaged.forEach(function(s,k){if(s.type==='u'&&s.unitId===id)ix=k});
-    if(ix>=0)xStaged.splice(ix,1);else{xStaged.push({type:'u',unitId:id});toast('✓ به حوالهٔ خروج اضافه شد')}renderAmani();return}
+    if(ix>=0)xStaged.splice(ix,1);else{var ua=uMap()[id],er2=xCanAdd(ua&&ua.f);if(er2){toast('⚠️ '+er2);return}xStaged.push({type:'u',unitId:id});toast('✓ به حوالهٔ خروج اضافه شد')}renderAmani();return}
   if(t=e.target.closest('[data-aml]')){var key=t.dataset.aml,g=availLotGroups().filter(function(x){return x.key===key})[0],cur=sbStagedL()[key]||0,max=rnd((g?g.rem:0)+cur);
     var v=prompt('مقدار تحویل (موجودی: '+fa(max)+' '+(g?g.unit:'')+')',cur?String(cur):'');if(v==null)return;var q=parseFloat(en(v).replace(/[^\d.]/g,''))||0;
     xStaged=xStaged.filter(function(s){return !(s.type==='l'&&s.key===key)});if(q>0){var err=xAddLot(key,q);toast(err?'⚠️ '+err:'✓ به حوالهٔ خروج اضافه شد')}renderAmani()}

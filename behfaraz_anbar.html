@@ -659,11 +659,11 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
       <h2><span>۲</span> انتخاب کالا از موجودی</h2>
       <div class="rel" style="margin-bottom:12px"><label class="f">🔎 جستجوی هوشمند کالا <span class="o">(نام، مدل، سایز یا بخشی از سریال را تایپ کنید؛ موجودی هر کالا کنار آن نمایش داده می‌شود)</span></label><input id="xProd" placeholder="مثلاً 100*5*3500 ، 7.7kw ، رپچر ، یا سریال ..." autocomplete="off"></div>
       <div id="xProdPanel" style="margin-bottom:12px"></div>
-      <h2 style="font-size:.9rem;margin:14px 0 8px">📋 اقلام سریال‌دار موجود در انبار <small id="xPickCnt"></small></h2>
+      <h2 style="font-size:.9rem;margin:14px 0 8px">📋 اقلام موجود در انبار (سریال‌دار و تعدادی) <small id="xPickCnt"></small></h2>
       <div class="grid g3" style="margin-bottom:10px">
         <div><label class="f">⚡ ورود سریع سریال (اسکن/تایپ + Enter)</label><input id="xScan" class="ltr" placeholder="سریال را وارد کنید" autocomplete="off"></div>
         <div><label class="f">فیلتر دسته</label><select id="xCat"></select></div>
-        <div><label class="f">جستجو در سریال‌دارها</label><input id="xSearch" placeholder="نام قطعه، پروژه، برند، سایز، سریال..." autocomplete="off"></div>
+        <div><label class="f">جستجو در اقلام</label><input id="xSearch" placeholder="نام قطعه، پروژه، برند، سایز، سریال..." autocomplete="off"></div>
       </div>
       <div class="xt-wrap" id="xPick"></div>
       <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:var(--tab-d);margin-bottom:10px">📦 اقلام تعدادی (بدون سریال)</summary>
@@ -2501,22 +2501,30 @@ function xInfo(cat,f,rid){
 function xSortCmp(a,b){return String(a.title).localeCompare(String(b.title),'fa',{numeric:true})||String(a.sub).localeCompare(String(b.sub),'fa',{numeric:true})||String(a.proj).localeCompare(String(b.proj),'fa',{numeric:true})||String(a.serial||'').localeCompare(String(b.serial||''),'en',{numeric:true})}
 function renderPick(){
   var q=norm($('xSearch').value),cat=$('xCat').value,st=stagedUnitIds();
-  var list=stockUnits().filter(function(u){
-    if(st[u.id])return false;if(cat&&u.cat!==cat)return false;return true;
-  }).map(function(u){var o=xInfo(u.cat,u.f,u.rid);o.u=u;o.serial=u.serial;return o}).filter(function(o){
-    return !q||norm([o.serial,o.title,o.sub,o.proj,o.sup,specText(o.u.cat,o.u.f),CATS[o.u.cat].name].join(' ')).indexOf(q)>=0;
+  var units=stockUnits().filter(function(u){return !st[u.id]&&(!cat||u.cat===cat)})
+    .map(function(u){var o=xInfo(u.cat,u.f,u.rid);o.k='u';o.cat=u.cat;o.u=u;o.serial=u.serial;o.qty=1;o.unit='عدد';o.st=specText(u.cat,u.f);return o});
+  /* اقلام تعدادی (بدون سریال) هم در همین جدول — مقدار قابل خروج = موجودی منهای آنچه در همین حواله است */
+  var lots=availLotGroups().filter(function(g){return !cat||g.cat===cat}).map(function(g){
+    var l=DB.lots.filter(function(x){return x.key===g.key&&x.status!=='void'&&x.rem>0}).sort(function(a,b){return (b.seqn||0)-(a.seqn||0)})[0]||{};
+    var o=xInfo(g.cat,g.f,l.rid);o.k='l';o.cat=g.cat;o.key=g.key;o.serial='';o.qty=g.rem;o.unit=g.unit;o.st=specText(g.cat,g.f);return o});
+  var list=units.concat(lots).filter(function(o){
+    return !q||norm([o.serial,o.title,o.sub,o.proj,o.sup,o.st,CATS[o.cat].name].join(' ')).indexOf(q)>=0;
   }).sort(xSortCmp);
   var LIM=300,shown=list.slice(0,LIM),rows='',prev='',n=0;
-  if($('xPickCnt'))$('xPickCnt').textContent=list.length?'('+fa(list.length)+' عدد)':'';
-  shown.forEach(function(o){var u=o.u,k=o.title+'#'+o.sub;
-    if(k!==prev){var c=0;list.forEach(function(x){if(x.title+'#'+x.sub===k)c++});rows+='<tr class="xt-g"><td colspan="8">'+CATS[u.cat].icon+' '+esc(o.title)+(o.sub?' — '+esc(o.sub):'')+' <span>('+fa(c)+' عدد)</span></td></tr>';prev=k}
+  var nu=list.filter(function(o){return o.k==='u'}).length,nl=list.length-nu;
+  if($('xPickCnt'))$('xPickCnt').textContent=list.length?'('+(nu?fa(nu)+' سریال‌دار':'')+(nu&&nl?' · ':'')+(nl?fa(nl)+' قلم تعدادی':'')+')':'';
+  shown.forEach(function(o){var k=o.title+'#'+o.sub;
+    if(k!==prev){var c=0;list.forEach(function(x){if(x.title+'#'+x.sub===k)c++});rows+='<tr class="xt-g"><td colspan="9">'+CATS[o.cat].icon+' '+esc(o.title)+(o.sub?' — '+esc(o.sub):'')+' <span>('+fa(c)+' ردیف)</span></td></tr>';prev=k}
     n++;
-    rows+='<tr class="sbt-r'+sbSupCls(o.sup)+'"><td class="c">'+fa(n)+'</td><td><b>'+esc(o.title)+'</b><small>'+esc(CATS[u.cat].name)+'</small></td><td>'+esc(o.sub||'—')+'</td><td class="mono">'+esc(o.serial)+'</td>'+
-      '<td>'+(o.proj?'<b>'+esc(o.proj)+'</b>':'<span class="o">انبار</span>')+'</td><td>'+esc(o.sup)+'</td><td class="c">'+fdate(o.date)+'</td><td class="c"><button class="btn pri sm" data-addu="'+u.id+'">➕ افزودن</button></td></tr>';
+    var act=o.k==='u'?'<button class="btn pri sm" data-addu="'+o.u.id+'">➕ افزودن</button>'
+      :'<span style="display:inline-flex;gap:4px;align-items:center"><input class="ltr" inputmode="decimal" data-xlq="'+esc(o.key)+'" placeholder="مقدار" style="width:70px;padding:4px 6px" autocomplete="off"><button class="btn pri sm" data-addl="'+esc(o.key)+'">➕</button></span>';
+    rows+='<tr class="sbt-r'+sbSupCls(o.sup)+'"><td class="c">'+fa(n)+'</td><td><b>'+esc(o.title)+'</b><small>'+esc(CATS[o.cat].name)+'</small></td><td>'+esc(o.sub||'—')+'</td><td class="mono">'+(o.serial?esc(o.serial):'<span class="o">—</span>')+'</td>'+
+      '<td class="c"><b>'+fa(o.qty)+'</b> <small class="u">'+esc(o.unit)+'</small></td>'+
+      '<td>'+(o.proj?'<b>'+esc(o.proj)+'</b>':'<span class="o">انبار</span>')+'</td><td>'+esc(o.sup)+'</td><td class="c">'+fdate(o.date)+'</td><td class="c nw">'+act+'</td></tr>';
   });
-  $('xPick').innerHTML=shown.length?'<table class="sbt2 xt"><thead><tr><th class="c">#</th><th>نام قطعه</th><th>برند / مشخصات</th><th>سریال</th><th>خریدار / پروژه</th><th>تأمین‌کننده</th><th class="c">تاریخ ورود</th><th class="c"></th></tr></thead><tbody>'+rows+'</tbody></table>'+
+  $('xPick').innerHTML=shown.length?'<table class="sbt2 xt"><thead><tr><th class="c">#</th><th>نام قطعه</th><th>برند / مشخصات</th><th>سریال</th><th class="c">موجودی</th><th>خریدار / پروژه</th><th>تأمین‌کننده</th><th class="c">تاریخ ورود</th><th class="c"></th></tr></thead><tbody>'+rows+'</tbody></table>'+
     (list.length>LIM?'<div class="empty">'+fa(list.length-LIM)+' مورد دیگر — جستجو را دقیق‌تر کنید</div>':'')
-    :'<div class="empty">'+(q||cat?'موردی با این فیلتر در انبار نیست':'اقلام سریال‌داری در انبار موجود نیست')+'</div>';
+    :'<div class="empty">'+(q||cat?'موردی با این فیلتر در انبار نیست':'کالایی در انبار موجود نیست')+'</div>';
 }
 function renderQtyBox(){
   var gs=availLotGroups().sort(function(a,b){return CAT_ORDER.indexOf(a.cat)-CAT_ORDER.indexOf(b.cat)});
@@ -2526,7 +2534,12 @@ function renderQtyBox(){
   if(keep)$('xLotSel').value=keep;
 }
 function addUnitToOut(id){xStaged.push({type:'u',unitId:id});renderPick();renderXStaged();showMsg('xMsg','')}
-$('xPick').addEventListener('click',function(e){var b=e.target.closest('[data-addu]');if(b)addUnitToOut(b.dataset.addu)});
+$('xPick').addEventListener('click',function(e){var b=e.target.closest('[data-addu]');if(b){addUnitToOut(b.dataset.addu);return}
+  var l=e.target.closest('[data-addl]');if(!l)return;var key=l.dataset.addl,inp=[].filter.call($('xPick').querySelectorAll('input[data-xlq]'),function(i){return i.dataset.xlq===key})[0];
+  var qv=parseFloat(en(inp?inp.value:'').replace(/[^\d.]/g,'')),err=xAddLot(key,qv);
+  if(err){showMsg('xMsg',err);if(inp)inp.focus();return}
+  showMsg('xMsg','');renderPick();renderQtyBox();renderXStaged();toast('✓ به حواله افزوده شد');});
+$('xPick').addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.dataset.xlq){e.preventDefault();var b=[].filter.call($('xPick').querySelectorAll('[data-addl]'),function(x){return x.dataset.addl===e.target.dataset.xlq})[0];if(b)b.click()}});
 $('xQtyBox').addEventListener('click',function(e){
   if(e.target.id!=='xLotAdd')return;
   var key=$('xLotSel').value,q=parseFloat(en($('xLotQty').value).replace(/[^\d.]/g,'')),g=availLotGroups().filter(function(x){return x.key===key})[0];
@@ -2556,10 +2569,10 @@ function xProdItems(){
   var st=stagedUnitIds(),m={},arr=[];
   stockUnits().forEach(function(u){
     if(st[u.id])return;var lb=specText(u.cat,u.f),k=u.cat+'|'+lb;
-    var g=m[k]||(m[k]={cat:u.cat,label:lb,n:0,ser:[]});g.n++;g.ser.push(u.serial);
+    var g=m[k]||(m[k]={cat:u.cat,label:lb,n:0,ser:[],proj:[(u.f||{}).company,(u.f||{}).project].filter(Boolean).join(' / ')});g.n++;g.ser.push(u.serial);
   });
-  Object.keys(m).forEach(function(k){var g=m[k];arr.push({v:CATS[g.cat].name+' — '+g.label,h:'موجودی: '+fa(g.n)+' عدد (سریال‌دار)',x:norm(g.ser.join(' ')),n:g.n,o:0,sel:{t:'u',cat:g.cat,label:g.label}})});
-  availLotGroups().forEach(function(g){arr.push({v:CATS[g.cat].name+' — '+specText(g.cat,g.f),h:'موجودی: '+fa(g.rem)+' '+g.unit,n:0,o:1,sel:{t:'l',key:g.key}})});
+  Object.keys(m).forEach(function(k){var g=m[k];arr.push({v:CATS[g.cat].name+' — '+g.label,h:'موجودی: '+fa(g.n)+' عدد (سریال‌دار) · '+(g.proj?'🏷️ پروژه: '+g.proj:'📦 انبار (بدون پروژه)'),x:norm(g.ser.join(' ')),n:g.n,o:0,sel:{t:'u',cat:g.cat,label:g.label}})});
+  availLotGroups().forEach(function(g){var pj=[(g.f||{}).company,(g.f||{}).project].filter(Boolean).join(' / ');arr.push({v:CATS[g.cat].name+' — '+specText(g.cat,g.f),h:'موجودی: '+fa(g.rem)+' '+g.unit+' · '+(pj?'🏷️ پروژه: '+pj:'📦 انبار (بدون پروژه)'),n:0,o:1,sel:{t:'l',key:g.key}})});
   return arr;
 }
 function xSelUnits(){

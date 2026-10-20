@@ -3754,5 +3754,120 @@ var BF_WH_RO=(function(){var o=bfWhOperator();if(!o)return location.protocol!=='
   try{if(curTab==='in'||curTab==='out')go('stock')}catch(e){}
 })();
 </script>
+<script>
+/* ===== [BF-WH-SYNC] اتصال سامانهٔ انبار به سرور =====
+   - دادهٔ انبار روی سرور (SQLite) نگه داشته می‌شود و همهٔ سیستم‌ها همان را می‌بینند.
+   - هر ذخیره (ثبت ورود، حواله، ویرایش، حذف، سرمایه...) چند لحظه بعد به سرور فرستاده می‌شود.
+   - اگر هم‌زمان کاربر دیگری چیزی ثبت کرده باشد، تغییرات دو طرف ادغام می‌شود (مقدار اقلام تعدادی با اختلاف جمع می‌شود).
+   - هر ۱۵ ثانیه تغییرات بقیه دریافت می‌شود. اگر سرور قطع باشد، کار در همین مرورگر ادامه پیدا می‌کند و بعد از وصل شدن خودکار ارسال می‌شود. */
+(function(){
+  if(location.protocol==='file:')return;
+  var BASE_KEY='behfaraz_anbar_srvbase_v1',DIRTY_KEY='behfaraz_anbar_dirty_v1';
+  var base=null,rev=0,dirty=false,busy=false,timer=0,online=null,canWrite=false,pendingRender=false,started=false;
+  try{var bb=JSON.parse(localStorage.getItem(BASE_KEY)||'null');if(bb&&bb.rev){base=bb.data;rev=bb.rev}}catch(e){}
+  try{dirty=localStorage.getItem(DIRTY_KEY)==='1'}catch(e){}
+  function tok(){try{var o=bfWhOperator();return o&&o.token||''}catch(e){return ''}}
+  function hdr(){var h={'Content-Type':'application/json'},t=tok();if(t)h['x-operator-token']=t;return h}
+  function setBase(r,d){rev=r;base=d;try{localStorage.setItem(BASE_KEY,JSON.stringify({rev:r,data:d}))}catch(e){try{localStorage.removeItem(BASE_KEY)}catch(_){}}}
+  function setDirty(v){dirty=v;try{localStorage.setItem(DIRTY_KEY,v?'1':'0')}catch(e){}}
+  /* --- چیپ وضعیت --- */
+  var chip=document.createElement('span');chip.className='chip';chip.id='srvChip';chip.style.cursor='pointer';chip.title='وضعیت اتصال انبار به سرور — برای همگام‌سازی فوری کلیک کنید';
+  var bk=document.getElementById('bkChip');if(bk&&bk.parentNode)bk.parentNode.insertBefore(chip,bk);
+  chip.onclick=function(){pull(true)};
+  function show(){
+    if(online===false){chip.textContent='⚠️ سرور قطع — ذخیره در همین سیستم';chip.style.background='#FBE9E7';chip.style.color='#B9322A';return}
+    if(online===null){chip.textContent='⏳ اتصال به سرور…';chip.style.background='';chip.style.color='';return}
+    chip.textContent=dirty?'☁️ در حال ارسال به سرور…':'☁️ متصل به سرور ✓';chip.style.background=dirty?'#FFF3D6':'#E2F4E9';chip.style.color=dirty?'#8A5A00':'#1F6B3E';
+  }
+  show();
+  /* --- ادغام سه‌طرفه (نسخهٔ پایه / تغییرات این سیستم / نسخهٔ سرور) --- */
+  function idOf(x){if(!x||typeof x!=='object')return 'v'+JSON.stringify(x);return x.id!=null?'i'+x.id:x.key?'k'+x.key:'t'+(x.ts||'')+'|'+(x.action||'')+'|'+(x.detail||'')+'|'+(x.user||'')}
+  function mapOf(a){var m={};(a||[]).forEach(function(x){m[idOf(x)]=x});return m}
+  function same(a,b){return JSON.stringify(a)===JSON.stringify(b)}
+  function mArr(B,L,S,lot,front,hasBase){
+    var bm=mapOf(B),lm=mapOf(L),res=(S||[]).map(function(x){return x}),rm={};res.forEach(function(x,i){rm[idOf(x)]=i});
+    var added=[];
+    (L||[]).forEach(function(l){var k=idOf(l),b=bm[k],si=rm[k];
+      if(!b){ if(si==null)added.push(l); else if(lot&&hasBase){var r=clone(l);r.qty=rnd((+res[si].qty||0)+(+l.qty||0));res[si]=r} return }
+      if(same(b,l))return;
+      if(si==null){added.push(l);return}
+      if(lot){var r2=clone(l);r2.qty=rnd((+res[si].qty||0)+((+l.qty||0)-(+b.qty||0)));res[si]=r2}else res[si]=l;
+    });
+    var del={};(B||[]).forEach(function(b){var k=idOf(b);if(!lm[k])del[k]=1});
+    res=res.filter(function(x){return !del[idOf(x)]});
+    return front?added.concat(res):res.concat(added);
+  }
+  function uniqArr(a){var o=[];(a||[]).forEach(function(x){if(o.indexOf(x)<0)o.push(x)});return o}
+  function merge3(B,L,S){
+    var hasBase=!!B;B=B||{};var R=clone(S);
+    ['receipts','units','exits','audit'].forEach(function(k){R[k]=mArr(B[k],L[k],S[k],false,false,hasBase)});
+    R.lots=mArr(B.lots,L.lots,S.lots,true,false,hasBase);
+    R.log=mArr(B.log,L.log,S.log,false,true,hasBase);
+    var Bc=B.cap||{},Lc=L.cap||{},Sc=S.cap||{};R.cap={items:mArr(Bc.items,Lc.items,Sc.items,false,false,hasBase),moves:mArr(Bc.moves,Lc.moves,Sc.moves,false,false,hasBase)};
+    R.seq={in:Math.max(+(L.seq||{}).in||0,+(S.seq||{}).in||0),out:Math.max(+(L.seq||{}).out||0,+(S.seq||{}).out||0)};
+    R.suppliers=uniqArr((S.suppliers||[]).concat(L.suppliers||[]));R.hidden=uniqArr((S.hidden||[]).concat(L.hidden||[]));
+    R.settings=Object.assign({},S.settings||{},L.settings||{});
+    Object.keys(L).forEach(function(k){if(R[k]===undefined)R[k]=L[k]});
+    return R;
+  }
+  /* --- اعمال دادهٔ سرور روی صفحه --- */
+  function normalize(d){var b=freshDB();for(var k in b){if(d[k]===undefined)d[k]=b[k]}try{migrateCats(d)}catch(e){}d.seq=Object.assign({in:0,out:0},d.seq);d.settings=Object.assign({user:'',lastBackup:0},d.settings);return d}
+  function busyUI(){return !!(document.getElementById('modalRoot')&&document.getElementById('modalRoot').innerHTML.trim())||curTab==='in'||curTab==='out'}
+  function render(){
+    if(busyUI()){pendingRender=true;return}
+    pendingRender=false;
+    try{refreshDatalists()}catch(e){}try{renderSupChips()}catch(e){}try{updateHeader()}catch(e){}
+    try{$('iNo').value=nextInNo();$('xNo').value=nextOutNo()}catch(e){}
+    try{var t=curTab,y=window.scrollY;({stock:function(){renderStock()},amani:function(){renderAmani()},cap:function(){renderCap()},hist:function(){renderHist()},rep:function(){renderRepPreview()}})[t]();window.scrollTo({top:y})}catch(e){}try{updInBadge()}catch(e){}
+  }
+  function adopt(d){var u=DB.settings&&DB.settings.user;DB=normalize(d);if(u)DB.settings.user=u;try{__lsSave()}catch(e){}render()}
+  /* --- دریافت از سرور --- */
+  function pull(force){
+    if(busy)return Promise.resolve();busy=true;
+    return fetch('/api/warehouse'+(started&&!force?'?rev='+rev:''),{headers:hdr(),cache:'no-store'}).then(function(r){return r.json().then(function(d){return {st:r.status,d:d}})}).then(function(x){
+      busy=false;
+      if(x.st===401){online=false;show();chip.textContent='🔒 برای اتصال به سرور از صفحهٔ اصلی وارد شوید';return}
+      if(!x.d||!x.d.ok)throw new Error(x.d&&x.d.error||'err');
+      online=true;canWrite=!!x.d.canWrite;var first=!started;started=true;if(!canWrite&&dirty)setDirty(false);
+      if(x.d.same){if(dirty&&canWrite)push();show();return}
+      if(!x.d.data){ /* سرور هنوز خالی است: دادهٔ این سیستم اولین نسخهٔ سرور می‌شود */
+        if(canWrite&&(DB.units.length||DB.lots.length||DB.receipts.length||DB.exits.length||(DB.cap&&DB.cap.items.length))){setDirty(true);push()}
+        show();return}
+      if(x.d.rev===rev&&!force){if(dirty&&canWrite)push();show();return}
+      var hasLocal=DB.units.length||DB.lots.length||DB.receipts.length||DB.exits.length||(DB.cap&&DB.cap.items.length);
+      if(canWrite&&!rev&&hasLocal&&!dirty)setDirty(true); /* این سیستم تا حالا با سرور همگام نشده: داده‌های خودش با سرور ادغام می‌شود، نه اینکه پاک شود */
+      if(dirty&&canWrite){var m=merge3(base,DB,x.d.data);setBase(x.d.rev,x.d.data);DB=normalize(m);try{__lsSave()}catch(e){}render();push()}
+      else{setBase(x.d.rev,x.d.data);adopt(clone(x.d.data));if(first&&x.d.updated_by)toast('☁️ دادهٔ انبار از سرور بارگذاری شد');}
+      show();
+    }).catch(function(){busy=false;online=false;show()});
+  }
+  /* --- ارسال به سرور --- */
+  function push(){
+    if(!canWrite||!dirty)return;
+    if(busy){clearTimeout(timer);timer=setTimeout(push,700);return}
+    busy=true;var sent=clone(DB);show();
+    fetch('/api/warehouse',{method:'PUT',headers:hdr(),body:JSON.stringify({baseRev:rev,data:sent})}).then(function(r){return r.json().then(function(d){return {st:r.status,d:d}})}).then(function(x){
+      busy=false;online=true;
+      if(x.st===409&&x.d&&x.d.conflict){var m=merge3(base,DB,x.d.data||freshDB());setBase(x.d.rev,x.d.data);DB=normalize(m);try{__lsSave()}catch(e){}render();setDirty(true);setTimeout(push,50);return}
+      if(x.st===403){canWrite=false;setDirty(false);show();return}
+      if(!x.d||!x.d.ok)throw new Error('err');
+      setBase(x.d.rev,sent);if(same(sent,DB))setDirty(false);else{clearTimeout(timer);timer=setTimeout(push,300)}
+      show();
+    }).catch(function(){busy=false;online=false;show();clearTimeout(timer);timer=setTimeout(push,15000)});
+  }
+  /* --- هر save() محلی = علامت «تغییر دارد» + ارسال با کمی تأخیر --- */
+  window.__lsSave=function(){try{localStorage.setItem(LS_KEY,JSON.stringify(DB))}catch(e){}};
+  var _save=save;
+  save=function(){_save.apply(this,arguments);if(syncing)return;if(canWrite||online!==true){setDirty(true);show();clearTimeout(timer);timer=setTimeout(push,800)}};
+  window.save=save;var syncing=false;
+  /* اگر صفحه در حال کار بود و دادهٔ تازه رسید، بعد از رفتن به تب دیگر/بستن پنجره نمایش داده شود */
+  var _go=go;go=function(t){var r=_go.apply(this,arguments);if(pendingRender&&!busyUI()){pendingRender=false;setTimeout(render,0)}return r};window.go=go;
+  setInterval(function(){if(!document.hidden)pull(false)},15000);
+  window.addEventListener('focus',function(){pull(false)});
+  window.addEventListener('beforeunload',function(){if(dirty&&canWrite){try{fetch('/api/warehouse',{method:'PUT',headers:hdr(),body:JSON.stringify({baseRev:rev,data:DB}),keepalive:true})}catch(e){}}});
+  window.bfWhSyncNow=function(){return pull(true)};
+  pull(true);
+})();
+</script>
 </body>
 </html>

@@ -646,7 +646,7 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
         <div class="s2"><label class="f">مشتری / تحویل‌گیرنده <span class="req">*</span></label><input id="xCust" list="dl_customer" autocomplete="off"></div>
         <div class="s2"><label class="f">نام پروژه <span class="req">*</span></label><input id="xProj" list="dl_project" autocomplete="off"></div>
         <div><label class="f">تاریخ حواله (شمسی)</label><input id="xDate" class="ltr" placeholder="1405/07/16" autocomplete="off"></div>
-        <div><label class="f">شماره حواله</label><input id="xNo" class="ltr" autocomplete="off"></div>
+        <div><label class="f">شماره حواله <span class="req">*</span></label><input id="xNo" class="ltr" autocomplete="off"></div>
         <div class="s2"><label class="f">مقصد / آدرس تحویل <span class="o">(اختیاری)</span></label><input id="xDest" autocomplete="off"></div>
         <div><label class="f">پلاک ماشین</label><input id="xPlate" list="dl_plate" autocomplete="off"></div>
         <div><label class="f">نام راننده</label><input id="xDriver" list="dl_driver" autocomplete="off"></div>
@@ -2496,7 +2496,7 @@ function xInfo(cat,f,rid){
   f=f||{};var r=(rMap()[rid]||{}),main=f.size||f.model||f.type||f.name||'';
   var title=cat==='acc'?(f.name||'متعلقات'):cat==='motor'?('موتور '+(f.brand||'')).trim():(main||CATS[cat].name);
   var sub=cat==='motor'?[f.model,boardSpec(f)].filter(Boolean).join(' · '):[f.brand,boardSpec(f)].filter(Boolean).join(' · ');
-  return {title:title,sub:sub,sup:sbSupName(r.supplier),proj:[f.company,f.project].filter(Boolean).join(' / '),date:r.date||''};
+  return {title:title,sub:sub,sup:sbSupName(r.supplier),proj:[f.company,f.project].filter(Boolean).join(' / '),co:f.company||'',pj:f.project||'',date:r.date||''};
 }
 function xSortCmp(a,b){return String(a.title).localeCompare(String(b.title),'fa',{numeric:true})||String(a.sub).localeCompare(String(b.sub),'fa',{numeric:true})||String(a.proj).localeCompare(String(b.proj),'fa',{numeric:true})||String(a.serial||'').localeCompare(String(b.serial||''),'en',{numeric:true})}
 function renderPick(){
@@ -2664,18 +2664,22 @@ $('xProdPanel').addEventListener('click',function(e){
     showMsg('xMsg','');$('xPQty').value='';renderQtyBox();renderXStaged();toast('✓ به حواله افزوده شد');
   }
 });
+/* کالای رزروشده برای خریدار/پروژهٔ دیگری غیر از مشتری و پروژهٔ همین حواله */
+function xMismatch(o){if(!o.co&&!o.pj)return '';var c=norm(($('xCust')||{}).value||''),p=norm(($('xProj')||{}).value||''),w=[];
+  if(o.co&&c&&norm(o.co)!==c)w.push('خریدار «'+o.co+'»');if(o.pj&&p&&norm(o.pj)!==p)w.push('پروژه «'+o.pj+'»');return w.join(' و ')}
 function renderXStaged(){
   var um=uMap(),lm={};DB.lots.forEach(function(l){if(!lm[l.key])lm[l.key]=l});
   var rows=xStaged.map(function(s,i){
     if(s.type==='u'){var u=um[s.unitId],o=xInfo(u.cat,u.f,u.rid);o.i=i;o.cat=u.cat;o.serial=u.serial;o.qty='۱ عدد';return o}
     var l=lm[s.key]||{},o2=xInfo(s.cat,s.f,l.rid);o2.i=i;o2.cat=s.cat;o2.serial='';o2.qty=fa(s.qty)+' '+s.unit;return o2;
   }).sort(xSortCmp);
-  $('xStaged').innerHTML=rows.length?rows.map(function(o,n){
-    return '<tr class="sbt-r'+sbSupCls(o.sup)+'"><td class="c">'+fa(n+1)+'</td><td><b>'+esc(o.title)+'</b><small>'+CATS[o.cat].icon+' '+esc(CATS[o.cat].name)+'</small></td><td>'+esc(o.sub||'—')+'</td><td class="mono">'+(o.serial?esc(o.serial):'<span class="o">—</span>')+'</td>'+
-      '<td>'+(o.proj?'<b>'+esc(o.proj)+'</b>':'<span class="o">انبار</span>')+'</td><td>'+esc(o.sup)+'</td><td class="c"><b>'+o.qty+'</b></td><td class="c"><button class="btn del sm" data-rx="'+o.i+'">✕</button></td></tr>';
+  $('xStaged').innerHTML=rows.length?rows.map(function(o,n){var mm=xMismatch(o);
+    return '<tr class="sbt-r'+sbSupCls(o.sup)+'"'+(mm?' style="outline:2px solid #E2A33B;outline-offset:-2px" title="⚠️ این کالا برای '+esc(mm)+' رزرو شده است"':'')+'><td class="c">'+fa(n+1)+'</td><td><b>'+esc(o.title)+'</b><small>'+CATS[o.cat].icon+' '+esc(CATS[o.cat].name)+'</small></td><td>'+esc(o.sub||'—')+'</td><td class="mono">'+(o.serial?esc(o.serial):'<span class="o">—</span>')+'</td>'+
+      '<td>'+(o.proj?'<b>'+esc(o.proj)+'</b>':'<span class="o">انبار</span>')+(mm?'<small style="color:#B35C00;font-weight:800">⚠️ با مشتری/پروژهٔ حواله فرق دارد</small>':'')+'</td><td>'+esc(o.sup)+'</td><td class="c"><b>'+o.qty+'</b></td><td class="c"><button class="btn del sm" data-rx="'+o.i+'">✕</button></td></tr>';
   }).join(''):'<tr><td colspan="8" class="empty">هنوز کالایی برای خروج انتخاب نشده</td></tr>';
   $('xCount').textContent=xStaged.length?'('+fa(xStaged.length)+' قلم)':'';refreshProdPanel();
 }
+['xCust','xProj'].forEach(function(i){$(i).addEventListener('input',function(){clearTimeout(renderXStaged._t);renderXStaged._t=setTimeout(renderXStaged,250)})});
 $('xStaged').addEventListener('click',function(e){var b=e.target.closest('[data-rx]');if(b){xStaged.splice(+b.dataset.rx,1);renderPick();renderQtyBox();renderXStaged()}});
 function resetOutForm(){
   xStaged=[];xSel=null;xChecked={};['xCust','xProj','xDest','xPlate','xDriver','xPhone','xRecv','xNote','xScan','xSearch','xProd'].forEach(function(i){$(i).value=''});
@@ -2687,7 +2691,11 @@ $('btnSaveOut').onclick=function(){
   var cust=$('xCust').value.trim();if(!cust){toast('نام مشتری / تحویل‌گیرنده را وارد کنید');$('xCust').classList.add('err');$('xCust').focus();return}$('xCust').classList.remove('err');
   var proj=$('xProj').value.trim();if(!proj){toast('نام پروژه را وارد کنید');$('xProj').classList.add('err');$('xProj').focus();return}$('xProj').classList.remove('err');
   if(!xStaged.length){toast('هیچ کالایی برای خروج انتخاب نشده');return}
-  var no=$('xNo').value.trim()||nextOutNo();
+  var no=$('xNo').value.trim();if(!no){toast('شماره حواله را وارد کنید');$('xNo').classList.add('err');$('xNo').focus();return}
+  /* هشدار: کالای رزروی خریدار/پروژهٔ دیگر */
+  var umm=uMap(),lmm={};DB.lots.forEach(function(l){if(!lmm[l.key])lmm[l.key]=l});
+  var mms=xStaged.map(function(s){var o=s.type==='u'?(function(u){var x=xInfo(u.cat,u.f,u.rid);x.serial=u.serial;return x})(umm[s.unitId]):xInfo(s.cat,s.f,(lmm[s.key]||{}).rid);var m=xMismatch(o);return m?('• '+o.title+(o.serial?' (سریال '+o.serial+')':'')+' — رزرو برای '+m):''}).filter(Boolean);
+  if(mms.length&&!confirm('⚠️ هشدار: نام مشتری یا پروژهٔ این حواله با رزرو این کالاها متفاوت است:\n\n'+mms.slice(0,15).join('\n')+(mms.length>15?'\n…':'')+'\n\nحواله خروج: مشتری «'+cust+'» · پروژه «'+proj+'»\n\nمطمئنید که خارج شود؟'))return;
   if(DB.exits.some(function(x){return !x.void&&String(x.no)===no})){toast('شماره حواله تکراری است');$('xNo').classList.add('err');return}$('xNo').classList.remove('err');
   var um=uMap(),items=[];
   // اعتبارسنجی نهایی

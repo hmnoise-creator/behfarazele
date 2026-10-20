@@ -330,6 +330,7 @@ tr.grp2 td{background:#EEF3F2;color:var(--ink2);font-weight:800;font-size:.76rem
 .sup{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:30px;border:1.5px solid var(--line);background:#fff;font-weight:700;font-size:.8rem;cursor:pointer;color:var(--ink2)}
 .sup span{font-size:.95rem}
 .sup.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.sup.am{border-color:#C79A5E;background:#FBF3E8;color:#7A4A12;margin-inline-start:14px}.sup.am.on{background:#8C5A2B;border-color:#8C5A2B;color:#fff}
 .sup-row select{width:auto;min-width:160px;padding:6px 10px;font-size:.8rem}
 .pick-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
 .pick-head h2{margin:0}
@@ -700,6 +701,7 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
   <section id="t-hist" style="display:none">
     <div class="card">
       <div class="sub" id="histSub">
+        <button data-h="card">📦 کارت کالا (ورود و خروج هر محصول)</button>
         <button data-h="exits" class="on">🚚 حواله‌های خروج</button>
         <button data-h="receipts">➕ رسیدهای ورود</button>
         <button data-h="audit">✏️ ویرایش و حذف کالا</button>
@@ -708,6 +710,19 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
       <div class="grid g3" style="margin-bottom:12px" id="histFilter">
         <div class="s2"><input id="hQ" placeholder="جستجو: مشتری، پروژه، پلاک، شماره، تأمین‌کننده، سریال..." autocomplete="off"></div>
         <div><label class="chk" style="margin:8px 0 0"><input type="checkbox" id="hVoid"> نمایش باطل‌شده‌ها</label></div>
+      </div>
+      <div id="pcBox" style="display:none">
+        <div class="grid" style="margin-bottom:10px">
+          <div class="s2"><label class="f">🔎 محصول را پیدا کنید</label><input id="pcQ" placeholder="نام، مدل، سایز، برند… — مثلاً 100*5*3500 یا T9" autocomplete="off"></div>
+          <div class="s2"><label class="f">محصول</label><select id="pcSel"></select></div>
+          <div><label class="f">از تاریخ</label><input id="pcFrom" class="ltr" placeholder="1405/01/01" autocomplete="off"></div>
+          <div><label class="f">تا تاریخ</label><input id="pcTo" class="ltr" placeholder="1405/07/30" autocomplete="off"></div>
+          <div><label class="f">نوع گردش</label><select id="pcType"><option value="">ورود و خروج</option><option value="in">فقط ورود</option><option value="out">فقط خروج</option></select></div>
+          <div><label class="f">طرف حساب / پروژه / سریال</label><input id="pcP" placeholder="تأمین‌کننده، مشتری، پروژه، سریال…" autocomplete="off"></div>
+        </div>
+        <div class="am-tot" id="pcTot"></div>
+        <div class="tbl" id="pcTable"></div>
+        <div class="actions"><button class="btn grn" type="button" id="pcXls">📊 خروجی اکسل کارت کالا</button></div>
       </div>
       <div id="histBody"></div>
     </div>
@@ -731,6 +746,8 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
         <label class="chk"><input type="checkbox" id="rS2" checked> شیت «موجودی فعلی» (ریز هر سریال و اقلام تعدادی موجود)</label>
         <label class="chk"><input type="checkbox" id="rS3" checked> شیت «ورودی‌ها» (ریز هر سریال، تاریخ، تأمین‌کننده، شماره سند)</label>
         <label class="chk"><input type="checkbox" id="rS4" checked> شیت «خروجی‌ها» (ریز حواله‌ها: مشتری، پروژه، پلاک، راننده، سریال)</label>
+        <label class="chk"><input type="checkbox" id="rS5" checked> شیت «گردش هر محصول» (مانده اول بازه، جمع ورود، جمع خروج، مانده آخر بازه، موجودی فعلی)</label>
+        <label class="chk"><input type="checkbox" id="rS6"> شیت «کارت کالا — ریز گردش همهٔ محصولات» (هر ورود و خروج با مانده پس از آن)</label>
         <label class="chk"><input type="checkbox" id="rVoid"> شامل رکوردهای باطل‌شده (با ستون وضعیت)</label>
       </div>
       <div class="note" id="repPreview"></div>
@@ -1957,9 +1974,10 @@ var SUP_CHIPS=[['شکیب جک','🔩'],['آسانسور 110','🛗'],['سنا �
 function renderSupChips(){
   var cur=canonSup($('iSup').value||'');
   if($('supNeed'))$('supNeed').style.display=cur?'none':'';
-  $('supChips').innerHTML=SUP_CHIPS.map(function(c){return '<button type="button" class="sup'+(cur===c[0]?' on':'')+'" data-sup="'+esc(c[0])+'"><span>'+c[1]+'</span>'+esc(c[0])+'</button>'}).join('')+
+  $('supChips').innerHTML=SUP_CHIPS.filter(function(c){return c[0]!=='امانی'}).map(function(c){return '<button type="button" class="sup'+(cur===c[0]?' on':'')+'" data-sup="'+esc(c[0])+'"><span>'+c[1]+'</span>'+esc(c[0])+'</button>'}).join('')+
     CUST_SUP.map(function(n){return '<button type="button" class="sup'+(cur===n?' on':'')+'" data-sup="'+esc(n)+'"><span>🏷️</span>'+esc(n)+'<i class="xs" data-delsup="'+esc(n)+'" title="حذف از فهرست تأمین‌کننده‌ها">✕</i></button>'}).join('')+
-    '<button type="button" class="sup add" data-newsup="1">➕ تأمین‌کنندهٔ جدید</button>';
+    '<button type="button" class="sup add" data-newsup="1">➕ تأمین‌کنندهٔ جدید</button>'+
+    '<button type="button" class="sup am'+(cur==='امانی'?' on':'')+'" data-sup="امانی"><span>🤝</span>امانی</button>';
 }
 $('supChips').addEventListener('click',function(e){
   var x=e.target.closest('[data-delsup]');
@@ -2923,16 +2941,62 @@ function printExit(id){
 var hTab='exits';
 $('histSub').addEventListener('click',function(e){var b=e.target.closest('button[data-h]');if(!b)return;hTab=b.dataset.h;[].forEach.call($('histSub').children,function(x){x.classList.toggle('on',x===b)});renderHist()});
 $('hQ').addEventListener('input',renderHist);$('hVoid').addEventListener('change',renderHist);
+/* ===== 📦 کارت کالا: همهٔ ورود و خروج‌های یک محصول (بدون امانی)، با مانده ابتدای بازه و ماندهٔ جاری ===== */
+function pcKey(cat,f,unit){return cat+'|'+specParts(cat,f).map(function(x){return norm(x||'')}).join('|')+'|'+norm(unit||'عدد')}
+function pcLabel(cat,f){return CATS[cat].name+' — '+(specParts(cat,f).filter(Boolean).join(' · ')||'(بدون مشخصات)')}
+function pcEvents(incVoid){
+  var ev=[];
+  DB.receipts.forEach(function(rc){if(rc.void&&!incVoid)return;rc.lines.forEach(function(l){if(isAm(l))return;var u=l.serials?'عدد':(l.unit||'عدد');
+    ev.push({key:pcKey(l.cat,l.f,u),label:pcLabel(l.cat,l.f),cat:l.cat,unit:u,date:rc.date,ts:rc.ts||0,dir:'in',doc:'رسید '+rc.no,party:rc.supplier||'',proj:[l.f.company,l.f.project].filter(Boolean).join(' / '),qty:l.serials?l.serials.length:l.qty,ser:(l.serials||[]).concat(l.f.bser?[l.f.bser]:[]).join('، '),void:!!rc.void,user:rc.user||''})})});
+  DB.exits.forEach(function(x){if(x.void&&!incVoid)return;x.items.forEach(function(it){if(isAm(it))return;var u=it.type==='u'?'عدد':(it.unit||'عدد');
+    ev.push({key:pcKey(it.cat,it.f,u),label:pcLabel(it.cat,it.f),cat:it.cat,unit:u,date:x.date,ts:x.ts||0,dir:'out',doc:'حواله '+x.no,party:x.customer||'',proj:x.project||'',qty:it.qty,ser:it.serial||((it.f&&it.f.bser)||''),void:!!x.void,user:x.user||''})})});
+  return ev.sort(function(a,b){return a.date.localeCompare(b.date)||a.ts-b.ts});
+}
+function pcProducts(){var m={};pcEvents(false).forEach(function(e){var g=m[e.key]||(m[e.key]={key:e.key,label:e.label,cat:e.cat,unit:e.unit,n:0});g.n++});
+  return Object.keys(m).map(function(k){return m[k]}).sort(function(a,b){return CAT_ORDER.indexOf(a.cat)-CAT_ORDER.indexOf(b.cat)||a.label.localeCompare(b.label,'fa',{numeric:true})})}
+function pcFillSel(){var q=norm($('pcQ').value),cur=$('pcSel').value,ps=pcProducts().filter(function(p){return !q||norm(p.label).indexOf(q)>=0});
+  $('pcSel').innerHTML=(ps.length?'':'<option value="">— محصولی پیدا نشد —</option>')+ps.map(function(p){return '<option value="'+esc(p.key)+'">'+esc(p.label)+' ('+fa(p.n)+' گردش)</option>'}).join('');
+  if(cur&&ps.some(function(p){return p.key===cur}))$('pcSel').value=cur}
+function pcRows(){
+  var key=$('pcSel').value,f=normDate($('pcFrom').value)||'',t=normDate($('pcTo').value)||'',ty=$('pcType').value,pq=norm($('pcP').value),sv=$('hVoid').checked;
+  if(!key)return null;
+  var all=pcEvents(sv).filter(function(e){return e.key===key}),open=0,bal=0,rows=[],tin=0,tout=0;
+  all.forEach(function(e){if(e.void)return;if(f&&e.date<f){open=rnd(open+(e.dir==='in'?e.qty:-e.qty))}});bal=open;
+  all.forEach(function(e){if(f&&e.date<f)return;if(t&&e.date>t)return;
+    if(!e.void){bal=rnd(bal+(e.dir==='in'?e.qty:-e.qty))}
+    if(ty&&e.dir!==ty)return;if(pq&&norm([e.party,e.proj,e.ser,e.doc].join(' ')).indexOf(pq)<0)return;
+    if(!e.void){if(e.dir==='in')tin=rnd(tin+e.qty);else tout=rnd(tout+e.qty)}
+    rows.push({e:e,bal:bal})});
+  var cur=0;stockUnits().forEach(function(u){if(!isAm(u)&&pcKey(u.cat,u.f,'عدد')===key)cur++});stockLots().forEach(function(l){if(!isAm(l)&&pcKey(l.cat,l.f,l.unit)===key)cur=rnd(cur+l.rem)});
+  return {rows:rows,open:open,tin:tin,tout:tout,close:bal,cur:cur,unit:(all[0]||{}).unit||'',label:(all[0]||{}).label||''};
+}
+function renderPC(){
+  var R=pcRows();
+  if(!R){$('pcTot').innerHTML='';$('pcTable').innerHTML='<div class="empty">یک محصول انتخاب کنید</div>';return}
+  var u=esc(R.unit);
+  $('pcTot').innerHTML='<span>مانده ابتدای بازه: <b>'+fa(R.open)+'</b> '+u+'</span><span>جمع ورود: <b style="color:#1F8A4C">'+fa(R.tin)+'</b></span><span>جمع خروج: <b style="color:#C0392B">'+fa(R.tout)+'</b></span><span>مانده پایان بازه: <b>'+fa(R.close)+'</b> '+u+'</span><span>موجودی فعلی انبار: <b>'+fa(R.cur)+'</b> '+u+'</span>';
+  $('pcTable').innerHTML=R.rows.length?'<table class="amx"><thead><tr><th>تاریخ</th><th>نوع</th><th>سند</th><th>تأمین‌کننده / مشتری</th><th>پروژه</th><th>ورود</th><th>خروج</th><th>مانده</th><th>سریال</th><th>کاربر</th></tr></thead><tbody>'+
+    R.rows.map(function(r){var e=r.e;return '<tr'+(e.void?' style="opacity:.5;text-decoration:line-through"':'')+'><td>'+fdate(e.date)+'</td><td>'+(e.dir==='in'?'<span class="tag in">ورود</span>':'<span class="tag out">خروج</span>')+(e.void?' <span class="tag void">باطل</span>':'')+'</td><td>'+esc(fa(e.doc))+'</td><td>'+esc(e.party||'—')+'</td><td>'+esc(e.proj||'—')+'</td><td>'+(e.dir==='in'?'<b>'+fa(e.qty)+'</b>':'')+'</td><td>'+(e.dir==='out'?'<b>'+fa(e.qty)+'</b>':'')+'</td><td>'+fa(r.bal)+'</td><td class="mono wr">'+esc(e.ser||'—')+'</td><td>'+esc(e.user||'—')+'</td></tr>'}).join('')+'</tbody></table>'
+    :'<div class="empty">در این بازه گردشی برای این محصول نیست</div>';
+}
+['pcFrom','pcTo','pcP'].forEach(function(i){$(i).addEventListener('input',renderPC)});['pcType','pcSel'].forEach(function(i){$(i).addEventListener('change',renderPC)});
+$('pcQ').addEventListener('input',function(){pcFillSel();renderPC()});
+$('pcXls').onclick=function(){var R=pcRows();if(!R){toast('محصول را انتخاب کنید');return}
+  var rows=[['مانده ابتدای بازه','','','','','','',R.open,'','']].concat(R.rows.map(function(r){var e=r.e;return [e.date,e.dir==='in'?'ورود':'خروج',e.doc,e.party,e.proj,e.dir==='in'?e.qty:'',e.dir==='out'?e.qty:'',r.bal,e.ser,e.void?'باطل':'']}));
+  rows.push(['جمع','','','','',R.tin,R.tout,R.close,'','']);
+  dl(buildXlsx([{name:'کارت کالا',head:['تاریخ','نوع','سند','تأمین‌کننده / مشتری','پروژه','ورود','خروج','مانده','سریال','وضعیت'],rows:rows}]),'kart-kala-'+todayJ().replace(/\//g,'-')+'.xlsx');toast('✓ اکسل کارت کالا ساخته شد')};
 function renderHist(){
+  $('pcBox').style.display=hTab==='card'?'':'none';$('histFilter').querySelector('.s2').style.display=hTab==='card'?'none':'';$('histBody').style.display=hTab==='card'?'none':'';
+  if(hTab==='card'){$('hVoid').closest('div').style.display='';pcFillSel();renderPC();return}
   var q=norm($('hQ').value),sv=$('hVoid').checked,b=$('histBody'),rm=rMap();
   $('hVoid').closest('div').style.display=(hTab==='log'||hTab==='audit')?'none':'';
   if(hTab==='exits'){
-    var l=DB.exits.filter(function(x){if(x.void&&!sv)return false;if(!q)return true;
+    var l=DB.exits.filter(function(x){if(x.items.length&&x.items.every(function(i){return isAm(i)}))return false;if(x.void&&!sv)return false;if(!q)return true;
       return norm([x.no,x.customer,x.project,x.plate,x.driver,x.dest,x.date].concat(x.items.map(function(i){return (i.serial||'')+' '+specText(i.cat,i.f)})).join(' ')).indexOf(q)>=0}).sort(function(a,c){return c.ts-a.ts});
     b.innerHTML='<div class="tbl"><table><thead><tr><th>شماره</th><th>تاریخ</th><th>مشتری</th><th>پروژه</th><th>پلاک / راننده</th><th>اقلام</th><th>وضعیت</th><th></th></tr></thead><tbody>'+(l.length?l.map(function(x){
       return '<tr><td><b>'+esc(fa(x.no))+'</b></td><td>'+fa(x.date)+'</td><td>'+esc(x.customer)+'</td><td>'+esc(x.project||'—')+'</td><td>'+esc([x.plate,x.driver].filter(Boolean).join(' / ')||'—')+'</td><td>'+fa(x.items.length)+'</td><td>'+(x.void?'<span class="tag void">باطل</span>':'<span class="tag out">ثبت‌شده</span>')+'</td><td style="white-space:nowrap"><button class="btn sm" data-vx="'+x.id+'">مشاهده / چاپ</button> '+(x.void?'':'<button class="btn del sm" data-voidx="'+x.id+'">ابطال</button>')+'</td></tr>'}).join(''):'<tr><td colspan="8" class="empty">حواله‌ای ثبت نشده است</td></tr>')+'</tbody></table></div>';
   }else if(hTab==='receipts'){
-    var l2=DB.receipts.filter(function(r){if(r.void&&!sv)return false;if(!q)return true;
+    var l2=DB.receipts.filter(function(r){if(canonSup(r.supplier||'')==='امانی'||(r.lines.length&&r.lines.every(function(i){return isAm(i)})))return false;if(r.void&&!sv)return false;if(!q)return true;
       return norm([r.no,r.supplier,r.docNo,r.date,r.note].concat(r.lines.map(function(i){return (i.serials||[]).join(' ')+' '+specText(i.cat,i.f)})).join(' ')).indexOf(q)>=0}).sort(function(a,c){return c.ts-a.ts});
     b.innerHTML='<div class="tbl"><table><thead><tr><th>رسید</th><th>تاریخ</th><th>تأمین‌کننده</th><th>شماره سند</th><th>خلاصه اقلام</th><th>وضعیت</th><th></th></tr></thead><tbody>'+(l2.length?l2.map(function(r){
       var sum=r.lines.map(function(i){return CATS[i.cat].name+' ×'+fa(i.serials?i.serials.length:i.qty)}).join('، ');
@@ -2942,7 +3006,8 @@ function renderHist(){
     b.innerHTML='<div class="tbl"><table><thead><tr><th>تاریخ</th><th>ساعت</th><th>کاربر</th><th>عملیات</th><th>کالا</th><th>قبل</th><th>بعد</th><th>علت</th></tr></thead><tbody>'+(l4.length?l4.slice(0,500).map(function(a){
       return '<tr><td>'+fa(a.date)+'</td><td>'+esc(a.time)+'</td><td>'+esc(a.user)+'</td><td>'+(a.type==='delete'?'<span class="tag dl">حذف</span>':'<span class="tag part">ویرایش</span>')+'</td><td>'+esc(a.title)+'</td><td>'+esc(a.before||'')+'</td><td>'+esc(a.after||'')+'</td><td>'+esc(a.reason||'—')+'</td></tr>'}).join(''):'<tr><td colspan="8" class="empty">هنوز ویرایش یا حذفی ثبت نشده است</td></tr>')+'</tbody></table></div><div class="note">این فهرست محدودیت حجمی ندارد و همراه فایل پشتیبان (JSON) ذخیره می‌شود. اطلاعات کامل کالاهای حذف‌شده نیز در فایل پشتیبان نگهداری می‌شود.</div>';
   }else{
-    var l3=DB.log.filter(function(g){return !q||norm(g.action+' '+g.detail+' '+g.user+' '+g.date).indexOf(q)>=0}).slice(0,400);
+    var CAPL=['ورود سرمایه','امانی دادن سرمایه','برگشت سرمایه','بازگرداندن امانت به صاحب','امانت نزد ما'];
+    var l3=DB.log.filter(function(g){if(CAPL.indexOf(g.action)>=0||/امانی/.test(g.detail||''))return false;return !q||norm(g.action+' '+g.detail+' '+g.user+' '+g.date).indexOf(q)>=0}).slice(0,400);
     b.innerHTML='<div class="tbl"><table><thead><tr><th>تاریخ</th><th>ساعت</th><th>کاربر</th><th>عملیات</th><th>جزئیات</th></tr></thead><tbody>'+(l3.length?l3.map(function(g){return '<tr><td>'+fa(g.date)+'</td><td>'+esc(g.time)+'</td><td>'+esc(g.user)+'</td><td><b>'+esc(g.action)+'</b></td><td>'+esc(g.detail)+'</td></tr>'}).join(''):'<tr><td colspan="5" class="empty">موردی نیست</td></tr>')+'</tbody></table></div><div class="note">۴۰۰ رویداد آخر نمایش داده می‌شود.</div>';
   }
 }
@@ -3066,6 +3131,13 @@ $('btnXlsx').onclick=function(){
   if($('rS1').checked)sheets.push({name:'خلاصه موجودی',head:['دسته','برند','مدل / سایز / نام','مشخصات تکمیلی','شرکت خریدار','پروژه','واحد','ورود در بازه','خروج در بازه','موجودی فعلی'],rows:summaryRowsX(r)});
   if($('rS2').checked)sheets.push({name:'موجودی فعلی',head:['دسته','برند','مدل / سایز / نام','مشخصات تکمیلی','شرکت خریدار','پروژه','سریال','تعداد','واحد','تأمین‌کننده','تاریخ ورود','شماره رسید','شماره سند','هماهنگی با حسابداری (تاریخ)'],rows:stockRowsX()});
   if($('rS3').checked)sheets.push({name:'ورودی‌ها',head:['تاریخ ورود','شماره رسید','تأمین‌کننده','شماره سند','دسته','برند','مدل / سایز / نام','مشخصات تکمیلی','شرکت خریدار','پروژه','سریال','تعداد','واحد','توضیحات','ثبت‌کننده'].concat(sfx),rows:entryRows(r,inc)});
+  if($('rS5').checked){var GM={},cur={};pcEvents(false).forEach(function(e){var g=GM[e.key]||(GM[e.key]={label:e.label,cat:e.cat,unit:e.unit,open:0,inn:0,out:0});
+      if(e.date<r.from)g.open=rnd(g.open+(e.dir==='in'?e.qty:-e.qty));else if(e.date<=r.to){if(e.dir==='in')g.inn=rnd(g.inn+e.qty);else g.out=rnd(g.out+e.qty)}});
+    stockUnits().forEach(function(u){if(!isAm(u)){var k=pcKey(u.cat,u.f,'عدد');cur[k]=(cur[k]||0)+1}});stockLots().forEach(function(l){if(!isAm(l)){var k=pcKey(l.cat,l.f,l.unit);cur[k]=rnd((cur[k]||0)+l.rem)}});
+    sheets.push({name:'گردش هر محصول',head:['دسته','محصول','واحد','مانده اول بازه','جمع ورود','جمع خروج','مانده آخر بازه','موجودی فعلی انبار'],rows:Object.keys(GM).map(function(k){var g=GM[k];return [CATS[g.cat].name,g.label.replace(/^[^—]*— /,''),g.unit,g.open,g.inn,g.out,rnd(g.open+g.inn-g.out),cur[k]||0]}).sort(function(a,b){return a[0].localeCompare(b[0],'fa')||a[1].localeCompare(b[1],'fa',{numeric:true})})})}
+  if($('rS6').checked){var B={},rr=[];pcEvents(false).forEach(function(e){B[e.key]=rnd((B[e.key]||0)+(e.dir==='in'?e.qty:-e.qty));if(inR(e.date,r))rr.push([e.label,e.date,e.dir==='in'?'ورود':'خروج',e.doc,e.party,e.proj,e.dir==='in'?e.qty:'',e.dir==='out'?e.qty:'',B[e.key],e.unit,e.ser])});
+    rr.sort(function(a,b){return a[0].localeCompare(b[0],'fa',{numeric:true})||a[1].localeCompare(b[1])});
+    sheets.push({name:'کارت کالا',head:['محصول','تاریخ','نوع','سند','تأمین‌کننده / مشتری','پروژه','ورود','خروج','مانده پس از گردش','واحد','سریال'],rows:rr})}
   if($('rS4').checked)sheets.push({name:'خروجی‌ها',head:['تاریخ خروج','شماره حواله','مشتری','پروژه','مقصد','پلاک ماشین','راننده','موبایل راننده','تحویل‌گیرنده','دسته','برند','مدل / سایز / نام','مشخصات تکمیلی','شرکت خریدار','پروژه','سریال','تعداد','واحد','توضیحات','ثبت‌کننده'].concat(sfx),rows:exitRowsX(r,inc)});
   if(!sheets.length){toast('حداقل یک شیت را انتخاب کنید');return}
   var blob=buildXlsx(sheets);

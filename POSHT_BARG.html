@@ -1145,6 +1145,13 @@ table.pi-totals-table tr.totals-comm th,table.pi-totals-table tr.totals-comm td{
 table.pi-totals-table tr.totals-discount th,table.pi-totals-table tr.totals-discount td{color:#b8305f}
 table.pi-totals-table tr.totals-grand th,table.pi-totals-table tr.totals-grand td{font-size:14.5px;background:#f0f0f0}
 table.pi-totals-table tr.totals-final th,table.pi-totals-table tr.totals-final td{font-size:15.5px;background:var(--brand-teal);color:#fff}
+/* [BF-BACK-FINAL] فقط چاپ پشت برگ: همهٔ اعداد قبل از مبلغ نهایی یک‌شکل؛ مبلغ نهایی بولد و داخل کادر ویژه */
+#invoicePrintSheetBack table.pi-totals-table tr:not(.totals-final) th{background:#f7f7f7 !important;color:#333 !important;font-size:12.5px !important;font-weight:700 !important}
+#invoicePrintSheetBack table.pi-totals-table tr:not(.totals-final) td{background:#fff !important;color:#222 !important;font-size:12.5px !important;font-weight:600 !important}
+#invoicePrintSheetBack table.pi-totals-table tr.totals-final th,#invoicePrintSheetBack table.pi-totals-table tr.totals-final td{background:#E6F2EF !important;color:#0B3B36 !important;border:3px solid #0B3B36 !important;padding:11px 12px !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#invoicePrintSheetBack table.pi-totals-table tr.totals-final th{font-size:14px !important;font-weight:900 !important;border-left-width:1px !important}
+#invoicePrintSheetBack table.pi-totals-table tr.totals-final td{font-size:19px !important;font-weight:900 !important;border-right-width:1px !important;letter-spacing:.3px}
+#invoicePrintSheetBack table.pi-totals-table tr.totals-final td span{font-weight:900}
 
 /* باکس «توضیحات» — بین جدول‌های فاکتور و متن حقوقی، در پایین پیش‌فاکتور */
 .pi-notes{

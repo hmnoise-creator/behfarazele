@@ -3743,9 +3743,7 @@ var BF_WH_RO=(function(){var o=bfWhOperator();if(!o)return location.protocol!=='
   if(o&&o.name){var u=document.getElementById('userName');if(u){u.value=o.name;u.readOnly=true;try{DB.settings.user=o.name}catch(e){}}}
   if(!BF_WH_RO)return;
   document.body.classList.add('bf-ro');
-  var bar=document.createElement('div');bar.className='bf-ro-bar';
-  bar.textContent='👁️ دسترسی فقط مشاهده'+(o&&o.name?' ('+o.name+')':'')+' — موجودی، تاریخچه و گزارش اکسل باز است؛ ثبت ورود، حواله خروج، ویرایش و حذف فقط برای آقای سیمنی و نوری.';
-  var nav=document.getElementById('nav');if(nav)nav.parentNode.insertBefore(bar,nav);
+
   var BLOCK='[data-t="in"],[data-t="out"],#mDel,#mEdit,#mLDel,#mLEd,#mMove,[data-ued],[data-udel],[data-led],[data-ldel],[data-voidx],[data-voidr],#hVoid,#rVoid,[data-delsup],[data-newsup],[data-mvto],[data-gox],#amGo,[data-amu],#cpAdd,#cpBorrow,[data-cpo],[data-cpr],[data-cpi],[data-cpb],[data-cpbi],#fileRestore,#eSave,#dOk,#rsnOk,#btnSaveIn,#btnSaveOut,#cmOk';
   function deny(){try{toast('⛔ دسترسی شما فقط مشاهده است')}catch(e){alert('دسترسی شما فقط مشاهده است')}}
   document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest(BLOCK);if(b){e.preventDefault();e.stopImmediatePropagation();deny()}},true);

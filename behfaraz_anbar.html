@@ -52,7 +52,9 @@ button,input,select,textarea{font-family:inherit}
 .nav{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 18px;padding:10px;background:linear-gradient(180deg,#C9D2D0,#B9C4C2);border-radius:20px;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -1px 0 rgba(0,0,0,.08);position:sticky;top:8px;z-index:30}
 .nav button[data-t]{--c:#0E6B66;flex:1 1 120px;display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 12px;border:0;border-radius:14px;cursor:pointer;
   background:linear-gradient(180deg,#F7F9F9,#E3E8E7);color:var(--ink);box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 2px 4px rgba(20,40,40,.15);transition:transform .08s}
-.nav button[data-t="in"]{--c:#1F8A4C}.nav button[data-t="out"]{--c:#2559B8}.nav button[data-t="hist"]{--c:#5B4FB3}.nav button[data-t="rep"]{--c:#0E7C9E}
+.nav button[data-t="in"]{--c:#1F8A4C}.nav button[data-t="amani"]{--c:#8C5A2B}
+.am-banner{display:none;margin:0 0 12px;padding:10px 14px;border-radius:12px;background:#FBF3E8;border:1px solid #E7C9A0;color:#6B4316;font-weight:700;font-size:.85rem}
+body[data-tab="amani"] .am-banner{display:block}body[data-tab="amani"] .vsw{display:none}.nav button[data-t="out"]{--c:#2559B8}.nav button[data-t="hist"]{--c:#5B4FB3}.nav button[data-t="rep"]{--c:#0E7C9E}
 .nav button[data-t] .ti{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:1.1rem;flex:none;
   background:radial-gradient(circle at 50% 35%,#fff,#D9DFDE 70%);box-shadow:0 0 0 2px #B7C1BF,inset 0 -2px 3px rgba(0,0,0,.12)}
 .nav button[data-t] .tl2{font-weight:800;font-size:.88rem}
@@ -574,12 +576,14 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
     <button data-t="stock" class="on"><span class="ti">📦</span><span class="tl2">موجودی</span></button>
     <button data-t="in"><span class="ti">📥</span><span class="tl2">ثبت ورود</span></button>
     <button data-t="out"><span class="ti">🚚</span><span class="tl2">حوالهٔ خروج</span></button>
+    <button data-t="amani"><span class="ti">🤝</span><span class="tl2">امانی</span></button>
     <button data-t="hist"><span class="ti">🗂️</span><span class="tl2">تاریخچه</span></button>
     <button data-t="rep"><span class="ti">📊</span><span class="tl2">گزارش اکسل</span></button>
   </nav>
 
   <!-- ============ موجودی ============ -->
   <section id="t-stock">
+    <div class="am-banner">🤝 کالاهای امانی — این اقلام جزو موجودی انبار بهفراز نیستند و فقط این‌جا نمایش داده می‌شوند. ورود: «ثبت ورود» با تأمین‌کنندهٔ «امانی» · خروج / تحویل: دکمهٔ 🚚 حواله در همین جدول.</div>
     <div class="vsw"><div class="seg2" role="tablist"><button type="button" data-vm="wh" class="on">🏭 نمای انبار</button><button type="button" data-vm="tbl">📋 جدول و جزئیات</button></div><span class="sp"></span></div>
     <div id="whView"><div class="whwrap">
       <div class="whhead"><h2>انبار بهفراز — نقشهٔ چیدمان</h2><span id="whKpi"></span><span class="sp"></span>
@@ -859,18 +863,20 @@ CATALOG['jack.brand']=L(['شکیب','ویتور','بلین'],function(b){return 
 var PU_TYPES=[['پاور مکانیکی','شیر مکانیکی'],['پاور هوس تحت لیسانس','HE Hevos · تحت لیسانس ایتالیا'],['پاور هوس مونتاژ ایتالیا','HE Hevos · ساخت ایتالیا'],['پاور درایو دار','با درایو (اینورتر)']];
 CATALOG['pu.spec']=PU_TYPES.map(function(t){return {v:t[0],h:t[1]}});
 CATALOG['pu.model']=(CATALOG['pu.model']||[]).filter(function(c){return !/^(پاور|هووس)/.test(c.v)});
-var SUPPLIER_SEEDS=['شکیب جک','آسانسور 110','سنا پنل'], CUST_SUP=[];
+var SUPPLIER_SEEDS=['شکیب جک','آسانسور 110','سنا پنل','امانی'], CUST_SUP=[];
 var CHASSIS_CATS=['chcab','chflr'], CHASSIS_ACC=['شاسی کابین','شاسی طبقه'];
 /* پروفایل تأمین‌کننده‌های اصلی: با انتخاب تأمین‌کننده فقط دسته‌های مربوط به او باز می‌شود (دکمهٔ «نمایش همه دسته‌ها» همیشه هست) */
 var SUP_PROFILES=[
   /* brands: فقط این برندها برای آن دسته پیشنهاد می‌شود | noBrand: این برندها پیشنهاد نمی‌شود */
   {id:'shakib',m:['شکیب'],brand:'شکیب',cats:['jack','pu','motor'],brands:{jack:['شکیب'],pu:['شکیب','بلین']},noBrand:{motor:['هوبر','جنتلرایز']}},
   {id:'a110',m:['110','۱۱۰','ویتور','امار','omar','wittur'],brand:'ویتور',cats:['jack','pu','motor','falake','oil','door','rail','panel','elec','setup'],brands:{jack:['ویتور'],pu:['ویتور'],motor:['هوبر','جنتلرایز']}},
-  {id:'sena',m:['سنا'],brand:'',cats:['chcab','chflr']}
+  {id:'sena',m:['سنا'],brand:'',cats:['chcab','chflr']},
+  /* امانی: کالای امانی همهٔ دسته‌ها را دارد اما هرگز جزو موجودی انبار ما شمرده نمی‌شود (تب جدا) */
+  {id:'amani',m:['امانی'],brand:'',cats:['jack','pu','motor','falake','chcab','chflr','oil','door','rail','panel','elec','setup','acc']}
 ];
 var showAllCats=false;
 function supProfileOf(name){var s=norm(name||'');if(!s)return null;for(var i=0;i<SUP_PROFILES.length;i++){var p=SUP_PROFILES[i];for(var j=0;j<p.m.length;j++){if(s.indexOf(norm(p.m[j]))>=0)return p}}return null}
-function canonSup(n){if(CUST_SUP.indexOf((n||'').trim())>=0)return (n||'').trim();var p=supProfileOf(n);if(!p)return (n||'').trim();return {shakib:'شکیب جک',a110:'آسانسور 110',sena:'سنا پنل',parham:'پرهام صنعت'}[p.id]}
+function canonSup(n){if(CUST_SUP.indexOf((n||'').trim())>=0)return (n||'').trim();var p=supProfileOf(n);if(!p)return (n||'').trim();return {shakib:'شکیب جک',a110:'آسانسور 110',sena:'سنا پنل',parham:'پرهام صنعت',amani:'امانی'}[p.id]}
 function supProfile(){var e=document.getElementById('iSup');return e?supProfileOf(e.value):null}
 function curSup(){var e=document.getElementById('iSup');return e?e.value.trim():''}
 function hasSup(){return !!curSup()}
@@ -917,8 +923,8 @@ var SMART_CATS=['door','rail','panel','elec','setup'];
 var ACC_FOR={jack:'جک',pu:'پاوریونیت',motor:'موتور',chcab:'شاسی کابین',chflr:'شاسی طبقه'}, ACC_GROUPS=['جک','پاوریونیت','موتور','شاسی کابین','شاسی طبقه'];
 function isSerialMode(cat,chk){var s=CATS[cat].serial;return s===true||(s==='opt'&&!!chk)}
 function specParts(cat,f){return [f.brand||'',f.size||f.model||f.type||f.name||'',f.spec||'']}
-function specText(cat,f){return specParts(cat,f).concat(f.for?['ویژهٔ '+f.for]:[],f.parent?['متعلق به سریال '+f.parent]:[],f.company?['شرکت: '+f.company]:[],f.project?['پروژه: '+f.project]:[]).filter(Boolean).join(' · ')||'(بدون مشخصات)'}
-function lotKey(cat,f,unit){return cat+'|'+['brand','size','model','type','name','spec'].map(function(k){return norm(f[k]||'')}).join('|')+'|'+norm(unit||'')+(f.for?'|f:'+norm(f.for):'')+(f.company?'|c:'+norm(f.company):'')+(f.project?'|p:'+norm(f.project):'')+(f.parent?'|pr:'+nser(f.parent):'')}
+function specText(cat,f){return specParts(cat,f).concat(f.amani?['🤝 امانی']:[],f.for?['ویژهٔ '+f.for]:[],f.parent?['متعلق به سریال '+f.parent]:[],f.company?['شرکت: '+f.company]:[],f.project?['پروژه: '+f.project]:[]).filter(Boolean).join(' · ')||'(بدون مشخصات)'}
+function lotKey(cat,f,unit){return (f&&f.amani?'am:':'')+cat+'|'+['brand','size','model','type','name','spec'].map(function(k){return norm(f[k]||'')}).join('|')+'|'+norm(unit||'')+(f.for?'|f:'+norm(f.for):'')+(f.company?'|c:'+norm(f.company):'')+(f.project?'|p:'+norm(f.project):'')+(f.parent?'|pr:'+nser(f.parent):'')}
 
 /* ====================== ذخیره‌سازی ====================== */
 var LS_KEY='behfaraz_anbar_v1', memOnly=false;
@@ -977,10 +983,12 @@ function uMap(){var m={};DB.units.forEach(function(u){m[u.id]=u});return m}
 function eMap(){var m={};DB.exits.forEach(function(x){m[x.id]=x});return m}
 function stockUnits(){return DB.units.filter(function(u){return u.status==='in'})}
 function stockLots(){return DB.lots.filter(function(l){return l.status!=='void'&&l.rem>0})}
+/* کالای امانی (f.amani) جزو موجودی انبار ما نیست — فقط در تب «امانی» دیده می‌شود */
+function isAm(o){return !!(o&&o.f&&o.f.amani)}
 
 /* ====================== هدر ====================== */
 function updateHeader(){
-  var n=stockUnits().length+stockLots().length;
+  var n=stockUnits().filter(function(u){return !isAm(u)}).length+stockLots().filter(function(l){return !isAm(l)}).length;
   $('statPill').textContent='📦 '+fa(n)+' قلم موجود';
   var b=$('bkChip'),lb=DB.settings.lastBackup;
   if(memOnly){b.className='chip warn';b.textContent='⚠️ ذخیره‌سازی مرورگر فعال نیست!';return}
@@ -1111,11 +1119,15 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal()
 
 /* ====================== ناوبری ====================== */
 var curTab='stock';
+var curTab0='';
 function go(t){
   curTab=t;document.body.dataset.tab=t;
-  ['stock','in','out','hist','rep'].forEach(function(x){$('t-'+x).style.display=x===t?'':'none'});
+  if((t==='amani')!==(curTab0==='amani')){sbG='';sbSel=[];sbQ=''}curTab0=t;
+  ['stock','in','out','hist','rep'].forEach(function(x){$('t-'+x).style.display=(x===t||(t==='amani'&&x==='stock'))?'':'none'});
   [].forEach.call($('nav').children,function(b){b.classList.toggle('on',b.dataset.t===t)});
+  if(t==='stock'&&typeof stockMode!=='undefined'){$('whView').style.display=stockMode==='wh'?'':'none';$('tblView').style.display=stockMode==='wh'?'none':''}
   if(t==='stock')renderStock();
+  if(t==='amani'){$('whView').style.display='none';$('tblView').style.display='';__renderStock0()}
   if(t==='out')renderOut();
   if(t==='hist')renderHist();
   if(t==='rep')renderRepPreview();
@@ -1193,14 +1205,15 @@ function sbVal(it,f){return f==='sup'?it.sup:f==='type'?it.tab:f==='tsup'?sbTsup
 function sbValLabel(f,v){if(f!=='type')return v;for(var i=0;i<DASH.length;i++)for(var j=0;j<DASH[i].tabs.length;j++)if(DASH[i].tabs[j].id===v)return DASH[i].tabs[j].name;return v}
 function sbItems(){
   var rm=rMap(),em=eMap(),out=[],m={};
+  var amOnly=curTab==='amani';
   DB.units.forEach(function(u){
-    if(u.status==='void'||(u.status!=='in'&&!sbOut))return;
+    if(u.status==='void'||(u.status!=='in'&&!sbOut))return;if(isAm(u)!==amOnly)return;
     var f=u.f||{},bt=boardTabOf(u.cat,f);if(!bt)return;var r=rm[u.rid]||{},x=u.exitId?em[u.exitId]:null;
     out.push({k:'u',id:u.id,cat:u.cat,f:f,g:bt.g.id,gi:DASH.indexOf(bt.g),tab:bt.t.id,ti:bt.g.tabs.indexOf(bt.t),sup:sbSupName(r.supplier),brand:f.brand||'',
       pk:boardKeyOf(u.cat,f,'عدد'),serial:u.serial,qty:u.status==='in'?1:0,unit:'عدد',date:r.date||'',rnos:r.no!=null?[r.no]:[],isOut:u.status==='out',xno:x?x.no:'',acct:u.acct});
   });
   DB.lots.forEach(function(l){
-    if(l.status==='void')return;var r=rm[l.rid]||{};
+    if(l.status==='void')return;if(isAm(l)!==amOnly)return;var r=rm[l.rid]||{};
     var g=m[l.key]||(m[l.key]={key:l.key,cat:l.cat,f:l.f||{},unit:l.unit,inn:0,rem:0,date:'',rnos:[],sup:sbSupName(r.supplier),nL:0,nA:0,acctDate:''});
     g.inn=rnd(g.inn+l.qty);g.rem=rnd(g.rem+l.rem);g.nL++;if(l.acct){g.nA++;if(l.acct>g.acctDate)g.acctDate=l.acct}
     if(r.date&&r.date>g.date)g.date=r.date;if(r.no!=null&&g.rnos.indexOf(r.no)<0)g.rnos.push(r.no);
@@ -1662,13 +1675,13 @@ var MAIN_K=QS_MAINK;
 /* ---------- متعلقات هوشمند هر محصول (زیرمجموعهٔ همان کالا ثبت می‌شوند) ---------- */
 var KITS={
   wjack:{t:'جعبه متعلقات جک ویتور (آسانسور ۱۱۰)',for:'جک',brand:'ویتور',items:[{n:'جعبه متعلقات جک ویتور',ser:'req',def:1}]},
-  hevos:{t:'برد هوس (Hevos) — اگر همراه این پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:'opt',tag:'برد هوس'}]},
-  hevosIT:{t:'برد هوس (Hevos) — اگر همراه این پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:'opt',tag:'برد هوس'}]},
+  hevos:{t:'برد هوس (Hevos) — اگر همراه این پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:'opt',tag:'برد هوس'},{n:'درخت سیم داخل پاور یونیت',tag:'درخت سیم داخل پاور'}]},
+  hevosIT:{t:'برد هوس (Hevos) — اگر همراه این پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:'opt',tag:'برد هوس'},{n:'درخت سیم داخل پاور یونیت',tag:'درخت سیم داخل پاور'}]},
   shpu:{t:'شیر پاوریونیت شکیب — شیری که همراه این پاور است تیک بزنید',for:'پاوریونیت',brand:'شکیب',items:[
-    {n:'شیر شکیب 4 بوبین',ser:'opt',tag:'شیر شکیب 4 بوبین'},{n:'شیر شکیب 2 بوبین مستغرق',tag:'شیر شکیب 2 بوبین مستغرق'},{n:'شیر شکیب تک بوبین مستغرق',tag:'شیر شکیب تک بوبین مستغرق'},
-    {n:'شیر شکیب بلین آلمان 4 بوبین',ser:'opt',tag:'شیر بلین آلمان 4 بوبین'},{n:'شیر شکیب بلین آلمان تک بوبین',tag:'شیر بلین آلمان تک بوبین'},
-    {n:'شیر شکیب 2 بوبین موتور خشک',tag:'شیر 2 بوبین موتور خشک'},{n:'شیر شکیب 1 بوبین موتور خشک',tag:'شیر 1 بوبین موتور خشک'},
-    {n:'شیر شکیب مستغرق 2 بوبین بلین آلمان',tag:'شیر مستغرق 2 بوبین بلین آلمان'},{n:'شیر شکیب 1 بوبین مستغرق بلین آلمان',tag:'شیر 1 بوبین مستغرق بلین آلمان'}]},
+    {n:'شیر شکیب 4 بوبین',ser:'req',tag:'شیر شکیب 4 بوبین'},{n:'شیر شکیب 2 بوبین مستغرق',ser:'opt',tag:'شیر شکیب 2 بوبین مستغرق'},{n:'شیر شکیب تک بوبین مستغرق',ser:'opt',tag:'شیر شکیب تک بوبین مستغرق'},
+    {n:'شیر شکیب بلین آلمان 4 بوبین',ser:'req',tag:'شیر بلین آلمان 4 بوبین'},{n:'شیر شکیب بلین آلمان تک بوبین',ser:'req',tag:'شیر بلین آلمان تک بوبین'},
+    {n:'شیر شکیب 2 بوبین موتور خشک',ser:'opt',tag:'شیر 2 بوبین موتور خشک'},{n:'شیر شکیب 1 بوبین موتور خشک',ser:'opt',tag:'شیر 1 بوبین موتور خشک'},
+    {n:'شیر شکیب مستغرق 2 بوبین بلین آلمان',ser:'req',tag:'شیر مستغرق 2 بوبین بلین آلمان'},{n:'شیر شکیب 1 بوبین مستغرق بلین آلمان',ser:'req',tag:'شیر 1 بوبین مستغرق بلین آلمان'}]},
   kflr:{t:'متعلقات پنل طبقه — هر کدام همراه این پنل است تیک بزنید',for:'شاسی طبقه',brand:'',items:[{n:'برد سریال'},{n:'تگ یا کارت'},{n:'قاب فلزی طبقه توکار'}]},
   kcab:{t:'متعلقات پنل کابین — هر کدام همراه این پنل است تیک بزنید',for:'شاسی کابین',brand:'',items:[{n:'گوشی آیفون'},{n:'فلش و کابل فتو فریم'},{n:'براکت نصب'},{n:'کلیدهای قفل پنل لمسی'}]},
   pudrv:{t:'تجهیزات پاور درایودار — هر کدام همراه پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',items:[{n:'درایو زیمنس ویتور',ser:1,tag:'درایو زیمنس'},{n:'مقاومت ترمز ویتور',tag:'مقاومت ترمز'}]},
@@ -1757,27 +1770,25 @@ var MOTOR_ACC=['درخت سیم 6 متری (دیسکی جنتلرایز)','در�
 function motorAccItems(){return MOTOR_ACC.map(function(n,i){return {id:'mot'+i,n:n,for:'موتور'}})}
 var PARTS={
   shakib:{t:'متعلقات شکیب',brand:'شکیب',items:[
-    {id:'kar',n:'کاراسلینگ شکیب',for:'جک',u:'دستگاه',opts:KAR_SH.names,optL:'مدل کاراسلینگ',fields:['دهانه ریل','سایز ریل'],fopts:karFopts(KAR_SH)},
-    {id:'rupt',n:'رپچر شکیب',for:'جک',opts:['1 اینچ','1-1/2 اینچ','4 پیچ 1-1/4 اینچ'],optL:'سایز',ser:1},
-    {id:'flow',n:'فلوکنترل شکیب',for:'جک'},
+    {id:'kar',n:'کاراسلینگ شکیب',for:'جک',u:'دستگاه',opts:KAR_SH.names,optL:'مدل کاراسلینگ',fields:['دهانه ریل','سایز ریل'],fopts:karFopts(KAR_SH),req:['دهانه ریل','سایز ریل'],subs:['ستون','تسمه','قوطی'],subT:'زیرمجموعهٔ کاراسلینگ'},
+    {id:'rupt',n:'رپچر شکیب',for:'جک',opts:['1 اینچ','1-1/2 اینچ','4 پیچ 1-1/4 اینچ'],optL:'سایز',ser:'req'},
+    {id:'flow',n:'فلوکنترل شکیب',for:'جک',opts:['3/8 اینچ','1/2 اینچ','3/4 اینچ'],optL:'سایز'},
+    {id:'guide',n:'گاید راهنمای جک',for:'جک'},
     {id:'mag',n:'مغزی شکیب',for:'جک'},
     {id:'hose',n:'شلنگ استاندارد شکیب',for:'جک',opts:HOSE_SH,optL:'سایز (اینچ)',fields:['متراژ (متر)'],num:['متراژ (متر)'],req:['متراژ (متر)']},
     {id:'cool',n:'کولینگ شکیب',for:'پاوریونیت',opts:['140 لیتری','200 لیتری']},
-    {id:'valve',n:'شیر شکیب',for:'پاوریونیت',opts:['تک بوبین','دو بوبین','چهار بوبین'],serWhen:/چهار بوبین/},
-    {id:'belin',n:'شیر بلین آلمان',for:'پاوریونیت',opts:['دو بوبین','سه بوبین','چهار بوبین 3/4','چهار بوبین 1-1/2'],serWhen:/چهار بوبین/},
-    {id:'pmot',n:'موتور پاور یونیت',for:'پاوریونیت',opts:PU_KW.map(function(k){return k+'kW'}),optL:'سایز موتور',manual:'مثلاً 8.5kW'},
-    {id:'ppump',n:'پمپ پاور یونیت',for:'پاوریونیت',opts:PU_LIT.map(function(l){return l+' لیتر'}),optL:'حجم پمپ',manual:'مثلاً 90 لیتر یا سایز پمپ'},
+    {id:'valve',n:'شیر شکیب',for:'پاوریونیت',opts:['تک بوبین','دو بوبین','چهار بوبین'],ser:'opt',serReqWhen:/چهار بوبین/},
+    {id:'belin',n:'شیر بلین آلمان',for:'پاوریونیت',opts:['دو بوبین','سه بوبین','چهار بوبین 3/4','چهار بوبین 1-1/2'],ser:'req'},
+    {id:'pmot',n:'موتور پاور یونیت',for:'پاوریونیت',opts:PU_KW.map(function(k){return k+'kW'}),optL:'سایز موتور',manual:'مثلاً 8.5kW',ser:'req'},
+    {id:'ppump',n:'پمپ پاور یونیت',for:'پاوریونیت',opts:PU_LIT.map(function(l){return l+' لیتر'}),optL:'حجم پمپ',manual:'مثلاً 90 لیتر یا سایز پمپ',ser:'req'},
     {id:'opipe',n:'لوله انتقال روغن',for:'پاوریونیت',u:'متر',fields:['متراژ (متر)'],num:['متراژ (متر)'],req:['متراژ (متر)']},
     {id:'hpump',n:'هند پمپ',for:'پاوریونیت'},
     {id:'psw',n:'سوییچ فشار',for:'پاوریونیت'},
     {id:'heat',n:'هیتر',for:'پاوریونیت',opts:['بدون ترموستات','با ترموستات']},
     {id:'sil',n:'سایلنسر',for:'پاوریونیت'}
-  ].concat(motorAccItems().filter(function(it){return !/جنتلرایز|هوبر/.test(it.n)}),[{id:'misc',n:'متعلقات شکیب',for:'',fields:['توضیحات'],wide:1}])},
+  ].concat([{id:'motdyna',n:'درخت سیم داینا لیفت',for:'موتور'}],[{id:'misc',n:'متعلقات شکیب',for:'',fields:['توضیحات'],wide:1}])},
   a110:{t:'متعلقات آسانسور ۱۱۰',brand:'110',items:[
-    {id:'kar',n:'کاراسلینگ 110',for:'جک',u:'دستگاه',opts:KAR_110.names,optL:'مدل کاراسلینگ',fields:['دهانه ریل','سایز ریل'],fopts:karFopts(KAR_110),multi:['ساپورت بالا','ساپورت پایین']},
-    {id:'karcol',n:'ستون کاراسلینگ 110',for:'جک'},
-    {id:'karbelt',n:'تسمه کاراسلینگ 110',for:'جک'},
-    {id:'karbox',n:'قوطی کاراسلینگ 110',for:'جک'},
+    {id:'kar',n:'کاراسلینگ 110',for:'جک',u:'دستگاه',opts:KAR_110.names,optL:'مدل کاراسلینگ',fields:['دهانه ریل','سایز ریل'],fopts:karFopts(KAR_110),multi:['ساپورت بالا','ساپورت پایین'],req:['دهانه ریل','سایز ریل'],subs:['ستون','تسمه','قوطی'],subT:'زیرمجموعهٔ کاراسلینگ'},
     {id:'wjbox',n:'جعبه متعلقات جک ویتور',for:'جک',ser:'req'},
     {id:'hose',n:'شلنگ استاندارد ۱۱۰',for:'جک',opts:HOSE_110,optL:'سایز (اینچ)',fields:['متراژ (متر)'],num:['متراژ (متر)'],req:['متراژ (متر)']},
     {id:'cool',n:'کولینگ 110',for:'پاوریونیت',opts:['NEG10','NEG13']},
@@ -1786,11 +1797,14 @@ var PARTS={
     {id:'whi',n:'درخت سیم HI ویتور',for:'پاوریونیت'},
     {id:'wbrd',n:'برد هوس ویتور',for:'پاوریونیت',ser:'opt'},
     {id:'wdrv',n:'درایو زیمنس ویتور',for:'پاوریونیت'}
-  ].concat(motorAccItems())}
+  ].concat(motorAccItems().filter(function(it){return !/پک خدماتی/.test(it.n)}))}
 };
 function partsAllowed(){var p=supProfile();return !!p&&(p.id==='shakib'||p.id==='a110')}
 function defaultPartsSup(){var p=supProfile();return (p&&p.id==='a110')?'a110':'shakib'}
 function partNeedsSer(it,st){return !!(it.ser||(it.serWhen&&st&&st.opt&&it.serWhen.test(st.opt)))}
+/* سریال اجباری: ser:'req' یا وقتی گزینهٔ انتخاب‌شده با serReqWhen جور باشد (مثلاً شیر چهار بوبین) | اختیاری: ser:'opt' */
+function partSerMust(it,st){return it.ser==='req'||!!(it.serReqWhen&&st&&st.opt&&it.serReqWhen.test(st.opt))}
+function partSerOpt(it,st){return !partSerMust(it,st)&&it.ser==='opt'}
 function partName(it,st){return (it.optName&&st.opt)?st.opt:it.n+(st.opt?' '+st.opt:'')}
 
 /* ---------- فلکه‌های پرهام صنعت (همهٔ سایزها) ---------- */
@@ -1858,7 +1872,7 @@ function validateSerials(list){
 function qtyOf(v){var q=parseFloat(en(v==null?'':String(v)).replace(/[^\d.]/g,''));return q>0?q:0}
 
 /* ---------- تأمین‌کننده (دکمه‌های سریع + فهرست کامل) ---------- */
-var SUP_CHIPS=[['شکیب جک','🔩'],['آسانسور 110','🛗'],['سنا پنل','🎛️']];
+var SUP_CHIPS=[['شکیب جک','🔩'],['آسانسور 110','🛗'],['سنا پنل','🎛️'],['امانی','🤝']];
 function renderSupChips(){
   var cur=canonSup($('iSup').value||'');
   if($('supNeed'))$('supNeed').style.display=cur?'none':'';
@@ -1889,6 +1903,7 @@ var TILE_META={motorH:{cat:'motor',brand:'هوبر',icon:'🧲',name:'موتور
 function tileList(){var p=supProfile();
   if(!p)return allowedCats();
   if(p.id==='sena')return ['chcab','chflr'];
+  if(p.id==='amani')return p.cats.concat(['parts']);
   if(p.id==='shakib')return ['jack','pu','motor','parts'];
   var a=['jack','pu','motorH','motorG','parts'];
   return showAllCats?a.concat(['falake','oil','door','rail','panel','elec','setup']):a}
@@ -1898,7 +1913,7 @@ function renderTiles(){
   var list=tileList(),sp=supProfile(),cur=inTile||inCat;
   $('inCats').innerHTML=list.map(function(c){
     var tm=TILE_META[c],m=c==='parts'?{icon:'🧩',name:'متعلقات'}:tm?tm:CATS[c];
-    var sub=c==='parts'?(sp.id==='shakib'?'شکیب':'آسانسور ۱۱۰'):tm?'سریال‌دار':(CATS[c].serial===true?'سریال‌دار':'موجودی '+fa(catStock(c)));
+    var sub=c==='parts'?(sp.id==='shakib'?'شکیب':sp.id==='amani'?'شکیب / ۱۱۰':'آسانسور ۱۱۰'):tm?'سریال‌دار':(CATS[c].serial===true?'سریال‌دار':'موجودی '+fa(catStock(c)));
     return '<button type="button" class="tile'+(c===cur?' on':'')+'" data-c="'+c+'"><span class="ti">'+m.icon+'</span><span class="tn">'+m.name+'</span><span class="ts">'+sub+'</span></button>';
   }).join('')+((sp&&sp.id==='a110')?'<button type="button" class="tile more" data-all="1"><span class="ti">'+(showAllCats?'⤡':'⤢')+'</span><span class="tn">'+(showAllCats?'فقط کالاهای اصلی':'نمایش همهٔ دسته‌ها')+'</span><span class="ts">'+(showAllCats?'':'فلکه، روغن، درب، ریل، تابلو…')+'</span></button>':'');
 }
@@ -1941,7 +1956,7 @@ function falakePickerHtml(){
 function flrFresh(){return {on:false,model:'',mat:'',qty:'',sers:'',kit:{}}}
 var inFlr=flrFresh();
 var FLR_MATS=['استیل','پلکسی','شیشه‌ای','میرور طلایی','میرور نقره‌ای','توکار'];
-function flrCountTxt(){var n=parseSerials(inFlr.sers).length,q=qtyOf(inFlr.qty);return n?('🔢 '+fa(n)+' سریال وارد شده'+(q&&q!==n?' — با تعداد ('+fa(q)+') برابر نیست':'')):''}
+function flrCountTxt(){var n=parseSerials(inFlr.sers).length,q=qtyOf(inFlr.qty);return n?('🔢 '+fa(n)+' سریال وارد شده'+(q>n?' — '+fa(q-n)+' عدد بدون سریال ثبت می‌شود':'')):''}
 function renderFlrBox(){
   var box=$('inFlrBox');if(!box)return;var F=inFlr;
   var h='<div class="xbox"><label class="chk" style="font-weight:800;margin:0"><input type="checkbox" data-flron'+(F.on?' checked':'')+'> 🏢 همراه این پنل کابین، پنل طبقه هم رسیده — در همین ورود ثبت شود</label>';
@@ -1953,7 +1968,7 @@ function renderFlrBox(){
       '<div><label class="f">جنس / نوع <span class="o">(آزاد، اختیاری)</span></label><input data-flr="mat" value="'+esc(F.mat)+'" placeholder="هر چیزی بنویسید" autocomplete="off">'+
         '<div class="chips">'+FLR_MATS.map(function(m){return '<button type="button" class="chipb'+(F.mat===m?' on':'')+'" data-flrmat="'+esc(m)+'">'+esc(m)+'</button>'}).join('')+'</div></div>'+
       '<div><label class="f">تعداد پنل طبقه <span class="req">*</span></label><input data-flr="qty" class="ltr" inputmode="numeric" value="'+esc(F.qty)+'" placeholder="مثلاً 5" autocomplete="off"></div>'+
-      '<div style="grid-column:1/-1"><label class="f">سریال پنل‌های طبقه <span class="req">*</span> <span class="o">(هر سریال در یک خط یا با ویرگول)</span></label><textarea id="inFlrSers" data-flr="sers" class="ltr" rows="3" placeholder="بنویسید یا اسکن کنید">'+esc(F.sers)+'</textarea><div class="o" id="inFlrCnt" style="font-size:.75rem;margin-top:4px">'+flrCountTxt()+'</div></div>'+
+      '<div style="grid-column:1/-1"><label class="f">سریال پنل‌های طبقه <span class="o">(اختیاری — هر سریال در یک خط یا با ویرگول)</span></label><textarea id="inFlrSers" data-flr="sers" class="ltr" rows="3" placeholder="بنویسید یا اسکن کنید">'+esc(F.sers)+'</textarea><div class="o" id="inFlrCnt" style="font-size:.75rem;margin-top:4px">'+flrCountTxt()+'</div></div>'+
     '</div>';
     var K=KITS.kflr;
     h+='<div class="kit" style="margin-top:10px"><div class="kit-head"><b>🧰 متعلقات پنل طبقه</b><span class="o">هر کدام همراه پنل‌های طبقه رسیده تیک بزنید و تعداد را بنویسید</span></div>'+
@@ -2004,7 +2019,8 @@ function renderInForm(){
     if(inCat==='pu'&&f.k==='model'&&!puType)f=Object.assign({},f,{chips:1,l:'سایز پاوریونیت (kW-لیتر)'});
     h+='<div class="'+(f.k===mk||f.chips?'s2':'')+'"><label class="f">'+f.l+(f.k===mk?' <span class="req">*</span>':'')+'</label><div class="rel"><input data-lf="'+f.k+'"'+(f.chips?' data-chip="1"':'')+' placeholder="'+esc(f.ph||'')+'" value="'+esc(inVals[f.k]||'')+'" autocomplete="off"></div>'+(f.chips?quickChipsHtml(inCat,f.k):'')+'</div>';
   });
-  if(ser)h+='<div class="ser-cell"><label class="f">شماره سریال <span class="req">*</span></label><div class="rel"><input id="inSerials" class="ltr ser-in" placeholder="بنویسید یا اسکن کنید" autocomplete="off"></div><div class="sercheck" id="inSerChk"></div></div>';
+  if(inCat==='chflr')h+='<div><label class="f">تعداد پنل طبقه <span class="req">*</span></label><input id="inFlrMainQty" class="ltr" inputmode="numeric" value="'+esc(inVals.__fq||'')+'" placeholder="مثلاً 4" autocomplete="off"></div>';
+  if(ser)h+='<div class="ser-cell"><label class="f">شماره سریال <span class="req">*</span>'+(inCat==='chflr'?' <span class="o">(چند سریال را با ویرگول جدا کنید)</span>':'')+'</label><div class="rel"><input id="inSerials" class="ltr ser-in" placeholder="بنویسید یا اسکن کنید" autocomplete="off"></div><div class="sercheck" id="inSerChk"></div></div>';
   h+='</div><div id="inXBox"></div>';
   if(c.serial==='opt')h+='<label class="chk"><input type="checkbox" id="inSerChkbox"'+(inSerOn?' checked':'')+'> این کالا شماره سریال دارد (هر سریال یک عدد)</label>';
   if(!ser)h+='<div class="qty-row"><label class="f">تعداد / مقدار <span class="req">*</span></label><div class="qty-flex">'+stepperHtml('main',inVals.__qty||'')+'<select id="inUnit">'+(c.units||['عدد']).map(function(u){return '<option'+(inVals.__unit===u?' selected':'')+'>'+esc(u)+'</option>'}).join('')+'</select></div></div>';
@@ -2045,7 +2061,16 @@ function quickChipsHtml(cat,k){
 function syncChips(){[].forEach.call(document.querySelectorAll('#inEditor [data-qk]'),function(b){b.classList.toggle('on',norm(b.dataset.qv)===norm(inVals[b.dataset.qk]||''))})}
 /* ---- مشخصات تکمیلی درب و گزینه‌های تابلو فرمان ---- */
 function doorIsHinged(n){n=norm(n||'');return n.indexOf(norm('لولایی'))>=0||n.indexOf(norm('اتوبوسی'))>=0}
+/* جک (شکیب، ۱۱۰ و…): بعد از سایز، نوع جک (پیش‌فرض غیر مستقیم) و ورودی جک (پیش‌فرض طبق نوع؛ قابل تغییر) */
+var JACK_TYPES=['غیر مستقیم','مستقیم','دو استیج مستقیم','2 تیکه'],JACK_IN={'مستقیم':'ورودی بالا','غیر مستقیم':'ورودی پایین','دو استیج مستقیم':'ورودی بالا','2 تیکه':'ورودی پایین'};
 function xFieldsOf(cat){
+  if(cat==='jack')return [
+    {k:'jtype',l:'نوع جک',opts:JACK_TYPES,ph:'یا دستی بنویسید'},
+    {k:'jin',l:'ورودی جک',opts:['ورودی پایین','ورودی بالا'],ph:'پیش‌فرض طبق نوع جک — قابل تغییر'}];
+  /* کاراسلینگ در «متعلقات» (مثل اصفهان دانا): دهانه ریل و سایز ریل اجباری */
+  if(cat==='acc'&&/کاراسلینگ/.test(inVals.name||'')){var ko=accKarOpts(inVals.name);return [
+    {k:'dah',l:'دهانه ریل',opts:ko.dah,ph:'انتخاب کنید یا بنویسید'},
+    {k:'rsz',l:'سایز ریل',opts:ko.rail,ph:'انتخاب کنید یا بنویسید'}]}
   if(cat==='door')return [
     {k:'open',l:'سمت بازشو',opts:doorIsHinged(inVals.name)?['راست','چپ']:['سانترال (وسط‌بازشو)','تلسکوپی راست','تلسکوپی چپ'],ph:'یا دستی بنویسید'},
     {k:'w',l:'عرض',u:'cm',ph:'یا دستی بنویسید',num:1,opts:['60','70','80','90','100','110']},
@@ -2066,8 +2091,15 @@ function xFieldsOf(cat){
 /* ریل: T5 و T9 پیش‌فرض نورد سرد، T89 / T90 / T125 پیش‌فرض نورد گرم؛ پشت‌بند پیش‌فرض ۰ */
 function railRollFixed(n){n=norm(n||'').replace(/\s+/g,'');if(/^t(5|9)$/.test(n))return 'نورد سرد';if(/^t(89|90|125)$/.test(n))return 'نورد گرم';return ''}
 function railDefaultRoll(n){n=norm(n||'');return /t\s*(5|9)\b/.test(n)&&!/t\s*(89|90)/.test(n)?'نورد سرد':(/t\s*(89|90|125)/.test(n)?'نورد گرم':'نورد سرد')}
+function accKarOpts(name){
+  var K=(typeof KAR_DANA!=='undefined')?KAR_DANA:{names:[],map:{}},m=String(name||'').match(/کاراسلینگ\s+اصفهان\s+دانا\s*(.*)$/),x=m?K.map[m[1].trim()]:null;
+  function all(k){var u=[];K.names.forEach(function(n){(K.map[n][k]||[]).forEach(function(v){if(u.indexOf(v)<0)u.push(v)})});return u}
+  return {dah:(x&&x.dah.length)?x.dah:all('dah'),rail:(x&&x.rail.length)?x.rail:all('rail')};
+}
 function renderXBox(){
   var box=$('inXBox');if(!box)return;var h='';
+  if(inCat==='jack'&&(inVals.size||'').trim()){if(!inVals.__x_jtype)inVals.__x_jtype='غیر مستقیم';
+    if(inVals.__jinFor!==inVals.__x_jtype){inVals.__x_jin=JACK_IN[inVals.__x_jtype]||inVals.__x_jin||'ورودی پایین';inVals.__jinFor=inVals.__x_jtype}}
   if(inCat==='rail'&&(inVals.name||'').trim()){if(inVals.__rollFor!==inVals.name){inVals.__x_roll=railDefaultRoll(inVals.name);inVals.__rollFor=inVals.name}if(inVals.__x_pb==null||inVals.__x_pb==='')inVals.__x_pb='0'}
   var xf=xFieldsOf(inCat);
   var xmain=(inVals[MAIN_K[inCat]]||'').trim();
@@ -2091,7 +2123,7 @@ function renderXBox(){
 }
 function xSpec(cat){
   var parts=[],miss=[],xf=xFieldsOf(cat);
-  if(xf)xf.forEach(function(x){var v=String(inVals['__x_'+x.k]==null?'':inVals['__x_'+x.k]).trim();if(!v){if(!x.opt)miss.push(x.l);return}parts.push(x.k==='roll'||x.k==='mat'?v:x.k==='pb'?'پشت‌بند: '+fa(v)+' عدد':x.k==='desc'?'توضیحات: '+v:x.l+': '+fa(v)+(x.u?x.u:''))});
+  if(xf)xf.forEach(function(x){var v=String(inVals['__x_'+x.k]==null?'':inVals['__x_'+x.k]).trim();if(!v){if(!x.opt)miss.push(x.l);return}parts.push(x.k==='roll'||x.k==='mat'||x.k==='jtype'||x.k==='jin'?v:(x.k==='dah'||x.k==='rsz')?x.l+': '+v:x.k==='pb'?'پشت‌بند: '+fa(v)+' عدد':x.k==='desc'?'توضیحات: '+v:x.l+': '+fa(v)+(x.u?x.u:''))});
   if(CATS[cat].multi){var M=inVals.__mul||{},on=CATS[cat].multi.filter(function(o){return M[o]});parts.push(on.length?'همراه '+on.join(' + '):'بدون UPS و باطری');if(M['جعبه متعلقات']&&(inVals.__x_box||'').trim())parts.push('جعبه متعلقات: '+inVals.__x_box.trim())}
   return {spec:parts.join(' · '),miss:miss};
 }
@@ -2115,7 +2147,7 @@ function renderKit(){
 }
 function renderParts(){
   var ed=$('inEditor'),S=partsSup||defaultPartsSup(),P=PARTS[S];partsSup=S;
-  var sp=supProfile(),tabs=(!sp||sp.id==='shakib'||sp.id==='a110')?Object.keys(PARTS).filter(function(k){return !sp||sp.id===k}):[];
+  var sp=supProfile(),tabs=(!sp||sp.id==='shakib'||sp.id==='a110')?Object.keys(PARTS).filter(function(k){return !sp||sp.id===k}):(sp&&sp.id==='amani')?['shakib','a110']:[];
   if(!sp)tabs=['shakib','a110'];
   var h='<div class="ed-head"><span class="ed-ic">🧩</span><h2>'+esc(P.t)+'</h2><button class="x" type="button" data-edclose title="بستن">✕</button></div>';
   if(tabs.length>1)h+='<div class="seg">'+tabs.map(function(k){return '<button type="button" data-psup="'+k+'" class="'+(k===S?'on':'')+'">'+esc(PARTS[k].t)+'</button>'}).join('')+'</div>';
@@ -2128,11 +2160,11 @@ function renderParts(){
       if(it.multi)b+='<div class="chips"><span class="o">همراه:</span>'+it.multi.map(function(o){var m=(st.multi||{})[o];return '<button type="button" class="chipb chk'+(m?' on':'')+'" data-pmul="'+esc(o)+'">'+(m?'☑ ':'☐ ')+esc(o)+'</button>'}).join('')+'</div>';
       if(it.fields){var FO=it.fopts?it.fopts(st):{};it.fields.forEach(function(fl){var cu=custList('parts.'+S+'.'+it.id+'.'+fl);if(cu.length)FO[fl]=uniq((FO[fl]||[]).concat(cu))});b+='<div class="pf-grid'+(it.wide?' wide':'')+'">'+it.fields.map(function(fl){var cv=(st.vals||{})[fl]||'';return '<label><span>'+esc(fl)+((it.req||[]).indexOf(fl)>=0?' <span class="req">*</span>':'')+'</span>'+(it.wide?'<textarea class="rtl" data-pf="'+esc(fl)+'" rows="2">'+esc(cv)+'</textarea>':'<input data-pf="'+esc(fl)+'" value="'+esc(cv)+'"'+(it.num&&it.num.indexOf(fl)>=0?' class="ltr" inputmode="decimal"':'')+' autocomplete="off">')+((FO[fl]||[]).length?'<span class="chips">'+FO[fl].map(function(o){return '<button type="button" class="chipb'+(cv===o?' on':'')+'" data-pfo="'+esc(fl)+'" data-pfv="'+esc(o)+'">'+esc(o)+'</button>'}).join('')+'</span>':'')+'</label>'}).join('')+'</div>';}
       b+='<div class="pq"><span class="o">'+(it.subs?'تعداد خود کاراسلینگ <span class="o">(اگر فقط قطعه رسیده ۰ بزنید)</span>':'تعداد')+'</span>'+stepperHtml('p',st.qty==null?1:st.qty)+'</div>';
-      if(it.subs){var SV=st.subs||{};b+='<div class="xb-t" style="margin-top:8px">🔧 متعلقات '+esc(it.n)+' <span class="o">(تعدادی — هر قطعه‌ای رسیده تعدادش را بنویسید)</span></div><div class="pf-grid">'+
-        it.subs.map(function(sb){return '<label><span>'+esc(sb)+'</span><input class="ltr" inputmode="decimal" data-psub="'+esc(sb)+'" value="'+esc(SV[sb]||'')+'" placeholder="۰" autocomplete="off"></label>'}).join('')+'</div>'}
-      if(partNeedsSer(it,st))b+=serTableHtml('p',key,st,qtyOf(st.qty==null?1:st.qty),it.ser==='req',it.ser==='opt');
+      if(it.subs){var SV=st.subs||{};b+='<div class="xb-t" style="margin-top:8px">🔧 '+esc(it.subT||('متعلقات '+it.n))+' <span class="o">(هر قطعه‌ای رسیده تیک بزنید و تعداد را بنویسید)</span></div><div class="pf-grid">'+
+        it.subs.map(function(sb){var on=qtyOf(SV[sb])>0||SV[sb]==='0'||SV[sb+'__on'];return '<label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-psubk="'+esc(sb)+'"'+(qtyOf(SV[sb])>0?' checked':'')+' style="width:auto"><span style="flex:1">'+esc(sb+(it.subs.length&&/کاراسلینگ/.test(it.n)?' '+it.n:''))+'</span><input class="ltr" inputmode="decimal" data-psub="'+esc(sb)+'" value="'+esc(SV[sb]||'')+'" placeholder="تعداد" style="width:80px" autocomplete="off"></label>'}).join('')+'</div>'}
+      if(partNeedsSer(it,st))b+=serTableHtml('p',key,st,qtyOf(st.qty==null?1:st.qty),partSerMust(it,st),partSerOpt(it,st));
     }
-    return '<div class="part'+(st.on?' on':'')+'" data-pk="'+esc(key)+'"><label class="part-h"><input type="checkbox" data-pon'+(st.on?' checked':'')+'><b>'+esc(it.n)+'</b>'+(it.ser?'<em class="sr">سریال‌دار</em>':it.serWhen?'<em class="sr">سریال برای چهار بوبین</em>':'')+'</label>'+(b?'<div class="part-b">'+b+'</div>':'')+'</div>';
+    return '<div class="part'+(st.on?' on':'')+'" data-pk="'+esc(key)+'"><label class="part-h"><input type="checkbox" data-pon'+(st.on?' checked':'')+'><b>'+esc(it.n)+'</b>'+(it.ser==='req'?'<em class="sr">سریال اجباری</em>':it.serReqWhen?'<em class="sr">سریال (چهار بوبین اجباری)</em>':it.ser?'<em class="sr">سریال‌دار</em>':it.serWhen?'<em class="sr">سریال برای چهار بوبین</em>':'')+'</label>'+(b?'<div class="part-b">'+b+'</div>':'')+'</div>';
   }).join('')+'</div>';
   h+='<div class="msg bad" id="inMsg"></div><div class="actions"><button class="btn pri big" id="btnAddParts" type="button">افزودن قطعات علامت‌خورده به سبد</button></div>';
   ed.innerHTML=h;liveCheckAll();
@@ -2188,6 +2220,7 @@ $('inEditor').addEventListener('change',function(e){
   if(t.id==='inUnit'){inVals.__unit=t.value;return}
   if(t.hasAttribute('data-kon')){var st=stateOfEl(t);st.on=t.checked;renderKit();return}
   if(t.hasAttribute('data-pon')){var st2=stateOfEl(t);st2.on=t.checked;renderParts();return}
+  if(t.dataset.psubk){var stk=stateOfEl(t);stk.subs=stk.subs||{};stk.subs[t.dataset.psubk]=t.checked?(qtyOf(stk.subs[t.dataset.psubk])>0?stk.subs[t.dataset.psubk]:'1'):'';renderParts();return}
   if(t.dataset.nos){var st3=stateOfEl(t);st3.noSer=t.checked;inCat==='parts'?renderParts():renderKit();return}
 });
 $('inEditor').addEventListener('input',function(e){
@@ -2207,6 +2240,7 @@ $('inEditor').addEventListener('input',function(e){
         var again=sel&&document.querySelector('#inEditor '+sel+' [data-qi]');if(again){again.focus();var L=again.value.length;try{again.setSelectionRange(L,L)}catch(_){}}},450)}return}
   if(t.dataset.sk){var st4=stateOfEl(t);st4.sers=st4.sers||[];st4.sers[+t.dataset.si]=t.value;liveCheckAll();return}
   if(t.dataset.pman){var st7=stateOfEl(t);st7.opt=t.value.trim();t.classList.remove('err');[].forEach.call(t.closest('[data-pk]').querySelectorAll('[data-popt]'),function(b){b.classList.toggle('on',b.dataset.popt===st7.opt)});return}
+  if(t.dataset.psub){var st9=stateOfEl(t);st9.subs=st9.subs||{};st9.subs[t.dataset.psub]=t.value;var cb=t.parentNode.querySelector('[data-psubk]');if(cb)cb.checked=qtyOf(t.value)>0;return}
   if(t.dataset.psub){var st8=stateOfEl(t);st8.subs=st8.subs||{};st8.subs[t.dataset.psub]=t.value;return}
   if(t.dataset.pf){var st5=stateOfEl(t);st5.vals=st5.vals||{};st5.vals[t.dataset.pf]=t.value;return}
 });
@@ -2235,15 +2269,18 @@ function inAdd(){
     if(f[mk]){var xs=xSpec(inCat);
       if(xs.miss.length){var _l=inCat==='door'?'مشخصات درب':'مشخصات '+c.name;xs.miss=xs.miss.filter(Boolean);var xe=[].filter.call($('inXBox').querySelectorAll('input[data-xf]'),function(i){return !i.value.trim()});xe.forEach(function(i){i.classList.add('err')});if(xe[0])xe[0].focus();
         showMsg('inMsg',_l+' را کامل کنید: '+xs.miss.join('، '));return}
-      f.spec=(inCat==='rail'&&f.spec)?[xs.spec,f.spec].join(' · '):xs.spec}
+      f.spec=((inCat==='rail'||inCat==='acc')&&f.spec)?[xs.spec,f.spec].join(' · '):xs.spec}
   }
   var kitOn=K?K.items.filter(function(it){return (inKit[it.n]||{}).on}):[];
   if(inCat==='pu'&&K){var tags=kitOn.filter(function(it){return it.tag}).map(function(it){return it.tag});
-    f.spec=[f.spec,tags.length?'با '+tags.join(' + '):(K.hv?'بدون برد هوس':'')].filter(Boolean).join(' · ')}
+    f.spec=[f.spec,tags.length?(kk==='shpu'?'پاور با ':'با ')+tags.join(' + '):'',(K.hv&&tags.indexOf('برد هوس')<0)?'بدون برد هوس':''].filter(Boolean).join(' · ')}
   var mainSers=ser?parseSerials(($('inSerials')||{}).value):[];
   var qi=$('inEditor').querySelector('[data-qi=main]'),mainQty=ser?0:qtyOf(qi?qi.value:'');
   var mainOk=ser?mainSers.length>0:mainQty>0;
   /* شاسی کابین و طبقه: بدون شماره سریال ثبت ورود پذیرفته نمی‌شود (حتی اگر فقط متعلقات تیک خورده باشد) */
+  if(inCat==='chflr'){var fmq=qtyOf(($('inFlrMainQty')||{}).value);
+    if(!fmq){showMsg('inMsg','تعداد پنل طبقه را بنویسید');var fqe=$('inFlrMainQty');if(fqe){fqe.classList.add('err');fqe.focus()}return}
+    if(mainSers.length&&mainSers.length!==fmq){showMsg('inMsg','تعداد سریال‌ها ('+fa(mainSers.length)+') با تعداد پنل طبقه ('+fa(fmq)+') برابر نیست — برای هر پنل یک سریال بنویسید');var sxe=$('inSerials');if(sxe){sxe.classList.add('err');sxe.focus()}return}}
   if(CHASSIS_CATS.indexOf(inCat)>=0&&!mainOk){showMsg('inMsg','شماره سریال '+c.name+' الزامی است — بدون سریال ثبت ورود انجام نمی‌شود');var sx=$('inSerials');if(sx){sx.classList.add('err');sx.focus()}return}
   if(mainOk&&!f[mk]){var mf=$('inEditor').querySelector('input[data-lf='+mk+']');if(mf){mf.classList.add('err');mf.focus()}
     showMsg('inMsg','«'+(c.fields.filter(function(x){return x.k===mk})[0]||{l:'مشخصات'}).l+'» را مشخص کنید تا کالا با دقت ثبت شود');return}
@@ -2262,18 +2299,25 @@ function inAdd(){
   var flrOn=inCat==='chcab'&&inFlr.on,flrSers=[],flrKit=[];
   if(flrOn){var fm=[];if(!String(inFlr.model||'').trim())fm.push('مدل پنل طبقه');
     flrSers=parseSerials(inFlr.sers);var fq=qtyOf(inFlr.qty);
-    if(!flrSers.length)fm.push('سریال پنل طبقه');
-    else if(fq&&fq!==flrSers.length)fm.push('تعداد سریال‌های پنل طبقه ('+fa(flrSers.length)+') با تعداد ('+fa(fq)+') برابر نیست');
+    /* سریال پنل طبقهٔ همراه اختیاری است؛ تعداد اجباری (اگر خالی بماند، تعداد سریال‌ها مبنا است) — بدون هشدار اختلاف با تعداد کابین */
+    if(!fq&&!flrSers.length)fm.push('تعداد پنل طبقه');
     flrKit=KITS.kflr.items.filter(function(it){return (inFlr.kit[it.n]||{}).on});
     flrKit.forEach(function(it){if(qtyOf((inFlr.kit[it.n]||{}).qty==null?1:inFlr.kit[it.n].qty)<1)fm.push('تعداد «'+it.n+'»')});
     if(fm.length){showMsg('inMsg','پنل طبقهٔ همراه — کامل کنید: '+fm.join('، '));return}}
   if(!askRsv(inAdd))return;
   var cx1=ctxVals();f.company=cx1.company;f.project=cx1.project;
   var g=++inGroupSeq,base=specParts(inCat,f).filter(Boolean).join(' ');
+  var shpuMerge=(kk==='shpu'&&mainOk);
   if(mainOk){
-    if(ser)inStaged.push({cat:inCat,f:f,serials:mainSers,unit:'عدد',g:g});
+    var vSers=[];if(shpuMerge)kitOn.forEach(function(it){var st0=inKit[it.n],q0=qtyOf(st0.qty==null?1:st0.qty);kitSerialsOf(it,st0,q0).forEach(function(x){vSers.push(x)})});
+    if(ser&&shpuMerge&&vSers.length){
+      if(vSers.length===mainSers.length)mainSers.forEach(function(ms,ix){var f1=clone(f);f1.spec=[f.spec,'سریال شیر: '+vSers[ix]].filter(Boolean).join(' · ');inStaged.push({cat:inCat,f:f1,serials:[ms],unit:'عدد',g:g})});
+      else{var f2=clone(f);f2.spec=[f.spec,'سریال شیر: '+vSers.join('، ')].filter(Boolean).join(' · ');inStaged.push({cat:inCat,f:f2,serials:mainSers,unit:'عدد',g:g})}
+    }
+    else if(ser)inStaged.push({cat:inCat,f:f,serials:mainSers,unit:'عدد',g:g});
     else inStaged.push({cat:inCat,f:f,qty:mainQty,unit:$('inUnit').value,g:g});
   }
+  if(shpuMerge)kitOn=[];
   var parentSer=(mainOk&&ser&&mainSers.length===1)?mainSers[0]:'';
   kitOn.forEach(function(it){
     var st=inKit[it.n],q=qtyOf(st.qty==null?1:st.qty);
@@ -2287,7 +2331,9 @@ function inAdd(){
   });
   /* پنل طبقهٔ همراه همین پنل کابین (همان ورود) + متعلقات طبقه */
   if(flrOn){var gf=++inGroupSeq,ff={model:String(inFlr.model).trim(),company:f.company,project:f.project};if(String(inFlr.mat||'').trim())ff.spec=String(inFlr.mat).trim();
-    inStaged.push({cat:'chflr',f:ff,serials:flrSers,unit:'عدد',g:gf});
+    var fqn=Math.max(qtyOf(inFlr.qty),flrSers.length);
+    if(flrSers.length)inStaged.push({cat:'chflr',f:ff,serials:flrSers,unit:'عدد',g:gf});
+    if(fqn-flrSers.length>0)inStaged.push({cat:'chflr',f:clone(ff),qty:fqn-flrSers.length,unit:'عدد',g:gf});
     var fb=specParts('chflr',ff).filter(Boolean).join(' ');
     flrKit.forEach(function(it){var q2=qtyOf((inFlr.kit[it.n]||{}).qty==null?1:inFlr.kit[it.n].qty),fo2={company:f.company,project:f.project,brand:'',name:it.n,spec:'همراه شاسی طبقه '+fb,'for':'شاسی طبقه'};
       if(flrSers.length===1)fo2.parent=flrSers[0];inStaged.push({cat:'acc',f:fo2,qty:q2,unit:'عدد',g:gf,child:true})});
@@ -2309,7 +2355,7 @@ function partsAdd(){
     if(it.subs&&q<1){if(!subsOn(it,st).length)miss.push('تعداد «'+it.n+'» یا یکی از متعلقاتش');return}
     if(it.opts&&!st.opt)miss.push((it.optL||'نوع')+' «'+it.n+'»');
     if(q<1)miss.push('تعداد «'+it.n+'»');
-    if(partNeedsSer(it,st)&&it.ser!=='opt'&&!st.noSer&&kitSerialsOf({ser:1},st,q).length<Math.min(q,30))miss.push('سریال «'+partName(it,st)+'»');
+    if(partNeedsSer(it,st)&&!partSerOpt(it,st)&&(partSerMust(it,st)||!st.noSer)&&kitSerialsOf({ser:1},st,q).length<Math.min(q,30))miss.push('سریال «'+partName(it,st)+'»'+(partSerMust(it,st)?' (اجباری)':''));
     (it.req||[]).forEach(function(fl){if(!((st.vals||{})[fl]||'').trim())miss.push(fl+' «'+it.n+'»')})});
   if(miss.length){showMsg('inMsg','کامل کنید: '+miss.join('، '));return}
   var v=validateSerials(formSerials());
@@ -2458,7 +2504,8 @@ $('btnSaveIn').onclick=function(){
     if(hits.some(function(u){return u.cat===l.cat}))bad.push(s);else if(hits.length)cross.push(s)})});
   if(bad.length){toast('سریال تکراری: '+bad.slice(0,4).join('، ')+' — از سبد حذف یا اصلاح کنید');return}
   if(cross.length&&!confirm('این سریال‌ها روی کالای دسته‌ای دیگر هم ثبت‌اند: '+cross.join('، ')+'\nثبت شود؟'))return;
-  var cxS=ctxVals(),rid=uid(),lines=JSON.parse(JSON.stringify(inStaged)).map(function(l){delete l.g;delete l.child;/* خریدار و پروژهٔ هر ردیف همانی است که هنگام افزودن به سبد ثبت شد (قبلاً اینجا پاک می‌شد) */if(!l.f.company&&cxS.company)l.f.company=cxS.company;if(!l.f.project&&cxS.project)l.f.project=cxS.project;if(!l.f.company)delete l.f.company;if(!l.f.project)delete l.f.project;return l});
+  var isAm=canonSup($('iSup').value)==='امانی';
+  var cxS=ctxVals(),rid=uid(),lines=JSON.parse(JSON.stringify(inStaged)).map(function(l){delete l.g;delete l.child;if(isAm)l.f.amani=1;/* خریدار و پروژهٔ هر ردیف همانی است که هنگام افزودن به سبد ثبت شد (قبلاً اینجا پاک می‌شد) */if(!l.f.company&&cxS.company)l.f.company=cxS.company;if(!l.f.project&&cxS.project)l.f.project=cxS.project;if(!l.f.company)delete l.f.company;if(!l.f.project)delete l.f.project;return l});
   var rec={id:rid,no:no,date:d,supplier:$('iSup').value.trim(),docNo:$('iDoc').value.trim(),note:$('iNote').value.trim(),user:curUser(),ts:Date.now(),void:false,lines:lines};
   var n=0;
   lines.forEach(function(l){
@@ -2501,10 +2548,10 @@ function xInfo(cat,f,rid){
 function xSortCmp(a,b){return String(a.title).localeCompare(String(b.title),'fa',{numeric:true})||String(a.sub).localeCompare(String(b.sub),'fa',{numeric:true})||String(a.proj).localeCompare(String(b.proj),'fa',{numeric:true})||String(a.serial||'').localeCompare(String(b.serial||''),'en',{numeric:true})}
 function renderPick(){
   var q=norm($('xSearch').value),cat=$('xCat').value,st=stagedUnitIds();
-  var units=stockUnits().filter(function(u){return !st[u.id]&&(!cat||u.cat===cat)})
+  var units=stockUnits().filter(function(u){return !st[u.id]&&!isAm(u)&&(!cat||u.cat===cat)})
     .map(function(u){var o=xInfo(u.cat,u.f,u.rid);o.k='u';o.cat=u.cat;o.u=u;o.serial=u.serial;o.qty=1;o.unit='عدد';o.st=specText(u.cat,u.f);return o});
   /* اقلام تعدادی (بدون سریال) هم در همین جدول — مقدار قابل خروج = موجودی منهای آنچه در همین حواله است */
-  var lots=availLotGroups().filter(function(g){return !cat||g.cat===cat}).map(function(g){
+  var lots=availLotGroups().filter(function(g){return !isAm(g)&&(!cat||g.cat===cat)}).map(function(g){
     var l=DB.lots.filter(function(x){return x.key===g.key&&x.status!=='void'&&x.rem>0}).sort(function(a,b){return (b.seqn||0)-(a.seqn||0)})[0]||{};
     var o=xInfo(g.cat,g.f,l.rid);o.k='l';o.cat=g.cat;o.key=g.key;o.serial='';o.qty=g.rem;o.unit=g.unit;o.st=specText(g.cat,g.f);return o});
   var list=units.concat(lots).filter(function(o){
@@ -2568,11 +2615,11 @@ $('xSearch').addEventListener('input',renderPick);$('xCat').addEventListener('ch
 function xProdItems(){
   var st=stagedUnitIds(),m={},arr=[];
   stockUnits().forEach(function(u){
-    if(st[u.id])return;var lb=specText(u.cat,u.f),k=u.cat+'|'+lb;
+    if(st[u.id]||isAm(u))return;var lb=specText(u.cat,u.f),k=u.cat+'|'+lb;
     var g=m[k]||(m[k]={cat:u.cat,label:lb,n:0,ser:[],proj:[(u.f||{}).company,(u.f||{}).project].filter(Boolean).join(' / ')});g.n++;g.ser.push(u.serial);
   });
   Object.keys(m).forEach(function(k){var g=m[k];arr.push({v:CATS[g.cat].name+' — '+g.label,h:'موجودی: '+fa(g.n)+' عدد (سریال‌دار) · '+(g.proj?'🏷️ پروژه: '+g.proj:'📦 انبار (بدون پروژه)'),x:norm(g.ser.join(' ')),n:g.n,o:0,sel:{t:'u',cat:g.cat,label:g.label}})});
-  availLotGroups().forEach(function(g){var pj=[(g.f||{}).company,(g.f||{}).project].filter(Boolean).join(' / ');arr.push({v:CATS[g.cat].name+' — '+specText(g.cat,g.f),h:'موجودی: '+fa(g.rem)+' '+g.unit+' · '+(pj?'🏷️ پروژه: '+pj:'📦 انبار (بدون پروژه)'),n:0,o:1,sel:{t:'l',key:g.key}})});
+  availLotGroups().forEach(function(g){if(isAm(g))return;var pj=[(g.f||{}).company,(g.f||{}).project].filter(Boolean).join(' / ');arr.push({v:CATS[g.cat].name+' — '+specText(g.cat,g.f),h:'موجودی: '+fa(g.rem)+' '+g.unit+' · '+(pj?'🏷️ پروژه: '+pj:'📦 انبار (بدون پروژه)'),n:0,o:1,sel:{t:'l',key:g.key}})});
   return arr;
 }
 function xSelUnits(){
@@ -3059,9 +3106,9 @@ function slotDef(key){var a=key.split('.');return {sup:a[0],id:a[1],S:SUPS[a[0]]
 function whData(){
   var D={},rm=rMap();
   SUP_ORDER.forEach(function(sp){for(var k in SUPS[sp].slots)D[sp+'.'+k]={by:{},tot:0,sku:{},n:0}});
-  stockUnits().forEach(function(u){var key=slotKey(supOfRec(rm[u.rid]),zoneOf(u.cat,u.f)),z=D[key],k='u|'+u.cat+'|'+specText(u.cat,u.f);
+  stockUnits().forEach(function(u){if(isAm(u))return;var key=slotKey(supOfRec(rm[u.rid]),zoneOf(u.cat,u.f)),z=D[key],k='u|'+u.cat+'|'+specText(u.cat,u.f);
     var s=z.sku[k]||(z.sku[k]={cat:u.cat,f:u.f,unit:'عدد',qty:0,units:[]});s.qty++;s.units.push(u);z.by['عدد']=(z.by['عدد']||0)+1;z.tot++});
-  stockLots().forEach(function(l){var key=slotKey(supOfRec(rm[l.rid]),zoneOf(l.cat,l.f)),z=D[key],k='l|'+l.key;
+  stockLots().forEach(function(l){if(isAm(l))return;var key=slotKey(supOfRec(rm[l.rid]),zoneOf(l.cat,l.f)),z=D[key],k='l|'+l.key;
     var s=z.sku[k]||(z.sku[k]={cat:l.cat,f:l.f,unit:l.unit,qty:0,key:l.key});s.qty=rnd(s.qty+l.rem);z.by[l.unit]=rnd((z.by[l.unit]||0)+l.rem);z.tot=rnd(z.tot+l.rem)});
   Object.keys(D).forEach(function(k){D[k].n=Object.keys(D[k].sku).length});
   return D;
@@ -3236,7 +3283,7 @@ $('whScene').addEventListener('mouseleave',function(){$('whScene')._hv='';[].for
 $('whScene').addEventListener('mouseover',function(e){var b=e.target.closest('[data-z]');var k=b?b.dataset.z:'';if(k===$('whScene')._hv)return;$('whScene')._hv=k;
   [].forEach.call($('whScene').querySelectorAll('[data-z]'),function(el){el.classList.toggle('hv',!!k&&el.dataset.z===k)})});
 var __renderStock0=renderStock;
-renderStock=function(){if(stockMode==='wh'){renderWH();updateHeader();return}__renderStock0()};
+renderStock=function(){if(curTab==='amani'){__renderStock0();return}if(stockMode==='wh'){renderWH();updateHeader();return}__renderStock0()};
 $('whView').style.display=stockMode==='wh'?'':'none';$('tblView').style.display=stockMode==='wh'?'none':'';
 [].forEach.call(document.querySelectorAll('[data-vm]'),function(b){b.classList.toggle('on',b.dataset.vm===stockMode)});
 

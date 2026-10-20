@@ -234,6 +234,10 @@ table.sbt2 tr.sup-sena td{background:#F1F3F5}table.sbt2 tr.sup-sena td:first-chi
 table.sbt2 tr.sup-sena:hover td{background:#E6E9EC}
 table.sbt2 tr.sbt-p.sup-sh td{background:#DCE9FB}table.sbt2 tr.sbt-p.sup-110 td{background:#FFE6D3}table.sbt2 tr.sbt-p.sup-sena td{background:#E6E9EC}
 table.sbt2 tr.out td{color:var(--mute)}
+.xt-wrap{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:var(--r)}
+table.sbt2.xt{min-width:860px}
+table.sbt2.xt tr.xt-g td{background:#E4EAE9;font-weight:800;font-size:.78rem;color:var(--ink);border-top:2px solid var(--ink2)}
+table.sbt2.xt tr.xt-g td span{font-weight:600;color:var(--ink2)}
 table.sbt2 .st-o{color:var(--mute)}table.sbt2 .st-l{color:#9A6200;font-weight:800}table.sbt2 .st-r{color:var(--ink);font-weight:800}
 .sbx{border:1px solid var(--line);background:#fff;border-radius:7px;padding:3px 9px;font-size:.74rem;font-weight:700;cursor:pointer;font-family:inherit;color:var(--ink)}
 .sbx:hover{border-color:var(--ink2)}.sbx.on{background:var(--ink);color:#fff;border-color:var(--ink)}
@@ -639,10 +643,10 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
     <div class="card">
       <h2><span>۱</span> مشخصات حواله و تحویل‌گیرنده</h2>
       <div class="grid">
+        <div class="s2"><label class="f">مشتری / تحویل‌گیرنده <span class="req">*</span></label><input id="xCust" list="dl_customer" autocomplete="off"></div>
+        <div class="s2"><label class="f">نام پروژه <span class="req">*</span></label><input id="xProj" list="dl_project" autocomplete="off"></div>
         <div><label class="f">تاریخ حواله (شمسی)</label><input id="xDate" class="ltr" placeholder="1405/07/16" autocomplete="off"></div>
         <div><label class="f">شماره حواله</label><input id="xNo" class="ltr" autocomplete="off"></div>
-        <div class="s2"><label class="f">مشتری / تحویل‌گیرنده *</label><input id="xCust" list="dl_customer" autocomplete="off"></div>
-        <div class="s2"><label class="f">پروژه <span class="o">(اختیاری)</span></label><input id="xProj" list="dl_project" autocomplete="off"></div>
         <div class="s2"><label class="f">مقصد / آدرس تحویل <span class="o">(اختیاری)</span></label><input id="xDest" autocomplete="off"></div>
         <div><label class="f">پلاک ماشین</label><input id="xPlate" list="dl_plate" autocomplete="off"></div>
         <div><label class="f">نام راننده</label><input id="xDriver" list="dl_driver" autocomplete="off"></div>
@@ -655,13 +659,14 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
       <h2><span>۲</span> انتخاب کالا از موجودی</h2>
       <div class="rel" style="margin-bottom:12px"><label class="f">🔎 جستجوی هوشمند کالا <span class="o">(نام، مدل، سایز یا بخشی از سریال را تایپ کنید؛ موجودی هر کالا کنار آن نمایش داده می‌شود)</span></label><input id="xProd" placeholder="مثلاً 100*5*3500 ، 7.7kw ، رپچر ، یا سریال ..." autocomplete="off"></div>
       <div id="xProdPanel" style="margin-bottom:12px"></div>
-      <details style="margin-top:6px"><summary style="cursor:pointer;font-weight:700;color:var(--tab-d);margin-bottom:10px">⚡ روش‌های دیگر: اسکن سریال، فیلتر دسته و لیست کامل</summary>
+      <h2 style="font-size:.9rem;margin:14px 0 8px">📋 اقلام سریال‌دار موجود در انبار <small id="xPickCnt"></small></h2>
       <div class="grid g3" style="margin-bottom:10px">
         <div><label class="f">⚡ ورود سریع سریال (اسکن/تایپ + Enter)</label><input id="xScan" class="ltr" placeholder="سریال را وارد کنید" autocomplete="off"></div>
         <div><label class="f">فیلتر دسته</label><select id="xCat"></select></div>
-        <div><label class="f">جستجو در سریال‌دارها</label><input id="xSearch" placeholder="برند، مدل، سایز، سریال..." autocomplete="off"></div>
+        <div><label class="f">جستجو در سریال‌دارها</label><input id="xSearch" placeholder="نام قطعه، پروژه، برند، سایز، سریال..." autocomplete="off"></div>
       </div>
-      <div class="pick" id="xPick"></div>
+      <div class="xt-wrap" id="xPick"></div>
+      <details style="margin-top:10px"><summary style="cursor:pointer;font-weight:700;color:var(--tab-d);margin-bottom:10px">📦 اقلام تعدادی (بدون سریال)</summary>
       <div id="xQtyBox" style="margin-top:12px"></div>
       </details>
       <div class="msg bad" id="xMsg"></div>
@@ -669,7 +674,7 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
     <div class="card">
       <h2><span>۳</span> اقلام این حواله <small id="xCount"></small></h2>
       <div id="xKitHint"></div>
-      <div class="tbl"><table><thead><tr><th>#</th><th>دسته</th><th>مشخصات</th><th>سریال</th><th>تعداد</th><th style="width:60px"></th></tr></thead><tbody id="xStaged"></tbody></table></div>
+      <div class="xt-wrap"><table class="sbt2 xt"><thead><tr><th class="c">#</th><th>نام قطعه</th><th>برند / مشخصات</th><th>سریال</th><th>خریدار / پروژه</th><th>تأمین‌کننده</th><th class="c">تعداد</th><th class="c" style="width:60px"></th></tr></thead><tbody id="xStaged"></tbody></table></div>
       <div class="actions">
         <button class="btn grn" id="btnSaveOut">💾 ثبت حواله و خروج از انبار</button>
         <button class="btn ghost" id="btnClearOut">🧹 پاک‌کردن</button>
@@ -833,7 +838,7 @@ CATALOG['jack.brand']=L(['شکیب','ویتور','بلین'],function(b){return 
   CATALOG['panel.name']=V(['تابلو فرمان هیدرولیک','تابلو فرمان 3VF','تابلو فرمان گیرلس MR','تابلو فرمان گیرلس MRL','تابلو فرمان دو سرعته','تابلو فرمان بالابری'],'دستگاه');
   CATALOG['panel.brand']=V(['پارس','راویس','آریان']);
   CATALOG['elec.name']=V(['داکت پلاستیکی 3','داکت فلزی','داکت پلاستیکی 9','کلید قارچی و جعبه','میکرو سوییچ','فلکسی 16','فلکسی 21','سیم 0/75','سیم 4','سیم 6','سیم 6 زوج','سیم ارت','چسب برق','بست کمربندی','بست کابل','لامپ و سرپیچ','هالوژن','فن (هواکش)','لامپ تونلی']);
-  CATALOG['setup.name']=V(['تراول کابل','فتوسل دو کانال','فتوسل تک کانال','فتوسل پرده ای','سنسور و اهنربا','دوشاخ کنتاکت قفل','گاورنر','سیم بکسل 6','سیم بکسل 8','سیم بکسل 10','براکت T5','براکت T9','براکت T16','براکت ناودانی 6','براکت ناودانی 8','لقمه T5','لقمه T9','لقمه T16','روغن دان','کرپی 6','کرپی 8','کرپی 10','بافر','فن کابین','زنگ','پک محافظ','قفل لولایی','آرام بند','بست تراول','پارک پلیت','اورلود مغناطیسی','اورلود بکسلی','اشکی','پیچ و مهره 12','پیچ و مهره 10','پیچ و مهره 8','پیچ و مهره 6','پیچ و رول پلاک','پیچ و مهره 16','کابین','فلکه هرزگرد','وزنه','گوشی تلفن','کمان مکانیکی','کمان برقی','لاستیک تخت','سر بکسل','شالتر','محافظ گاورنر','دیکتاتور']);
+  CATALOG['setup.name']=V(['تراول کابل','فتوسل دو کانال','فتوسل تک کانال','فتوسل پرده ای','سنسور و اهنربا','دوشاخ کنتاکت قفل','گاورنر','سیم بکسل 6','سیم بکسل 8','سیم بکسل 10','براکت T5','براکت T9','براکت T16','براکت ناودانی 6','براکت ناودانی 8','لقمه T5','لقمه T9','لقمه T16','روغن دان','کرپی 6','کرپی 8','کرپی 10','بافر','فن کابین','زنگ','پک محافظ','قفل لولایی','دیکتاتور (آرام‌بند)','بست تراول','پارک پلیت','اورلود مغناطیسی','اورلود بکسلی','اشکی','پیچ و مهره 12','پیچ و مهره 10','پیچ و مهره 8','پیچ و مهره 6','پیچ و رول پلاک','پیچ و مهره 16','کابین','فلکه هرزگرد','وزنه','گوشی تلفن','کمان مکانیکی','کمان برقی','لاستیک تخت','سر بکسل','شالتر','محافظ گاورنر','کاراسلینگ رمضانی']);
 })();
 
 /* ---- متعلقات جک / پاوریونیت / موتور (از فایل‌های شکیب، ویتور و موتورها) ---- */
@@ -899,7 +904,7 @@ var SMART_RULES=[
   ['panel',['تابلو فرمان','تابلو']],
   ['rail',['ریل']],
   ['door',['درب','بیابانی','لولایی سپاهان','لولایی عبادت','لولایی حجت','عبادت','یاران','اتوبوسی','سلکوم','تمام اتوماتیک']],
-  ['setup',['تراول','فتوسل','سنسور','آهنربا','اهنربا','دوشاخ','کنتاکت قفل','بکسل','گاورنر','براکت','بارکت','لقمه','روغن دان','کرپی','بافر','فن کابین','زنگ','پک محافظ','قفل لولایی','آرام بند','پارک پلیت','اورلود','اشکی','پیچ','مهره','پلاک','کابین','فلکه هرزگرد','وزنه','گوشی تلفن','کمان','لاستیک تخت']],
+  ['setup',['تراول','فتوسل','سنسور','آهنربا','اهنربا','دوشاخ','کنتاکت قفل','بکسل','گاورنر','براکت','بارکت','لقمه','روغن دان','کرپی','بافر','فن کابین','زنگ','پک محافظ','قفل لولایی','آرام بند','آرامبند','آرام‌بند','دیکتاتور','پارک پلیت','اورلود','اشکی','پیچ','مهره','پلاک','کابین','فلکه هرزگرد','وزنه','گوشی تلفن','کمان','لاستیک تخت']],
   ['elec',['داکت','داتکت','قارچی','میکرو','سوییچ','سوئیچ','فلکسی','سیم','چسب برق','کمربندی','بست کامل','لامپ','هالوژن']]
 ];
 function smartCat(name){
@@ -932,7 +937,7 @@ function migrateCats(d){
 var DB=load();
 /* اصلاح نام‌های قدیمی در داده‌های ذخیره‌شده (املای جدید) — کلید اقلام تعدادی و حواله‌ها هم هم‌زمان به‌روز می‌شود */
 (function(){
-  var R={'elec|name':{'داتکت پلاستیک 3':'داکت پلاستیکی 3','بست کامل':'بست کابل'},'setup|name':{'بارکت ناودانی 6':'براکت ناودانی 6'},
+  var R={'elec|name':{'داتکت پلاستیک 3':'داکت پلاستیکی 3','بست کامل':'بست کابل','دیکتاتور':'دیکتاتور (آرام‌بند)'},'setup|name':{'بارکت ناودانی 6':'براکت ناودانی 6','آرام بند':'دیکتاتور (آرام‌بند)','آرام‌بند':'دیکتاتور (آرام‌بند)','آرامبند':'دیکتاتور (آرام‌بند)','دیکتاتور':'دیکتاتور (آرام‌بند)'},
          'panel|name':{'تابلو فرمان 3F':'تابلو فرمان 3VF','تابلو فرمان MRL':'تابلو فرمان گیرلس MRL','تابلو فرمان 2 زمانه':'تابلو فرمان دو سرعته'},'rail|brand':{'ساورا چین':'ساورا ایتالیا','مارازای ایتالیا':'مارازی ایتالیا','ساوز ایتالیا':'ساورای چین'}};
   var ch=false,km={};
   function fix(o){if(!o||!o.f)return false;var done=false;Object.keys(R).forEach(function(k){var a=k.split('|');if(o.cat===a[0]&&R[k][o.f[a[1]]]){o.f[a[1]]=R[k][o.f[a[1]]];done=true}});return done}
@@ -1668,11 +1673,20 @@ var KITS={
   pudrv:{t:'تجهیزات پاور درایودار — هر کدام همراه پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',items:[{n:'درایو زیمنس ویتور',ser:1,tag:'درایو زیمنس'},{n:'مقاومت ترمز ویتور',tag:'مقاومت ترمز'}]},
   wpu:{t:'متعلقات پاوریونیت ویتور',for:'پاوریونیت',brand:'ویتور',items:[{n:'درخت سیم HM ویتور'},{n:'درخت سیم HE ویتور'},{n:'درخت سیم HI ویتور'},{n:'برد هوس ویتور'},{n:'درایو زیمنس ویتور'}]},
   sjack:{t:'متعلقات جک شکیب',for:'جک',brand:'شکیب',items:[{n:'رپچر شکیب 1 اینچ',ser:1},{n:'رپچر شکیب 1-1/2 اینچ',ser:1},{n:'رپچر 4 پیچ 1-1/4 اینچ شکیب',ser:1},{n:'فلوکنترل شکیب'},{n:'مغزی شکیب'}]},
+  /* قطعات درب و لوازم راه‌اندازی — تعدادی؛ در همان دستهٔ درب / لوازم راه‌اندازی ثبت می‌شوند (cat) */
+  kdoorF:{t:'قطعات درب بیابانی طبقه — قطعه‌هایی که رسیده تیک بزنید و تعداد را بنویسید',cat:'door',items:[{n:'لته درب بیابانی طبقه'},{n:'ستون درب بیابانی طبقه'},{n:'سیل درب بیابانی طبقه'},{n:'سینی درب بیابانی طبقه'},{n:'سردرب بیابانی طبقه'}]},
+  kdoorC:{t:'قطعات درب بیابانی کابین — تیک بزنید و تعداد را بنویسید',cat:'door',items:[{n:'لته درب بیابانی کابین'}]},
+  kdoorH:{t:'قطعات درب لولایی — تیک بزنید و تعداد را بنویسید',cat:'door',items:[{n:'قاب درب لولایی'},{n:'شیشه درب لولایی'},{n:'فنر درب لولایی'},{n:'دستگیره درب لولایی'}]},
+  kgov:{t:'گاورنر — اگر وزنه همراه است تیک بزنید',cat:'setup',items:[{n:'وزنه گاورنر'}]},
+  kramz:{t:'متعلقات کاراسلینگ رمضانی — تیک بزنید و تعداد را بنویسید',cat:'setup',brand:'رمضانی',items:['سرجک (هرزگرد)','گلدانی','زیر جک','بست ستون','بست جک','لنت','لنت T9','لنت T16','فنر','بوش','بست کابین'].map(function(n){return {n:n+' کاراسلینگ رمضانی'}})},
   motor:{t:'متعلقات موتور',for:'موتور',brand:'',items:[{n:'درخت سیم 6 متری (دیسکی جنتلرایز)'},{n:'درخت سیم 10 متری (بشکه‌ای جنتلرایز)'},{n:'درخت سیم 7 متری (پک خدماتی داینا)'},{n:'درخت سیم (Rope Tree Set هوبر)'},{n:'پک خدماتی (Service Pack)'}]}
 };
 function kitFor(cat,v){
   v=v||{};var b=norm(v.brand||''),sp=supProfile();
   if(cat==='chflr')return 'kflr';if(cat==='chcab')return 'kcab';
+  if(cat==='door'){var dn=norm(v.name||'');if(dn.indexOf(norm('لولایی'))>=0)return 'kdoorH';
+    if(dn.indexOf(norm('بیابانی'))>=0)return dn.indexOf(norm('کابین'))>=0?'kdoorC':dn.indexOf(norm('طبقه'))>=0?'kdoorF':'';return ''}
+  if(cat==='setup'){var sn=norm(v.name||'');if(sn.indexOf(norm('کاراسلینگ رمضانی'))>=0)return 'kramz';if(sn.indexOf(norm('گاورنر'))>=0&&sn.indexOf(norm('محافظ'))<0)return 'kgov';return ''}
   if(cat==='pu'&&sp&&sp.id==='shakib')return 'shpu';
   if(cat==='jack'&&(b.indexOf(norm('ویتور'))>=0||(sp&&sp.id==='a110')))return 'wjack';
   if(cat==='pu'&&isA110()){var s=norm(v.spec||'');
@@ -1745,6 +1759,9 @@ var PARTS={
   ].concat(motorAccItems(),[{id:'misc',n:'متعلقات شکیب',for:'',fields:['توضیحات'],wide:1}])},
   a110:{t:'متعلقات آسانسور ۱۱۰',brand:'110',items:[
     {id:'kar',n:'کاراسلینگ 110',for:'جک',u:'دستگاه',opts:KAR_110.names,optL:'مدل کاراسلینگ',fields:['دهانه ریل','سایز ریل'],fopts:karFopts(KAR_110),multi:['ساپورت بالا','ساپورت پایین']},
+    {id:'karcol',n:'ستون کاراسلینگ 110',for:'جک'},
+    {id:'karbelt',n:'تسمه کاراسلینگ 110',for:'جک'},
+    {id:'karbox',n:'قوطی کاراسلینگ 110',for:'جک'},
     {id:'wjbox',n:'جعبه متعلقات جک ویتور',for:'جک',ser:'req'},
     {id:'hose',n:'شلنگ استاندارد ۱۱۰',for:'جک',opts:HOSE_110,optL:'سایز (اینچ)',fields:['متراژ (متر)'],num:['متراژ (متر)'],req:['متراژ (متر)']},
     {id:'cool',n:'کولینگ 110',for:'پاوریونیت',opts:['NEG10','NEG13']},
@@ -2147,7 +2164,10 @@ function inAdd(){
   if(inCat==='pu'&&isA110()&&!f.spec){showMsg('inMsg','نوع پاور را انتخاب کنید');return}
   if(inCat==='pu'&&!isA110())delete f.spec;
   var ser=isSerialMode(inCat,inSerOn),kk=kitFor(inCat,inVals),K=kk?KITS[kk]:null,mk=MAIN_K[inCat];
-  if(xFieldsOf(inCat)||c.multi){
+  /* فقط قطعه (بدون خود درب): مشخصات درب لازم نیست */
+  var _qi0=$('inEditor').querySelector('[data-qi=main]'),_mainOk0=ser?parseSerials(($('inSerials')||{}).value).length>0:qtyOf(_qi0?_qi0.value:'')>0;
+  var _partsOnly=!_mainOk0&&K&&K.cat&&K.items.some(function(it){return (inKit[it.n]||{}).on});
+  if((xFieldsOf(inCat)||c.multi)&&!_partsOnly){
     if(f[mk]){var xs=xSpec(inCat);
       if(xs.miss.length){var _l=inCat==='door'?'مشخصات درب':'مشخصات '+c.name;xs.miss=xs.miss.filter(Boolean);var xe=[].filter.call($('inXBox').querySelectorAll('input[data-xf]'),function(i){return !i.value.trim()});xe.forEach(function(i){i.classList.add('err')});if(xe[0])xe[0].focus();
         showMsg('inMsg',_l+' را کامل کنید: '+xs.miss.join('، '));return}
@@ -2185,6 +2205,8 @@ function inAdd(){
     var st=inKit[it.n],q=qtyOf(st.qty==null?1:st.qty);
     var fo={company:f.company,project:f.project,brand:K.brand||f.brand||'',name:it.n,spec:mainOk?'همراه '+CATS[inCat].name+' '+base:'','for':K['for']};
     if(parentSer)fo.parent=parentSer;
+    if(K.cat){var fc={company:f.company,project:f.project,brand:K.brand||f.brand||'',name:it.n};if(K.cat==='door'&&f.spec&&mainOk)fc.spec=f.spec;
+      inStaged.push({cat:K.cat,f:fc,qty:q,unit:'عدد',g:g,child:mainOk});return}
     var ss=kitSerialsOf(it,st,q);
     if(ss.length){inStaged.push({cat:'acc',f:fo,serials:ss,unit:'عدد',g:g,child:mainOk});if(q-ss.length>0)inStaged.push({cat:'acc',f:clone(fo),qty:q-ss.length,unit:'عدد',g:g,child:mainOk})}
     else inStaged.push({cat:'acc',f:fo,qty:q,unit:'عدد',g:g,child:mainOk});
@@ -2385,16 +2407,32 @@ function renderOut(){
   $('xCat').value=cur;
   renderPick();renderQtyBox();renderXStaged();
 }
+/* اطلاعات یکسان با جدول موجودی انبار: نام قطعه، مشخصات، تأمین‌کننده و خریدار/پروژه */
+function xInfo(cat,f,rid){
+  f=f||{};var r=(rMap()[rid]||{}),main=f.size||f.model||f.type||f.name||'';
+  var title=cat==='acc'?(f.name||'متعلقات'):cat==='motor'?('موتور '+(f.brand||'')).trim():(main||CATS[cat].name);
+  var sub=cat==='motor'?[f.model,boardSpec(f)].filter(Boolean).join(' · '):[f.brand,boardSpec(f)].filter(Boolean).join(' · ');
+  return {title:title,sub:sub,sup:sbSupName(r.supplier),proj:[f.company,f.project].filter(Boolean).join(' / '),date:r.date||''};
+}
+function xSortCmp(a,b){return String(a.title).localeCompare(String(b.title),'fa',{numeric:true})||String(a.sub).localeCompare(String(b.sub),'fa',{numeric:true})||String(a.proj).localeCompare(String(b.proj),'fa',{numeric:true})||String(a.serial||'').localeCompare(String(b.serial||''),'en',{numeric:true})}
 function renderPick(){
-  var q=norm($('xSearch').value),cat=$('xCat').value,rm=rMap(),st=stagedUnitIds();
+  var q=norm($('xSearch').value),cat=$('xCat').value,st=stagedUnitIds();
   var list=stockUnits().filter(function(u){
-    if(st[u.id])return false;if(cat&&u.cat!==cat)return false;
-    return !q||norm(u.serial+' '+specText(u.cat,u.f)+' '+CATS[u.cat].name).indexOf(q)>=0;
-  }).sort(function(a,b){return (a.seqn||0)-(b.seqn||0)});
-  var shown=list.slice(0,60);
-  $('xPick').innerHTML=shown.length?shown.map(function(u){var r=rm[u.rid]||{};
-    return '<div class="r"><span>'+CATS[u.cat].icon+'</span><div class="grow"><b>'+CATS[u.cat].name+'</b> — '+esc(specText(u.cat,u.f))+' <span class="mono" style="margin-right:8px">'+esc(u.serial)+'</span></div><small style="color:var(--muted)">ورود '+fdate(r.date)+'</small><button class="btn pri sm" data-addu="'+u.id+'">افزودن</button></div>';
-  }).join('')+(list.length>60?'<div class="empty">'+fa(list.length-60)+' مورد دیگر — جستجو را دقیق‌تر کنید</div>':''):'<div class="empty">'+(q||cat?'موردی با این فیلتر در انبار نیست':'اقلام سریال‌داری در انبار موجود نیست')+'</div>';
+    if(st[u.id])return false;if(cat&&u.cat!==cat)return false;return true;
+  }).map(function(u){var o=xInfo(u.cat,u.f,u.rid);o.u=u;o.serial=u.serial;return o}).filter(function(o){
+    return !q||norm([o.serial,o.title,o.sub,o.proj,o.sup,specText(o.u.cat,o.u.f),CATS[o.u.cat].name].join(' ')).indexOf(q)>=0;
+  }).sort(xSortCmp);
+  var LIM=300,shown=list.slice(0,LIM),rows='',prev='',n=0;
+  if($('xPickCnt'))$('xPickCnt').textContent=list.length?'('+fa(list.length)+' عدد)':'';
+  shown.forEach(function(o){var u=o.u,k=o.title+'#'+o.sub;
+    if(k!==prev){var c=0;list.forEach(function(x){if(x.title+'#'+x.sub===k)c++});rows+='<tr class="xt-g"><td colspan="8">'+CATS[u.cat].icon+' '+esc(o.title)+(o.sub?' — '+esc(o.sub):'')+' <span>('+fa(c)+' عدد)</span></td></tr>';prev=k}
+    n++;
+    rows+='<tr class="sbt-r'+sbSupCls(o.sup)+'"><td class="c">'+fa(n)+'</td><td><b>'+esc(o.title)+'</b><small>'+esc(CATS[u.cat].name)+'</small></td><td>'+esc(o.sub||'—')+'</td><td class="mono">'+esc(o.serial)+'</td>'+
+      '<td>'+(o.proj?'<b>'+esc(o.proj)+'</b>':'<span class="o">انبار</span>')+'</td><td>'+esc(o.sup)+'</td><td class="c">'+fdate(o.date)+'</td><td class="c"><button class="btn pri sm" data-addu="'+u.id+'">➕ افزودن</button></td></tr>';
+  });
+  $('xPick').innerHTML=shown.length?'<table class="sbt2 xt"><thead><tr><th class="c">#</th><th>نام قطعه</th><th>برند / مشخصات</th><th>سریال</th><th>خریدار / پروژه</th><th>تأمین‌کننده</th><th class="c">تاریخ ورود</th><th class="c"></th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    (list.length>LIM?'<div class="empty">'+fa(list.length-LIM)+' مورد دیگر — جستجو را دقیق‌تر کنید</div>':'')
+    :'<div class="empty">'+(q||cat?'موردی با این فیلتر در انبار نیست':'اقلام سریال‌داری در انبار موجود نیست')+'</div>';
 }
 function renderQtyBox(){
   var gs=availLotGroups().sort(function(a,b){return CAT_ORDER.indexOf(a.cat)-CAT_ORDER.indexOf(b.cat)});
@@ -2530,11 +2568,15 @@ $('xProdPanel').addEventListener('click',function(e){
   }
 });
 function renderXStaged(){
-  var um=uMap(),n=0;
-  $('xStaged').innerHTML=xStaged.length?xStaged.map(function(s,i){
-    if(s.type==='u'){var u=um[s.unitId];n++;return '<tr><td class="n">'+fa(i+1)+'</td><td>'+CATS[u.cat].icon+' '+CATS[u.cat].name+'</td><td>'+esc(specText(u.cat,u.f))+'</td><td class="mono"><b>'+esc(u.serial)+'</b></td><td>۱ عدد</td><td><button class="btn del sm" data-rx="'+i+'">✕</button></td></tr>'}
-    n++;return '<tr><td class="n">'+fa(i+1)+'</td><td>'+CATS[s.cat].icon+' '+CATS[s.cat].name+'</td><td>'+esc(specText(s.cat,s.f))+'</td><td>—</td><td><b>'+fa(s.qty)+' '+esc(s.unit)+'</b></td><td><button class="btn del sm" data-rx="'+i+'">✕</button></td></tr>';
-  }).join(''):'<tr><td colspan="6" class="empty">هنوز کالایی برای خروج انتخاب نشده</td></tr>';
+  var um=uMap(),lm={};DB.lots.forEach(function(l){if(!lm[l.key])lm[l.key]=l});
+  var rows=xStaged.map(function(s,i){
+    if(s.type==='u'){var u=um[s.unitId],o=xInfo(u.cat,u.f,u.rid);o.i=i;o.cat=u.cat;o.serial=u.serial;o.qty='۱ عدد';return o}
+    var l=lm[s.key]||{},o2=xInfo(s.cat,s.f,l.rid);o2.i=i;o2.cat=s.cat;o2.serial='';o2.qty=fa(s.qty)+' '+s.unit;return o2;
+  }).sort(xSortCmp);
+  $('xStaged').innerHTML=rows.length?rows.map(function(o,n){
+    return '<tr class="sbt-r'+sbSupCls(o.sup)+'"><td class="c">'+fa(n+1)+'</td><td><b>'+esc(o.title)+'</b><small>'+CATS[o.cat].icon+' '+esc(CATS[o.cat].name)+'</small></td><td>'+esc(o.sub||'—')+'</td><td class="mono">'+(o.serial?esc(o.serial):'<span class="o">—</span>')+'</td>'+
+      '<td>'+(o.proj?'<b>'+esc(o.proj)+'</b>':'<span class="o">انبار</span>')+'</td><td>'+esc(o.sup)+'</td><td class="c"><b>'+o.qty+'</b></td><td class="c"><button class="btn del sm" data-rx="'+o.i+'">✕</button></td></tr>';
+  }).join(''):'<tr><td colspan="8" class="empty">هنوز کالایی برای خروج انتخاب نشده</td></tr>';
   $('xCount').textContent=xStaged.length?'('+fa(xStaged.length)+' قلم)':'';refreshProdPanel();
 }
 $('xStaged').addEventListener('click',function(e){var b=e.target.closest('[data-rx]');if(b){xStaged.splice(+b.dataset.rx,1);renderPick();renderQtyBox();renderXStaged()}});
@@ -2546,6 +2588,7 @@ $('btnClearOut').onclick=function(){if(xStaged.length&&!confirm('انتخاب‌
 $('btnSaveOut').onclick=function(){
   var d=normDate($('xDate').value);if(!d){toast('تاریخ حواله نامعتبر است (مثال: 1405/07/16)');$('xDate').classList.add('err');$('xDate').focus();return}$('xDate').classList.remove('err');
   var cust=$('xCust').value.trim();if(!cust){toast('نام مشتری / تحویل‌گیرنده را وارد کنید');$('xCust').classList.add('err');$('xCust').focus();return}$('xCust').classList.remove('err');
+  var proj=$('xProj').value.trim();if(!proj){toast('نام پروژه را وارد کنید');$('xProj').classList.add('err');$('xProj').focus();return}$('xProj').classList.remove('err');
   if(!xStaged.length){toast('هیچ کالایی برای خروج انتخاب نشده');return}
   var no=$('xNo').value.trim()||nextOutNo();
   if(DB.exits.some(function(x){return !x.void&&String(x.no)===no})){toast('شماره حواله تکراری است');$('xNo').classList.add('err');return}$('xNo').classList.remove('err');
@@ -2565,7 +2608,7 @@ $('btnSaveOut').onclick=function(){
       items.push({type:'l',key:s.key,cat:s.cat,f:s.f,unit:s.unit,qty:s.qty,alloc:alloc});
     }
   });
-  var x={id:xid,no:no,date:d,customer:cust,project:$('xProj').value.trim(),dest:$('xDest').value.trim(),plate:$('xPlate').value.trim(),driver:$('xDriver').value.trim(),phone:$('xPhone').value.trim(),receiver:$('xRecv').value.trim(),note:$('xNote').value.trim(),user:curUser(),ts:Date.now(),void:false,items:items};
+  var x={id:xid,no:no,date:d,customer:cust,project:proj,dest:$('xDest').value.trim(),plate:$('xPlate').value.trim(),driver:$('xDriver').value.trim(),phone:$('xPhone').value.trim(),receiver:$('xRecv').value.trim(),note:$('xNote').value.trim(),user:curUser(),ts:Date.now(),void:false,items:items};
   DB.exits.push(x);if(/^\d+$/.test(no))DB.seq.out=Math.max(DB.seq.out,+no);
   addLog('ثبت حواله خروج','حواله '+no+' · '+cust+' · '+fa(items.length)+' قلم');
   save();refreshDatalists();resetOutForm();

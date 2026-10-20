@@ -1837,6 +1837,7 @@ function paintCheck(el,r){
 function formSerials(){
   var out=[],mi=$('inSerials');
   if(mi)parseSerials(mi.value).forEach(function(s){out.push({cat:inCat,s:s,el:mi})});
+  var fsx=$('inFlrSers');if(fsx&&inFlr.on)parseSerials(fsx.value).forEach(function(s){out.push({cat:'chflr',s:s,el:fsx})});
   [].forEach.call(document.querySelectorAll('#inEditor input[data-sk]'),function(el){var v=en(el.value).trim();if(v)out.push({cat:'acc',s:v,el:el})});
   return out;
 }
@@ -1936,7 +1937,48 @@ function falakePickerHtml(){
 }
 
 /* ---------- فرم کالا ---------- */
+/* ---------- 🏢 پنل طبقهٔ همراه (هنگام ثبت پنل کابین، در همان ورود) ---------- */
+function flrFresh(){return {on:false,model:'',mat:'',qty:'',sers:'',kit:{}}}
+var inFlr=flrFresh();
+var FLR_MATS=['استیل','پلکسی','شیشه‌ای','میرور طلایی','میرور نقره‌ای','توکار'];
+function flrCountTxt(){var n=parseSerials(inFlr.sers).length,q=qtyOf(inFlr.qty);return n?('🔢 '+fa(n)+' سریال وارد شده'+(q&&q!==n?' — با تعداد ('+fa(q)+') برابر نیست':'')):''}
+function renderFlrBox(){
+  var box=$('inFlrBox');if(!box)return;var F=inFlr;
+  var h='<div class="xbox"><label class="chk" style="font-weight:800;margin:0"><input type="checkbox" data-flron'+(F.on?' checked':'')+'> 🏢 همراه این پنل کابین، پنل طبقه هم رسیده — در همین ورود ثبت شود</label>';
+  if(F.on){
+    var models=(CATALOG['chflr.model']||[]).map(function(c){return c.v});
+    h+='<div class="grid g2" style="margin-top:10px">'+
+      '<div style="grid-column:1/-1"><label class="f">مدل پنل طبقه <span class="req">*</span> <span class="o">(انتخاب کنید یا مدل خاص را آزاد بنویسید)</span></label><input data-flr="model" value="'+esc(F.model)+'" placeholder="مثلاً A300 یا مدل خاص" autocomplete="off">'+
+        '<div class="chips" style="max-height:120px;overflow:auto">'+models.map(function(m){return '<button type="button" class="chipb'+(F.model===m?' on':'')+'" data-flrm="'+esc(m)+'">'+esc(m)+'</button>'}).join('')+'</div></div>'+
+      '<div><label class="f">جنس / نوع <span class="o">(آزاد، اختیاری)</span></label><input data-flr="mat" value="'+esc(F.mat)+'" placeholder="هر چیزی بنویسید" autocomplete="off">'+
+        '<div class="chips">'+FLR_MATS.map(function(m){return '<button type="button" class="chipb'+(F.mat===m?' on':'')+'" data-flrmat="'+esc(m)+'">'+esc(m)+'</button>'}).join('')+'</div></div>'+
+      '<div><label class="f">تعداد پنل طبقه <span class="req">*</span></label><input data-flr="qty" class="ltr" inputmode="numeric" value="'+esc(F.qty)+'" placeholder="مثلاً 5" autocomplete="off"></div>'+
+      '<div style="grid-column:1/-1"><label class="f">سریال پنل‌های طبقه <span class="req">*</span> <span class="o">(هر سریال در یک خط یا با ویرگول)</span></label><textarea id="inFlrSers" data-flr="sers" class="ltr" rows="3" placeholder="بنویسید یا اسکن کنید">'+esc(F.sers)+'</textarea><div class="o" id="inFlrCnt" style="font-size:.75rem;margin-top:4px">'+flrCountTxt()+'</div></div>'+
+    '</div>';
+    var K=KITS.kflr;
+    h+='<div class="kit" style="margin-top:10px"><div class="kit-head"><b>🧰 متعلقات پنل طبقه</b><span class="o">هر کدام همراه پنل‌های طبقه رسیده تیک بزنید و تعداد را بنویسید</span></div>'+
+      K.items.map(function(it){var st=F.kit[it.n]||{};return '<div class="kit-row'+(st.on?' on':'')+'"><label class="kit-l"><input type="checkbox" data-flrk="'+esc(it.n)+'"'+(st.on?' checked':'')+'><span>'+esc(it.n)+'</span></label>'+
+        (st.on?'<div class="kit-b"><input class="ltr" inputmode="decimal" data-flrkq="'+esc(it.n)+'" value="'+esc(st.qty==null?1:st.qty)+'" style="width:90px" placeholder="تعداد" autocomplete="off"></div>':'')+'</div>'}).join('')+'</div>';
+  }
+  box.innerHTML=h+'</div>';
+}
+$('inEditor').addEventListener('click',function(e){var t;
+  if(t=e.target.closest('[data-flrm]')){inFlr.model=t.dataset.flrm;var ce=(CATALOG['chflr.model']||[]).filter(function(c){return c.v===inFlr.model})[0];if(ce&&ce.h&&!String(inFlr.mat||'').trim())inFlr.mat=ce.h;renderFlrBox();return}
+  if(t=e.target.closest('[data-flrmat]')){inFlr.mat=t.dataset.flrmat;renderFlrBox();return}
+});
+$('inEditor').addEventListener('change',function(e){var t=e.target;
+  if(t.hasAttribute('data-flron')){inFlr.on=t.checked;renderFlrBox();if(t.checked){var m=document.querySelector('#inFlrBox input[data-flr=model]');if(m)m.focus()}return}
+  if(t.dataset.flrk){var k=inFlr.kit[t.dataset.flrk]=inFlr.kit[t.dataset.flrk]||{qty:1};k.on=t.checked;renderFlrBox();return}
+});
+$('inEditor').addEventListener('input',function(e){var t=e.target;
+  if(t.dataset.flr){inFlr[t.dataset.flr]=t.value;t.classList.remove('err');
+    if(t.dataset.flr==='sers'||t.dataset.flr==='qty'){var c=$('inFlrCnt');if(c)c.textContent=flrCountTxt();if(t.dataset.flr==='sers')liveCheckAll()}
+    if(t.dataset.flr==='model'||t.dataset.flr==='mat')[].forEach.call(t.parentNode.querySelectorAll('.chipb'),function(b){b.classList.toggle('on',(b.dataset.flrm||b.dataset.flrmat)===t.value)});
+    return}
+  if(t.dataset.flrkq){var k=inFlr.kit[t.dataset.flrkq]=inFlr.kit[t.dataset.flrkq]||{on:true};k.qty=t.value;return}
+});
 function renderInForm(){
+  if(inCat!=='chcab')inFlr=flrFresh();
   renderTiles();
   var ed=$('inEditor');
   if(!hasSup())inCat='';
@@ -1966,7 +2008,7 @@ function renderInForm(){
   h+='</div><div id="inXBox"></div>';
   if(c.serial==='opt')h+='<label class="chk"><input type="checkbox" id="inSerChkbox"'+(inSerOn?' checked':'')+'> این کالا شماره سریال دارد (هر سریال یک عدد)</label>';
   if(!ser)h+='<div class="qty-row"><label class="f">تعداد / مقدار <span class="req">*</span></label><div class="qty-flex">'+stepperHtml('main',inVals.__qty||'')+'<select id="inUnit">'+(c.units||['عدد']).map(function(u){return '<option'+(inVals.__unit===u?' selected':'')+'>'+esc(u)+'</option>'}).join('')+'</select></div></div>';
-  h+='<div id="inHint"></div><div id="inKitBox"></div>';
+  h+='<div id="inHint"></div><div id="inKitBox"></div>'+(inCat==='chcab'?'<div id="inFlrBox"></div>':'');
   h+='<div class="msg bad" id="inMsg"></div><div class="actions"><button class="btn pri big" id="btnAddLine" type="button">افزودن به سبد ورود</button>'+(ser?'<span class="hint">کلید Enter روی خانهٔ سریال هم افزودن می‌کند</span>':'')+'</div>';
   ed.innerHTML=h;
   [].forEach.call(ed.querySelectorAll('input[data-lf]'),function(inp){
@@ -1985,7 +2027,7 @@ function renderInForm(){
     });
   });
   if($('inSerials'))$('inSerials').onkeydown=function(ev){if(ev.key==='Enter'){ev.preventDefault();inAdd()}};
-  renderXBox();updateHint();renderKit();falakeSyncModel();
+  renderXBox();updateHint();renderKit();falakeSyncModel();renderFlrBox();
 }
 /* ---- انتخاب سریع (چیپ) برای نام/برند ---- */
 function custList(key){var c=(DB.settings&&DB.settings.cust)||{};return c[key]||[]}
@@ -2217,6 +2259,14 @@ function inAdd(){
   var v=validateSerials(formSerials());
   if(v.errs.length){showMsg('inMsg','سریال تکراری ثبت نمی‌شود: '+v.errs.slice(0,4).join(' | '));return}
   if(v.cross.length&&!confirm('این سریال‌ها روی کالای دسته‌ای دیگر ثبت شده‌اند:\n\n'+v.cross.join('\n')+'\n\nمطمئنید که درست است و ثبت شود؟'))return;
+  var flrOn=inCat==='chcab'&&inFlr.on,flrSers=[],flrKit=[];
+  if(flrOn){var fm=[];if(!String(inFlr.model||'').trim())fm.push('مدل پنل طبقه');
+    flrSers=parseSerials(inFlr.sers);var fq=qtyOf(inFlr.qty);
+    if(!flrSers.length)fm.push('سریال پنل طبقه');
+    else if(fq&&fq!==flrSers.length)fm.push('تعداد سریال‌های پنل طبقه ('+fa(flrSers.length)+') با تعداد ('+fa(fq)+') برابر نیست');
+    flrKit=KITS.kflr.items.filter(function(it){return (inFlr.kit[it.n]||{}).on});
+    flrKit.forEach(function(it){if(qtyOf((inFlr.kit[it.n]||{}).qty==null?1:inFlr.kit[it.n].qty)<1)fm.push('تعداد «'+it.n+'»')});
+    if(fm.length){showMsg('inMsg','پنل طبقهٔ همراه — کامل کنید: '+fm.join('، '));return}}
   if(!askRsv(inAdd))return;
   var cx1=ctxVals();f.company=cx1.company;f.project=cx1.project;
   var g=++inGroupSeq,base=specParts(inCat,f).filter(Boolean).join(' ');
@@ -2235,6 +2285,13 @@ function inAdd(){
     if(ss.length){inStaged.push({cat:'acc',f:fo,serials:ss,unit:'عدد',g:g,child:mainOk});if(q-ss.length>0)inStaged.push({cat:'acc',f:clone(fo),qty:q-ss.length,unit:'عدد',g:g,child:mainOk})}
     else inStaged.push({cat:'acc',f:fo,qty:q,unit:'عدد',g:g,child:mainOk});
   });
+  /* پنل طبقهٔ همراه همین پنل کابین (همان ورود) + متعلقات طبقه */
+  if(flrOn){var gf=++inGroupSeq,ff={model:String(inFlr.model).trim(),company:f.company,project:f.project};if(String(inFlr.mat||'').trim())ff.spec=String(inFlr.mat).trim();
+    inStaged.push({cat:'chflr',f:ff,serials:flrSers,unit:'عدد',g:gf});
+    var fb=specParts('chflr',ff).filter(Boolean).join(' ');
+    flrKit.forEach(function(it){var q2=qtyOf((inFlr.kit[it.n]||{}).qty==null?1:inFlr.kit[it.n].qty),fo2={company:f.company,project:f.project,brand:'',name:it.n,spec:'همراه شاسی طبقه '+fb,'for':'شاسی طبقه'};
+      if(flrSers.length===1)fo2.parent=flrSers[0];inStaged.push({cat:'acc',f:fo2,qty:q2,unit:'عدد',g:gf,child:true})});
+    inFlr=flrFresh();}
   bfRememberForm();
   var added=(mainOk?1:0)+kitOn.length;
   inKit={};inVals.__qty='';

@@ -2198,6 +2198,8 @@ function inAdd(){
   var mainSers=ser?parseSerials(($('inSerials')||{}).value):[];
   var qi=$('inEditor').querySelector('[data-qi=main]'),mainQty=ser?0:qtyOf(qi?qi.value:'');
   var mainOk=ser?mainSers.length>0:mainQty>0;
+  /* شاسی کابین و طبقه: بدون شماره سریال ثبت ورود پذیرفته نمی‌شود (حتی اگر فقط متعلقات تیک خورده باشد) */
+  if(CHASSIS_CATS.indexOf(inCat)>=0&&!mainOk){showMsg('inMsg','شماره سریال '+c.name+' الزامی است — بدون سریال ثبت ورود انجام نمی‌شود');var sx=$('inSerials');if(sx){sx.classList.add('err');sx.focus()}return}
   if(mainOk&&!f[mk]){var mf=$('inEditor').querySelector('input[data-lf='+mk+']');if(mf){mf.classList.add('err');mf.focus()}
     showMsg('inMsg','«'+(c.fields.filter(function(x){return x.k===mk})[0]||{l:'مشخصات'}).l+'» را مشخص کنید تا کالا با دقت ثبت شود');return}
   if(!mainOk&&K&&K.items.some(function(it){return it.def})){showMsg('inMsg',ser?'شماره سریال '+c.name+' الزامی است — متعلقات همراه همین کالا ثبت می‌شوند':'تعداد را بنویسید');

@@ -2458,7 +2458,7 @@ $('btnSaveIn').onclick=function(){
     if(hits.some(function(u){return u.cat===l.cat}))bad.push(s);else if(hits.length)cross.push(s)})});
   if(bad.length){toast('سریال تکراری: '+bad.slice(0,4).join('، ')+' — از سبد حذف یا اصلاح کنید');return}
   if(cross.length&&!confirm('این سریال‌ها روی کالای دسته‌ای دیگر هم ثبت‌اند: '+cross.join('، ')+'\nثبت شود؟'))return;
-  var cxS=ctxVals(),rid=uid(),lines=JSON.parse(JSON.stringify(inStaged)).map(function(l){delete l.g;delete l.child;l.f.company=cxS.company;l.f.project=cxS.project;if(!l.f.company)delete l.f.company;if(!l.f.project)delete l.f.project;return l});
+  var cxS=ctxVals(),rid=uid(),lines=JSON.parse(JSON.stringify(inStaged)).map(function(l){delete l.g;delete l.child;/* خریدار و پروژهٔ هر ردیف همانی است که هنگام افزودن به سبد ثبت شد (قبلاً اینجا پاک می‌شد) */if(!l.f.company&&cxS.company)l.f.company=cxS.company;if(!l.f.project&&cxS.project)l.f.project=cxS.project;if(!l.f.company)delete l.f.company;if(!l.f.project)delete l.f.project;return l});
   var rec={id:rid,no:no,date:d,supplier:$('iSup').value.trim(),docNo:$('iDoc').value.trim(),note:$('iNote').value.trim(),user:curUser(),ts:Date.now(),void:false,lines:lines};
   var n=0;
   lines.forEach(function(l){

@@ -53,6 +53,10 @@ button,input,select,textarea{font-family:inherit}
 .nav button[data-t]{--c:#0E6B66;flex:1 1 120px;display:flex;align-items:center;justify-content:center;gap:10px;padding:8px 12px;border:0;border-radius:14px;cursor:pointer;
   background:linear-gradient(180deg,#F7F9F9,#E3E8E7);color:var(--ink);box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 2px 4px rgba(20,40,40,.15);transition:transform .08s}
 .nav button[data-t="in"]{--c:#1F8A4C}.nav button[data-t="amani"]{--c:#8C5A2B}.nav button[data-t="cap"]{--c:#5D6B12}
+.nav button .pend{position:absolute;top:4px;left:6px;min-width:20px;height:20px;border-radius:10px;background:#D93025;color:#fff;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 5px;animation:pendp 1.4s infinite}
+.nav button[data-t]{position:relative}@keyframes pendp{50%{transform:scale(1.18)}}
+.pend-banner{margin:0 0 10px;padding:10px 14px;border-radius:12px;background:#FDECEA;border:1px solid #F3B6AF;color:#8A1C12;font-weight:700;font-size:.85rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+#btnSaveIn.pulse{animation:pendp .5s 5}
 .amx td,.amx th{white-space:nowrap}.amx td.wr{white-space:normal}.am-tot{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}.am-tot span{background:#F4F6F6;border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:.8rem}
 .cap-loan{display:inline-block;background:#FFF4E5;border:1px solid #F0C98A;border-radius:8px;padding:1px 7px;margin:1px;font-size:.75rem}
 .am-banner{display:none;margin:0 0 12px;padding:10px 14px;border-radius:12px;background:#FBF3E8;border:1px solid #E7C9A0;color:#6B4316;font-weight:700;font-size:.85rem}
@@ -574,6 +578,7 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
     <label class="usr">انباردار <input id="userName" placeholder="نام شما" autocomplete="off"></label>
   </header>
 
+  <div id="pendBanner" style="display:none" class="pend-banner">⚠️ <b>0</b> ردیف در سبد ورود است ولی «ثبت نهایی ورود به انبار» زده نشده. <button type="button" class="btn sm grn" onclick="go('in')">رفتن به ثبت ورود</button></div>
   <nav class="nav" id="nav" aria-label="بخش‌های انبار">
     <button data-t="stock" class="on"><span class="ti">📦</span><span class="tl2">موجودی انبار</span></button>
     <button data-t="in"><span class="ti">📥</span><span class="tl2">ثبت ورود</span></button>
@@ -979,8 +984,8 @@ var SMART_CATS=['door','rail','panel','elec','setup'];
 var ACC_FOR={jack:'جک',pu:'پاوریونیت',motor:'موتور',chcab:'شاسی کابین',chflr:'شاسی طبقه'}, ACC_GROUPS=['جک','پاوریونیت','موتور','شاسی کابین','شاسی طبقه'];
 function isSerialMode(cat,chk){var s=CATS[cat].serial;return s===true||(s==='opt'&&!!chk)}
 function specParts(cat,f){return [f.brand||'',f.size||f.model||f.type||f.name||'',f.spec||'']}
-function specText(cat,f){return specParts(cat,f).concat(f.bser?['سریال '+f.bser]:[],f.amani?['🤝 امانی']:[],f.for?['ویژهٔ '+f.for]:[],f.parent?['متعلق به سریال '+f.parent]:[],f.company?['شرکت: '+f.company]:[],f.project?['پروژه: '+f.project]:[]).filter(Boolean).join(' · ')||'(بدون مشخصات)'}
-function lotKey(cat,f,unit){return (f&&f.amani?'am:':'')+(f&&f.bser?'bs:'+nser(f.bser)+':':'')+cat+'|'+['brand','size','model','type','name','spec'].map(function(k){return norm(f[k]||'')}).join('|')+'|'+norm(unit||'')+(f.for?'|f:'+norm(f.for):'')+(f.company?'|c:'+norm(f.company):'')+(f.project?'|p:'+norm(f.project):'')+(f.parent?'|pr:'+nser(f.parent):'')}
+function specText(cat,f){return specParts(cat,f).concat(f.bser?['سریال '+f.bser]:[],f.amani?['🤝 امانی']:[],f.asup?['تأمین‌کننده: '+f.asup]:[],f.for?['ویژهٔ '+f.for]:[],f.parent?['متعلق به سریال '+f.parent]:[],f.company?['شرکت: '+f.company]:[],f.project?['پروژه: '+f.project]:[]).filter(Boolean).join(' · ')||'(بدون مشخصات)'}
+function lotKey(cat,f,unit){return (f&&f.amani?'am:':'')+(f&&f.asup?'as:'+norm(f.asup)+':':'')+(f&&f.bser?'bs:'+nser(f.bser)+':':'')+cat+'|'+['brand','size','model','type','name','spec'].map(function(k){return norm(f[k]||'')}).join('|')+'|'+norm(unit||'')+(f.for?'|f:'+norm(f.for):'')+(f.company?'|c:'+norm(f.company):'')+(f.project?'|p:'+norm(f.project):'')+(f.parent?'|pr:'+nser(f.parent):'')}
 
 /* ====================== ذخیره‌سازی ====================== */
 var LS_KEY='behfaraz_anbar_v1', memOnly=false;
@@ -1177,12 +1182,26 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal()
 
 /* ====================== ناوبری ====================== */
 var curTab='stock';
-var curTab0='';
+var curTab0='',inLeaveOk=false;
+/* هشدار: سبد ورود پر است ولی «ثبت نهایی ورود به انبار» زده نشده */
+function inPendingN(){return (typeof inStaged!=='undefined'&&inStaged)?inStaged.length:0}
+function updInBadge(){var b=document.querySelector('#nav button[data-t="in"]');if(!b)return;var n=inPendingN(),x=b.querySelector('.pend');
+  if(n){if(!x){x=document.createElement('span');x.className='pend';b.appendChild(x)}x.textContent=fa(n);x.title=fa(n)+' ردیف در سبد ورود — ثبت نهایی نشده'}else if(x)x.remove();
+  var bn=$('pendBanner');if(bn){bn.style.display=(n&&curTab!=='in')?'':'none';bn.querySelector('b').textContent=fa(n)}}
+window.addEventListener('beforeunload',function(e){if(inPendingN()){e.preventDefault();e.returnValue='سبد ورود ثبت نهایی نشده است';return e.returnValue}});
 function go(t){
+  if(curTab==='in'&&t!=='in'&&inPendingN()&&!inLeaveOk){
+    openModal('<h3>⚠️ سبد ورود ثبت نهایی نشده</h3><div class="note" style="font-size:.86rem"><b>'+fa(inPendingN())+'</b> ردیف در «سبد این ورود» است ولی هنوز <b>«ثبت نهایی ورود به انبار»</b> زده نشده؛ تا ثبت نهایی نزنید، این کالاها وارد موجودی نمی‌شوند.</div>'+
+      '<div class="actions"><button type="button" class="btn grn" id="lvStay">↩️ برگرد و ثبت نهایی کن</button><button type="button" class="btn ghost" id="lvGo">بعداً — فعلاً برو</button></div>',function(){
+      $('lvStay').onclick=function(){closeModal();var sb=$('btnSaveIn');if(sb){sb.scrollIntoView({block:'center'});sb.classList.add('pulse');setTimeout(function(){sb.classList.remove('pulse')},2500)}};
+      $('lvGo').onclick=function(){closeModal();inLeaveOk=true;go(t);inLeaveOk=false;toast('⚠️ یادتان باشد: سبد ورود هنوز ثبت نهایی نشده')};
+    });return;
+  }
   curTab=t;document.body.dataset.tab=t;
   curTab0=t;
   ['stock','in','out','hist','rep','amani','cap'].forEach(function(x){$('t-'+x).style.display=x===t?'':'none'});
   [].forEach.call($('nav').children,function(b){b.classList.toggle('on',b.dataset.t===t)});
+  updInBadge();
   if(t==='stock'&&typeof stockMode!=='undefined'){$('whView').style.display=stockMode==='wh'?'':'none';$('tblView').style.display=stockMode==='wh'?'none':''}
   if(t==='stock')renderStock();
   if(t==='amani')renderAmani();
@@ -2367,6 +2386,7 @@ function inAdd(){
     flrKit.forEach(function(it){if(qtyOf((inFlr.kit[it.n]||{}).qty==null?1:inFlr.kit[it.n].qty)<1)fm.push('تعداد «'+it.n+'»')});
     if(fm.length){showMsg('inMsg','پنل طبقهٔ همراه — کامل کنید: '+fm.join('، '));return}}
   if(!askRsv(inAdd))return;
+  var _n0=inStaged.length;
   var cx1=ctxVals();f.company=cx1.company;f.project=cx1.project;
   var g=++inGroupSeq,base=specParts(inCat,f).filter(Boolean).join(' ');
   var shpuMerge=(kk==='shpu'&&mainOk);
@@ -2401,6 +2421,7 @@ function inAdd(){
     flrKit.forEach(function(it){var q2=qtyOf((inFlr.kit[it.n]||{}).qty==null?1:inFlr.kit[it.n].qty),fo2={company:f.company,project:f.project,brand:'',name:it.n,spec:'همراه شاسی طبقه '+fb,'for':'شاسی طبقه'};
       if(flrSers.length===1)fo2.parent=flrSers[0];inStaged.push({cat:'acc',f:fo2,qty:q2,unit:'عدد',g:gf,child:true})});
     inFlr=flrFresh();}
+  amTag(_n0);
   bfRememberForm();
   var added=(mainOk?1:0)+kitOn.length;
   inKit={};inVals.__qty='';
@@ -2424,7 +2445,7 @@ function partsAdd(){
   var v=validateSerials(formSerials());
   if(v.errs.length){showMsg('inMsg','سریال تکراری ثبت نمی‌شود: '+v.errs.slice(0,4).join(' | '));return}
   if(v.cross.length&&!confirm('این سریال‌ها روی کالای دسته‌ای دیگر ثبت شده‌اند:\n\n'+v.cross.join('\n')+'\n\nمطمئنید که ثبت شود؟'))return;
-  if(!askRsv(partsAdd))return;ctx=ctxVals();
+  if(!askRsv(partsAdd))return;ctx=ctxVals();var _p0=inStaged.length;
   on.forEach(function(it){
     var st=inParts[S+'|'+it.id],q=qtyOf(st.qty==null?1:st.qty),g=++inGroupSeq;
     if(it.subs){subsOn(it,st).forEach(function(sb){inStaged.push({cat:'acc',f:{company:ctx.company,project:ctx.project,brand:it.brand||P.brand,name:sb+' '+it.n,spec:'','for':it['for']},qty:qtyOf(st.subs[sb]),unit:'عدد',g:g})});if(q<1)return}
@@ -2438,14 +2459,36 @@ function partsAdd(){
   var chP=false;on.forEach(function(it){var st=inParts[S+'|'+it.id];if(it.opts&&st.opt&&it.opts.indexOf(st.opt)<0&&bfRemember('parts.'+S+'.'+it.id,st.opt))chP=true;
     (it.fields||[]).forEach(function(fl){if(it.wide)return;var v=((st.vals||{})[fl]||'').trim();var FO=it.fopts?(it.fopts(st)[fl]||[]):[];if(v&&FO.indexOf(v)<0&&!(it.num&&it.num.indexOf(fl)>=0)&&bfRemember('parts.'+S+'.'+it.id+'.'+fl,v))chP=true})});
   if(chP)save();
+  amTag(_p0);
   inParts={};renderInStaged();renderParts();
   toast('✓ '+fa(on.length)+' قطعهٔ تکمیلی به سبد ورود اضافه شد');
 }
 
 /* ---------- «این کالاها برای کیست؟» — هنگام افزودن به سبد به‌صورت پنجره پرسیده می‌شود ---------- */
 var rsvAsked=false;
+var amSupCur='';
+function isAmaniIn(){return canonSup(($('iSup')||{}).value||'')==='امانی'}
+function amTag(n0){if(!isAmaniIn())return;for(var i=n0;i<inStaged.length;i++){inStaged[i].f.asup=amSupCur}}
 function askRsv(again){
   if(rsvAsked){rsvAsked=false;return true}
+  /* امانی: فقط «شرکت تأمین‌کننده + نام شرکت خریدار + نام پروژه» — گزینهٔ دیگری نیست */
+  if(isAmaniIn()){
+    var as=[];DB.units.concat(DB.lots).forEach(function(x){if(x.f&&x.f.asup&&as.indexOf(x.f.asup)<0)as.push(x.f.asup)});
+    openModal('<h3>🤝 مشخصات کالای امانی</h3><div class="grid g2" style="grid-template-columns:1fr">'+
+      '<div><label class="f">شرکت تأمین‌کننده <span class="req">*</span></label><input id="rpS" list="dl_amsup" value="'+esc(amSupCur)+'" autocomplete="off" placeholder="صاحب کالای امانی"><datalist id="dl_amsup">'+as.map(function(v){return '<option value="'+esc(v)+'">'}).join('')+'</datalist></div>'+
+      '<div><label class="f">نام شرکت خریدار <span class="req">*</span></label><input id="rpC" list="dl_company" value="'+esc($('iCompany').value)+'" autocomplete="off"></div>'+
+      '<div><label class="f">نام پروژه <span class="req">*</span></label><input id="rpP" list="dl_rproject" value="'+esc($('iProject').value)+'" autocomplete="off"></div></div>'+
+      '<div class="msg bad" id="rpMsg"></div><div class="actions"><button type="button" class="btn grn" id="rpOk">✓ ثبت امانی</button><button type="button" class="btn ghost" onclick="closeModal()">انصراف</button></div>',function(){
+      $('rpS').focus();
+      $('rpOk').onclick=function(){var sp=$('rpS').value.trim(),c=$('rpC').value.trim(),pj=$('rpP').value.trim();
+        if(!sp){showMsg('rpMsg','شرکت تأمین‌کننده را بنویسید');$('rpS').focus();return}
+        if(!c){showMsg('rpMsg','نام شرکت خریدار را بنویسید');$('rpC').focus();return}
+        if(!pj){showMsg('rpMsg','نام پروژه را بنویسید');$('rpP').focus();return}
+        amSupCur=sp;$('iCompany').value=c;$('iProject').value=pj;rsvMode='res';closeModal();rsvAsked=true;again();rsvMode=''};
+      $('rpP').addEventListener('keydown',function(e){if(e.key==='Enter')$('rpOk').click()});
+    });
+    return false;
+  }
   var cv=$('iCompany').value,pv=$('iProject').value;
   openModal('<h3>🎯 این کالا برای کیست؟</h3><div class="rsvp">'+
     '<button type="button" class="rsvp-b" data-rp="stock"><span>📦</span><b>موجودی انبار</b><small>برای فروش بعدی در انبار می‌ماند</small></button>'+
@@ -2481,13 +2524,14 @@ function lineSpec(l){
   return specParts(l.cat,l.f).filter(Boolean).join(' · ');
 }
 function renderInStaged(){
+  setTimeout(updInBadge,0);
   var box=$('inStaged');
   if(!inStaged.length){box.innerHTML='<div class="t-empty">سبد خالی است.<br>کالا را انتخاب کنید، سریال یا تعداد را بنویسید و «افزودن به سبد ورود» را بزنید.</div>';$('inCount').textContent='';$('btnSaveIn').disabled=true;return}
   var nUnits=0;
   box.innerHTML=inStaged.map(function(l,i){
     nUnits+=l.serials?l.serials.length:l.qty;
     var ic=l.cat==='acc'?'🧰':CATS[l.cat].icon;
-    return '<div class="tline'+(l.child?' child':'')+'"><span class="tl-ic">'+ic+'</span><div class="tl-b"><div class="tl-t">'+esc(lineTitle(l))+'</div><div class="tl-s">'+esc(lineSpec(l))+'</div>'+(l.f.company&&!l.child?'<span class="tl-rsv">🏷️ رزرو: '+esc(l.f.company)+(l.f.project?' / '+esc(l.f.project):'')+'</span>':!l.child?'<span class="tl-rsv" style="background:#E2F4E9;color:var(--in)">📦 موجودی انبار</span>':'')+
+    return '<div class="tline'+(l.child?' child':'')+'"><span class="tl-ic">'+ic+'</span><div class="tl-b"><div class="tl-t">'+esc(lineTitle(l))+'</div><div class="tl-s">'+esc(lineSpec(l))+'</div>'+(l.f.company&&!l.child?'<span class="tl-rsv">'+(l.f.asup?'🤝 '+esc(l.f.asup)+' ← ':'🏷️ رزرو: ')+esc(l.f.company)+(l.f.project?' / '+esc(l.f.project):'')+'</span>':!l.child?'<span class="tl-rsv" style="background:#E2F4E9;color:var(--in)">📦 موجودی انبار</span>':'')+
       (l.serials?'<div class="serchips">'+l.serials.slice(0,12).map(function(s){return '<span>'+esc(s)+'</span>'}).join('')+(l.serials.length>12?'<span>+'+fa(l.serials.length-12)+'</span>':'')+'</div>':'')+
       '</div><div class="tl-q">'+(l.serials?fa(l.serials.length)+'<small>عدد</small>':fa(l.qty)+'<small>'+esc(l.unit)+'</small>')+'</div><button class="tl-x" type="button" data-rm="'+i+'" title="حذف از سبد" aria-label="حذف">✕</button></div>';
   }).join('');
@@ -3366,16 +3410,16 @@ function amItems(showOut){
 }
 function renderAmani(){
   var q=norm($('amQ').value),showOut=$('amShowOut').checked,su=sbStagedU(),sl=sbStagedL();
-  var list=amItems(showOut).filter(function(it){return !q||norm([CATS[it.cat].name,specText(it.cat,it.f),it.serial,it.f.company,it.f.project,(it.rnos||[it.rno]).join(' ')].join(' ')).indexOf(q)>=0})
+  var list=amItems(showOut).filter(function(it){return !q||norm([CATS[it.cat].name,specText(it.cat,it.f),it.serial,it.f.asup,it.f.company,it.f.project,(it.rnos||[it.rno]).join(' ')].join(' ')).indexOf(q)>=0})
     .sort(function(a,b){return CAT_ORDER.indexOf(a.cat)-CAT_ORDER.indexOf(b.cat)||specText(a.cat,a.f).localeCompare(specText(b.cat,b.f),'fa')||String(a.serial).localeCompare(String(b.serial))});
   var nU=0,nL=0;list.forEach(function(it){if(!it.isOut){if(it.k==='u')nU++;else nL++}});
   $('amCount').textContent='('+fa(list.length)+' ردیف)';
   $('amTot').innerHTML='<span>🔩 سریال‌دار موجود: <b>'+fa(nU)+'</b></span><span>📦 اقلام تعدادی موجود: <b>'+fa(nL)+'</b></span>';
-  $('amTable').innerHTML=list.length?'<table class="amx"><thead><tr><th>#</th><th>دسته</th><th>کالا / مشخصات</th><th>سریال</th><th>موجودی</th><th>صاحب کالا / پروژه</th><th>تاریخ ورود</th><th>رسید</th><th>وضعیت</th><th></th></tr></thead><tbody>'+
+  $('amTable').innerHTML=list.length?'<table class="amx"><thead><tr><th>#</th><th>دسته</th><th>کالا / مشخصات</th><th>سریال</th><th>موجودی</th><th>شرکت تأمین‌کننده</th><th>خریدار / پروژه</th><th>تاریخ ورود</th><th>رسید</th><th>وضعیت</th><th></th></tr></thead><tbody>'+
     list.map(function(it,i){var own=[it.f.company,it.f.project].filter(Boolean).join(' / ');
       var act=it.isOut?'':(it.k==='u'?'<button type="button" class="btn sm'+(su[it.id]?' grn':'')+'" data-amu="'+it.id+'">'+(su[it.id]?'✓ در حواله':'🚚 حواله')+'</button>'
         :'<button type="button" class="btn sm'+(sl[it.id]?' grn':'')+'" data-aml="'+esc(it.id)+'">'+(sl[it.id]?'✓ '+fa(sl[it.id])+' '+esc(it.unit):'🚚 حواله')+'</button>');
-      return '<tr><td class="n">'+fa(i+1)+'</td><td>'+CATS[it.cat].icon+' '+CATS[it.cat].name+'</td><td class="wr">'+esc(specText(it.cat,it.f).replace(/ · 🤝 امانی/,''))+'</td><td class="mono">'+esc(it.serial||'—')+'</td><td><b>'+fa(it.qty)+'</b> '+esc(it.unit)+'</td><td>'+esc(own||'—')+'</td><td>'+fdate(it.date)+'</td><td>'+esc(fa(it.rno!=null?it.rno:(it.rnos||[]).join('، ')))+'</td><td>'+(it.isOut?'<span class="tag out">تحویل شد'+(it.xno?' · حواله '+esc(fa(it.xno)):'')+'</span>':'<span class="tag in">موجود</span>')+'</td><td>'+act+'</td></tr>'}).join('')+'</tbody></table>'
+      return '<tr><td class="n">'+fa(i+1)+'</td><td>'+CATS[it.cat].icon+' '+CATS[it.cat].name+'</td><td class="wr">'+esc(specParts(it.cat,it.f).concat(it.f.bser?['سریال '+it.f.bser]:[]).filter(Boolean).join(' · ')||'—')+'</td><td class="mono">'+esc(it.serial||'—')+'</td><td><b>'+fa(it.qty)+'</b> '+esc(it.unit)+'</td><td><b>'+esc(it.f.asup||'—')+'</b></td><td>'+esc(own||'—')+'</td><td>'+fdate(it.date)+'</td><td>'+esc(fa(it.rno!=null?it.rno:(it.rnos||[]).join('، ')))+'</td><td>'+(it.isOut?'<span class="tag out">تحویل شد'+(it.xno?' · حواله '+esc(fa(it.xno)):'')+'</span>':'<span class="tag in">موجود</span>')+'</td><td>'+act+'</td></tr>'}).join('')+'</tbody></table>'
     :'<div class="empty">کالای امانی'+(q?' با این جستجو':'')+' وجود ندارد</div>';
   var n=xStaged.length;$('amDock').innerHTML=n?'<div class="actions"><span>🚚 حوالهٔ خروج: <b>'+fa(n)+'</b> قلم انتخاب شده</span><button type="button" class="btn grn" id="amGo">ادامه و صدور حواله ←</button></div>':'';
   if($('amGo'))$('amGo').onclick=function(){go('out')};
@@ -3384,7 +3428,7 @@ function renderAmani(){
 function amHistRows(){
   var f=normDate($('amFrom').value)||'',t=normDate($('amTo').value)||'',q=norm($('amHQ').value),rows=[];
   DB.receipts.forEach(function(rc){rc.lines.forEach(function(l){if(!isAm(l))return;
-    rows.push({date:rc.date,ts:rc.ts,type:rc.void?'ورود (باطل)':'ورود',doc:'رسید '+rc.no,item:CATS[l.cat].name+' — '+specText(l.cat,l.f).replace(/ · 🤝 امانی/,''),qty:l.serials?l.serials.length:l.qty,unit:l.serials?'عدد':l.unit,ser:(l.serials||[]).join('، '),party:[l.f.company,l.f.project].filter(Boolean).join(' / ')||rc.supplier||'',user:rc.user||''})})});
+    rows.push({date:rc.date,ts:rc.ts,type:rc.void?'ورود (باطل)':'ورود',doc:'رسید '+rc.no,item:CATS[l.cat].name+' — '+specText(l.cat,l.f).replace(/ · 🤝 امانی/,''),qty:l.serials?l.serials.length:l.qty,unit:l.serials?'عدد':l.unit,ser:(l.serials||[]).join('، '),party:(l.f.asup?l.f.asup+' ← ':'')+[l.f.company,l.f.project].filter(Boolean).join(' / '),user:rc.user||''})})});
   DB.exits.forEach(function(x){x.items.forEach(function(it){if(!isAm(it))return;
     rows.push({date:x.date,ts:x.ts,type:x.void?'تحویل (باطل)':'تحویل / خروج',doc:'حواله '+x.no,item:CATS[it.cat].name+' — '+specText(it.cat,it.f).replace(/ · 🤝 امانی/,''),qty:it.qty,unit:it.unit||'عدد',ser:it.serial||'',party:[x.customer,x.project].filter(Boolean).join(' / '),user:x.user||''})})});
   return rows.filter(function(r){return amInRange(r.date,f,t)&&(!q||norm([r.type,r.doc,r.item,r.ser,r.party,r.user].join(' ')).indexOf(q)>=0)}).sort(function(a,b){return b.date.localeCompare(a.date)||b.ts-a.ts});
@@ -3405,9 +3449,9 @@ $('amTable').addEventListener('click',function(e){var t;
     xStaged=xStaged.filter(function(s){return !(s.type==='l'&&s.key===key)});if(q>0){var err=xAddLot(key,q);toast(err?'⚠️ '+err:'✓ به حوالهٔ خروج اضافه شد')}renderAmani()}
 });
 $('amXls').onclick=function(){
-  var cur=amItems(false).map(function(it){var p=specParts(it.cat,it.f);return [CATS[it.cat].name,p[0],p[1],p[2],it.f.company||'',it.f.project||'',it.serial||'',it.qty,it.unit,it.date,it.rno!=null?it.rno:(it.rnos||[]).join('، ')]});
+  var cur=amItems(false).map(function(it){var p=specParts(it.cat,it.f);return [CATS[it.cat].name,p[0],p[1],p[2],it.f.asup||'',it.f.company||'',it.f.project||'',it.serial||'',it.qty,it.unit,it.date,it.rno!=null?it.rno:(it.rnos||[]).join('، ')]});
   var hist=amHistRows().map(function(r){return [r.date,r.type,r.doc,r.item,r.qty,r.unit,r.ser,r.party,r.user]});
-  dl(buildXlsx([{name:'موجودی امانی',head:['دسته','برند','مدل / سایز / نام','مشخصات','صاحب کالا','پروژه','سریال','موجودی','واحد','تاریخ ورود','رسید'],rows:cur},
+  dl(buildXlsx([{name:'موجودی امانی',head:['دسته','برند','مدل / سایز / نام','مشخصات','شرکت تأمین‌کننده','شرکت خریدار','پروژه','سریال','موجودی','واحد','تاریخ ورود','رسید'],rows:cur},
     {name:'تاریخچه امانی',head:['تاریخ','نوع','سند','کالا','مقدار','واحد','سریال','صاحب کالا / تحویل‌گیرنده','کاربر'],rows:hist}]),'amani-report-'+todayJ().replace(/\//g,'-')+'.xlsx');
   toast('✓ اکسل امانی ساخته شد');
 };

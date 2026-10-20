@@ -4280,5 +4280,126 @@ h.style.setProperty('--mx',(x*100).toFixed(1)+'%');h.style.setProperty('--my',(y
   }
 })();
 </script>
+<script id="bfAutoSeq">
+/* ===== [BF-AUTOSEQ] شمارهٔ سیستمی پیش‌فاکتور — از ۱۴۰۵/۰۷/۲۸ =====
+   قالب شماره همان قبلی است (پیشوند تاریخ شمسی روز + عدد)؛ فقط «عدد» دیگر دستی نیست.
+   - عدد هنگام اولین «ذخیره / چاپ / افزودن به فاکتور پلاس» یک پیش‌فاکتور تازه از سرور گرفته می‌شود
+     (با باز کردن صفحه شماره مصرف نمی‌شود). هر محصول شمارندهٔ جدا دارد و هر روز از ۱ شروع می‌شود.
+   - پیش‌فاکتورهای ذخیره‌شده که ویرایش می‌شوند شمارهٔ خودشان را نگه می‌دارند.
+   - اگر سرور در دسترس نباشد (قطعی شبکه، نسخهٔ آنلاین بدون سرور)، باکس شماره مثل قبل دستی می‌شود تا
+     کار متوقف نشود؛ وقتی آن سفارش به سرور رسید، شمارنده از آن عدد جلوتر می‌رود و شمارهٔ تکراری ساخته نمی‌شود. */
+function bfAutoSeqInit(cfg){
+  if(!cfg || window.__bfAutoSeqOn) return; window.__bfAutoSeqOn = true;
+  var online = false, busy = false, bypass = false;
+  function el(){ try{ return cfg.seqEl(); }catch(e){ return null; } }
+  function prefix(){
+    try{ var o = {}; new Intl.DateTimeFormat('en-US-u-ca-persian-nu-latn', {year:'numeric', month:'2-digit', day:'2-digit'})
+      .formatToParts(new Date()).forEach(function(x){ o[x.type] = x.value; });
+      return String(o.year).slice(-3) + o.month + o.day; }catch(e){ return ''; }
+  }
+  function token(){
+    try{ if(typeof bfAuthHeaders === 'function'){ var h = bfAuthHeaders(); if(h && h['x-operator-token']) return h['x-operator-token']; } }catch(e){}
+    var keys = ['bf_operator_session_v1'];
+    for(var i = 0; i < keys.length; i++){
+      try{ var o = JSON.parse(sessionStorage.getItem(keys[i]) || 'null') || JSON.parse(localStorage.getItem(keys[i]) || 'null'); if(o && o.token) return o.token; }catch(e){}
+    }
+    return '';
+  }
+  function timed(p, ms){ return Promise.race([p, new Promise(function(_, rej){ setTimeout(function(){ rej(new Error('timeout')); }, ms); })]); }
+  function has(){ var e = el(); return cfg.has ? cfg.has(e) : !!(e && String(e.value || '').trim()); }
+  function apply(seq, pf){
+    var e = el(); if(!e) return;
+    if(cfg.apply) cfg.apply(e, seq, pf); else e.value = String(seq);
+    try{ e.dispatchEvent(new Event('input', {bubbles:true})); e.dispatchEvent(new Event('change', {bubbles:true})); }catch(_){}
+  }
+  var css = document.createElement('style');
+  css.textContent = '.bf-seq-auto{background:#E8F4F1 !important;color:#0F5A52 !important;font-weight:800 !important;cursor:not-allowed}' +
+    '.bf-seq-auto::placeholder{color:#3C8F84;font-weight:700;opacity:1}' +
+    '.bf-seq-manual{background:#FFF4E5 !important;border-color:#E2A33B !important}' +
+    '.bf-seq-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:100000;background:#1E2B2A;color:#fff;padding:11px 18px;border-radius:12px;font:inherit;font-size:13px;direction:rtl;box-shadow:0 10px 30px rgba(0,0,0,.3);max-width:92vw;text-align:center}';
+  document.head.appendChild(css);
+  function toast(msg){
+    var t = document.createElement('div'); t.className = 'bf-seq-toast'; t.textContent = msg; document.body.appendChild(t);
+    setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 5000);
+  }
+  function lock(){
+    var e = el(); if(!e) return;
+    e.readOnly = true; e.classList.add('bf-seq-auto'); e.classList.remove('bf-seq-manual');
+    if(cfg.maxLen) e.maxLength = cfg.maxLen;
+    if(!has()) { e.dataset.bfPh = e.dataset.bfPh || e.placeholder || ''; e.placeholder = cfg.ph || 'خودکار'; }
+    e.title = 'شمارهٔ پیش‌فاکتور سیستمی است و هنگام ذخیره یا چاپ خودکار از سرور گرفته می‌شود';
+  }
+  function unlock(){
+    var e = el(); if(!e) return;
+    e.readOnly = false; e.classList.remove('bf-seq-auto'); e.classList.add('bf-seq-manual');
+    if(cfg.maxLen) e.maxLength = cfg.maxLen;
+    e.placeholder = 'دستی'; e.title = 'سرور در دسترس نیست — شماره را دستی وارد کنید';
+  }
+  function check(){
+    return timed(fetch('/api/health', {cache:'no-store'}), 3500).then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ online = !!(d && d.ok); online ? lock() : unlock(); return online; })
+      .catch(function(){ online = false; unlock(); return false; });
+  }
+  function take(key){
+    var pf = prefix(); if(!pf) return Promise.reject(new Error('date'));
+    var h = {'Content-Type':'application/json'}, tk = token(); if(tk) h['x-operator-token'] = tk;
+    return timed(fetch('/api/invoice-seq/take', {method:'POST', headers:h, body:JSON.stringify({product:cfg.product, prefix:pf, key:key})}), 6000)
+      .then(function(r){ return r.json().then(function(d){ if(!r.ok || !d || !d.ok) throw new Error((d && d.error) || ('HTTP ' + r.status)); return d; }); });
+  }
+  window.bfAutoSeqTake = function(key){ return online ? take(key) : Promise.reject(new Error('offline')); };
+  window.bfAutoSeqOnline = function(){ return online; };
+  document.addEventListener('click', function(ev){
+    if(bypass || !cfg.buttons) return;
+    var b = ev.target && ev.target.closest ? ev.target.closest(cfg.buttons) : null;
+    if(!b || b.disabled || !online || has()) return;
+    ev.preventDefault(); ev.stopImmediatePropagation();
+    if(busy) return; busy = true;
+    var key = cfg.product + ':' + Date.now().toString(36) + ':' + Math.random().toString(36).slice(2, 10);
+    var old = b.style.opacity; b.style.opacity = '.6';
+    take(key).then(function(d){
+      apply(d.seq, d.prefix); lock();
+      toast('🔢 شمارهٔ پیش‌فاکتور: ' + d.prefix + ' — عدد ' + d.seq);
+      busy = false; b.style.opacity = old;
+      bypass = true; try{ b.click(); } finally { bypass = false; }
+    }).catch(function(err){
+      busy = false; b.style.opacity = old;
+      online = false; unlock();
+      var e = el(); if(e){ try{ e.focus(); }catch(_){} }
+      toast('⚠️ شمارهٔ سیستمی گرفته نشد (' + (err && err.message || 'سرور در دسترس نیست') + ') — شماره را دستی بنویسید و دوباره بزنید');
+    });
+  }, true);
+  // وقتی فرم برای پیش‌فاکتور تازه خالی می‌شود، باکس دوباره «خودکار» نشان داده شود
+  setInterval(function(){ if(online){ var e = el(); if(e && !e.readOnly) lock(); else if(e && !has() && e.placeholder !== (cfg.ph || 'خودکار')) e.placeholder = cfg.ph || 'خودکار'; } }, 1500);
+  setInterval(function(){ if(!online) check(); }, 60000);
+  check();
+}
+/* ===== [BF-AUTOSEQ-END] ===== */
+
+bfAutoSeqInit({product:'factorplus',seqEl:function(){return null},buttons:null});
+/* فاکتور پلاس: هر فاکتور پلاسِ امروز که شماره ندارد خودکار شماره می‌گیرد (کلید = شناسهٔ همان فاکتور، پس تکراری نمی‌شود) */
+(function(){
+  if(typeof fpRender!=='function')return;
+  var pend={},orig=fpRender;
+  function tday(t){try{return new Date(t).toLocaleDateString('en-CA',{timeZone:'Asia/Tehran'})}catch(e){return ''}}
+  function autoNo(){
+    if(!window.bfAutoSeqOnline||!bfAutoSeqOnline())return;
+    var today=tday(Date.now());
+    (fpLoad()||[]).forEach(function(f){
+      if(!f||f.invoiceNo||pend[f.id]||tday(f.createdAt||f.updatedAt||0)!==today)return;
+      pend[f.id]=1;
+      bfAutoSeqTake('fp:'+f.id).then(function(d){delete pend[f.id];fpSetInvoiceNo(f.id,d.prefix+String(d.seq))}).catch(function(){delete pend[f.id]});
+    });
+  }
+  function lockInputs(){
+    var on=window.bfAutoSeqOnline&&bfAutoSeqOnline();
+    [].forEach.call(document.querySelectorAll('input[onchange^="fpSetInvoiceNo"]'),function(i){
+      i.readOnly=!!on;i.classList.toggle('bf-seq-auto',!!on);if(on&&!i.value)i.placeholder='خودکار';
+      var l=i.parentNode&&i.parentNode.querySelector('label');if(l&&on)l.textContent='🧾 شماره پیش‌فاکتور (سیستمی)';
+    });
+  }
+  window.fpRender=fpRender=function(){var r=orig.apply(this,arguments);try{lockInputs();autoNo()}catch(e){}return r};
+  setTimeout(function(){try{lockInputs();autoNo()}catch(e){}},4500);
+})();
+</script>
 </body>
 </html>

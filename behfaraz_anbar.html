@@ -1675,6 +1675,7 @@ var KITS={
   sjack:{t:'متعلقات جک شکیب',for:'جک',brand:'شکیب',items:[{n:'رپچر شکیب 1 اینچ',ser:1},{n:'رپچر شکیب 1-1/2 اینچ',ser:1},{n:'رپچر 4 پیچ 1-1/4 اینچ شکیب',ser:1},{n:'فلوکنترل شکیب'},{n:'مغزی شکیب'}]},
   /* قطعات درب و لوازم راه‌اندازی — تعدادی؛ در همان دستهٔ درب / لوازم راه‌اندازی ثبت می‌شوند (cat) */
   kdoorH:{t:'قطعات درب لولایی — تیک بزنید و تعداد را بنویسید',cat:'door',items:[{n:'قاب درب لولایی'},{n:'شیشه درب لولایی'},{n:'فنر درب لولایی'},{n:'دستگیره درب لولایی'}]},
+  kdana:{t:'متعلقات کاراسلینگ اصفهان دانا — قطعه‌هایی که رسیده تیک بزنید و تعداد را بنویسید',cat:'acc',for:'جک',brand:'اصفهان دانا',items:['سرجک (هرزگرد)','گلدانی','زیر جک','بست ستون','بست جک','لنت','لنت T9','لنت T16','فنر','بوش','بست کابین'].map(function(n){return {n:n+' کاراسلینگ اصفهان دانا'}})},
   kgov:{t:'گاورنر — وزنه و محافظ همراه را تیک بزنید و تعداد را بنویسید',cat:'setup',items:[{n:'وزنه گاورنر'},{n:'محافظ گاورنر'}]},
   motor:{t:'متعلقات موتور',for:'موتور',brand:'',items:[{n:'درخت سیم 6 متری (دیسکی جنتلرایز)'},{n:'درخت سیم 10 متری (بشکه‌ای جنتلرایز)'},{n:'درخت سیم 7 متری (پک خدماتی داینا)'},{n:'درخت سیم (Rope Tree Set هوبر)'},{n:'پک خدماتی (Service Pack)'}]}
 };
@@ -1682,6 +1683,7 @@ function kitFor(cat,v){
   v=v||{};var b=norm(v.brand||''),sp=supProfile();
   if(cat==='chflr')return 'kflr';if(cat==='chcab')return 'kcab';
   if(cat==='door')return doorKit(v.name);
+  if(cat==='acc'&&norm(v.name||'').indexOf(norm('کاراسلینگ اصفهان دانا'))>=0)return 'kdana';
   if(cat==='setup'){var sn=norm(v.name||'');if(sn.indexOf(norm('گاورنر'))>=0&&sn.indexOf(norm('محافظ'))<0)return 'kgov';return ''}
   if(cat==='pu'&&sp&&sp.id==='shakib')return 'shpu';
   if(cat==='jack'&&(b.indexOf(norm('ویتور'))>=0||(sp&&sp.id==='a110')))return 'wjack';
@@ -1754,7 +1756,6 @@ function motorAccItems(){return MOTOR_ACC.map(function(n,i){return {id:'mot'+i,n
 var PARTS={
   shakib:{t:'متعلقات شکیب',brand:'شکیب',items:[
     {id:'kar',n:'کاراسلینگ شکیب',for:'جک',u:'دستگاه',opts:KAR_SH.names,optL:'مدل کاراسلینگ',fields:['دهانه ریل','سایز ریل'],fopts:karFopts(KAR_SH)},
-    danaItem(),
     {id:'rupt',n:'رپچر شکیب',for:'جک',opts:['1 اینچ','1-1/2 اینچ','4 پیچ 1-1/4 اینچ'],optL:'سایز',ser:1},
     {id:'flow',n:'فلوکنترل شکیب',for:'جک'},
     {id:'mag',n:'مغزی شکیب',for:'جک'},
@@ -1769,13 +1770,12 @@ var PARTS={
     {id:'psw',n:'سوییچ فشار',for:'پاوریونیت'},
     {id:'heat',n:'هیتر',for:'پاوریونیت',opts:['بدون ترموستات','با ترموستات']},
     {id:'sil',n:'سایلنسر',for:'پاوریونیت'}
-  ].concat(motorAccItems(),[{id:'misc',n:'متعلقات شکیب',for:'',fields:['توضیحات'],wide:1}])},
+  ].concat(motorAccItems().filter(function(it){return !/جنتلرایز|هوبر/.test(it.n)}),[{id:'misc',n:'متعلقات شکیب',for:'',fields:['توضیحات'],wide:1}])},
   a110:{t:'متعلقات آسانسور ۱۱۰',brand:'110',items:[
     {id:'kar',n:'کاراسلینگ 110',for:'جک',u:'دستگاه',opts:KAR_110.names,optL:'مدل کاراسلینگ',fields:['دهانه ریل','سایز ریل'],fopts:karFopts(KAR_110),multi:['ساپورت بالا','ساپورت پایین']},
     {id:'karcol',n:'ستون کاراسلینگ 110',for:'جک'},
     {id:'karbelt',n:'تسمه کاراسلینگ 110',for:'جک'},
     {id:'karbox',n:'قوطی کاراسلینگ 110',for:'جک'},
-    danaItem(),
     {id:'wjbox',n:'جعبه متعلقات جک ویتور',for:'جک',ser:'req'},
     {id:'hose',n:'شلنگ استاندارد ۱۱۰',for:'جک',opts:HOSE_110,optL:'سایز (اینچ)',fields:['متراژ (متر)'],num:['متراژ (متر)'],req:['متراژ (متر)']},
     {id:'cool',n:'کولینگ 110',for:'پاوریونیت',opts:['NEG10','NEG13']},
@@ -2222,7 +2222,7 @@ function inAdd(){
     var st=inKit[it.n],q=qtyOf(st.qty==null?1:st.qty);
     var fo={company:f.company,project:f.project,brand:K.brand||f.brand||'',name:it.n,spec:mainOk?'همراه '+CATS[inCat].name+' '+base:'','for':K['for']};
     if(parentSer)fo.parent=parentSer;
-    if(K.cat){var fc={company:f.company,project:f.project,brand:K.brand||f.brand||'',name:it.n};if(K.cat==='door'&&f.spec&&mainOk)fc.spec=f.spec;
+    if(K.cat){var fc={company:f.company,project:f.project,brand:K.brand||f.brand||'',name:it.n};if(K['for'])fc['for']=K['for'];if(K.cat==='door'&&f.spec&&mainOk)fc.spec=f.spec;
       inStaged.push({cat:K.cat,f:fc,qty:q,unit:'عدد',g:g,child:mainOk});return}
     var ss=kitSerialsOf(it,st,q);
     if(ss.length){inStaged.push({cat:'acc',f:fo,serials:ss,unit:'عدد',g:g,child:mainOk});if(q-ss.length>0)inStaged.push({cat:'acc',f:clone(fo),qty:q-ss.length,unit:'عدد',g:g,child:mainOk})}

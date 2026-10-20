@@ -838,7 +838,7 @@ CATALOG['jack.brand']=L(['شکیب','ویتور','بلین'],function(b){return 
   CATALOG['panel.name']=V(['تابلو فرمان هیدرولیک','تابلو فرمان 3VF','تابلو فرمان گیرلس MR','تابلو فرمان گیرلس MRL','تابلو فرمان دو سرعته','تابلو فرمان بالابری'],'دستگاه');
   CATALOG['panel.brand']=V(['پارس','راویس','آریان']);
   CATALOG['elec.name']=V(['داکت پلاستیکی 3','داکت فلزی','داکت پلاستیکی 9','کلید قارچی و جعبه','میکرو سوییچ','فلکسی 16','فلکسی 21','سیم 0/75','سیم 4','سیم 6','سیم 6 زوج','سیم ارت','چسب برق','بست کمربندی','بست کابل','لامپ و سرپیچ','هالوژن','فن (هواکش)','لامپ تونلی']);
-  CATALOG['setup.name']=V(['تراول کابل','فتوسل دو کانال','فتوسل تک کانال','فتوسل پرده ای','سنسور و اهنربا','دوشاخ کنتاکت قفل','گاورنر','سیم بکسل 6','سیم بکسل 8','سیم بکسل 10','براکت T5','براکت T9','براکت T16','براکت ناودانی 6','براکت ناودانی 8','لقمه T5','لقمه T9','لقمه T16','روغن دان','کرپی 6','کرپی 8','کرپی 10','بافر','فن کابین','زنگ','پک محافظ','قفل لولایی','دیکتاتور (آرام‌بند)','بست تراول','پارک پلیت','اورلود مغناطیسی','اورلود بکسلی','اشکی','پیچ و مهره 12','پیچ و مهره 10','پیچ و مهره 8','پیچ و مهره 6','پیچ و رول پلاک','پیچ و مهره 16','کابین','فلکه هرزگرد','وزنه','گوشی تلفن','کمان مکانیکی','کمان برقی','لاستیک تخت','سر بکسل','شالتر','محافظ گاورنر','کاراسلینگ رمضانی']);
+  CATALOG['setup.name']=V(['تراول کابل','فتوسل دو کانال','فتوسل تک کانال','فتوسل پرده ای','سنسور و اهنربا','دوشاخ کنتاکت قفل','گاورنر','سیم بکسل 6','سیم بکسل 8','سیم بکسل 10','براکت T5','براکت T9','براکت T16','براکت ناودانی 6','براکت ناودانی 8','لقمه T5','لقمه T9','لقمه T16','روغن دان','کرپی 6','کرپی 8','کرپی 10','بافر','فن کابین','زنگ','پک محافظ','قفل لولایی','دیکتاتور (آرام‌بند)','بست تراول','پارک پلیت','اورلود مغناطیسی','اورلود بکسلی','اشکی','پیچ و مهره 12','پیچ و مهره 10','پیچ و مهره 8','پیچ و مهره 6','پیچ و رول پلاک','پیچ و مهره 16','کابین','فلکه هرزگرد','وزنه','گوشی تلفن','کمان مکانیکی','کمان برقی','لاستیک تخت','سر بکسل','شالتر','محافظ گاورنر']);
 })();
 
 /* ---- متعلقات جک / پاوریونیت / موتور (از فایل‌های شکیب، ویتور و موتورها) ---- */
@@ -1674,19 +1674,15 @@ var KITS={
   wpu:{t:'متعلقات پاوریونیت ویتور',for:'پاوریونیت',brand:'ویتور',items:[{n:'درخت سیم HM ویتور'},{n:'درخت سیم HE ویتور'},{n:'درخت سیم HI ویتور'},{n:'برد هوس ویتور'},{n:'درایو زیمنس ویتور'}]},
   sjack:{t:'متعلقات جک شکیب',for:'جک',brand:'شکیب',items:[{n:'رپچر شکیب 1 اینچ',ser:1},{n:'رپچر شکیب 1-1/2 اینچ',ser:1},{n:'رپچر 4 پیچ 1-1/4 اینچ شکیب',ser:1},{n:'فلوکنترل شکیب'},{n:'مغزی شکیب'}]},
   /* قطعات درب و لوازم راه‌اندازی — تعدادی؛ در همان دستهٔ درب / لوازم راه‌اندازی ثبت می‌شوند (cat) */
-  kdoorF:{t:'قطعات درب بیابانی طبقه — قطعه‌هایی که رسیده تیک بزنید و تعداد را بنویسید',cat:'door',items:[{n:'لته درب بیابانی طبقه'},{n:'ستون درب بیابانی طبقه'},{n:'سیل درب بیابانی طبقه'},{n:'سینی درب بیابانی طبقه'},{n:'سردرب بیابانی طبقه'}]},
-  kdoorC:{t:'قطعات درب بیابانی کابین — تیک بزنید و تعداد را بنویسید',cat:'door',items:[{n:'لته درب بیابانی کابین'}]},
   kdoorH:{t:'قطعات درب لولایی — تیک بزنید و تعداد را بنویسید',cat:'door',items:[{n:'قاب درب لولایی'},{n:'شیشه درب لولایی'},{n:'فنر درب لولایی'},{n:'دستگیره درب لولایی'}]},
-  kgov:{t:'گاورنر — اگر وزنه همراه است تیک بزنید',cat:'setup',items:[{n:'وزنه گاورنر'}]},
-  kramz:{t:'متعلقات کاراسلینگ رمضانی — تیک بزنید و تعداد را بنویسید',cat:'setup',brand:'رمضانی',items:['سرجک (هرزگرد)','گلدانی','زیر جک','بست ستون','بست جک','لنت','لنت T9','لنت T16','فنر','بوش','بست کابین'].map(function(n){return {n:n+' کاراسلینگ رمضانی'}})},
+  kgov:{t:'گاورنر — وزنه و محافظ همراه را تیک بزنید و تعداد را بنویسید',cat:'setup',items:[{n:'وزنه گاورنر'},{n:'محافظ گاورنر'}]},
   motor:{t:'متعلقات موتور',for:'موتور',brand:'',items:[{n:'درخت سیم 6 متری (دیسکی جنتلرایز)'},{n:'درخت سیم 10 متری (بشکه‌ای جنتلرایز)'},{n:'درخت سیم 7 متری (پک خدماتی داینا)'},{n:'درخت سیم (Rope Tree Set هوبر)'},{n:'پک خدماتی (Service Pack)'}]}
 };
 function kitFor(cat,v){
   v=v||{};var b=norm(v.brand||''),sp=supProfile();
   if(cat==='chflr')return 'kflr';if(cat==='chcab')return 'kcab';
-  if(cat==='door'){var dn=norm(v.name||'');if(dn.indexOf(norm('لولایی'))>=0)return 'kdoorH';
-    if(dn.indexOf(norm('بیابانی'))>=0)return dn.indexOf(norm('کابین'))>=0?'kdoorC':dn.indexOf(norm('طبقه'))>=0?'kdoorF':'';return ''}
-  if(cat==='setup'){var sn=norm(v.name||'');if(sn.indexOf(norm('کاراسلینگ رمضانی'))>=0)return 'kramz';if(sn.indexOf(norm('گاورنر'))>=0&&sn.indexOf(norm('محافظ'))<0)return 'kgov';return ''}
+  if(cat==='door')return doorKit(v.name);
+  if(cat==='setup'){var sn=norm(v.name||'');if(sn.indexOf(norm('گاورنر'))>=0&&sn.indexOf(norm('محافظ'))<0)return 'kgov';return ''}
   if(cat==='pu'&&sp&&sp.id==='shakib')return 'shpu';
   if(cat==='jack'&&(b.indexOf(norm('ویتور'))>=0||(sp&&sp.id==='a110')))return 'wjack';
   if(cat==='pu'&&isA110()){var s=norm(v.spec||'');
@@ -1694,6 +1690,20 @@ function kitFor(cat,v){
     if(s.indexOf(norm('هوس'))>=0)return 'hevos';
     if(s.indexOf(norm('درایو'))>=0)return 'pudrv';}
   return '';
+}
+/* همهٔ درب‌های اتوماتیک: طبقه ← لته، ستون، سیل، سینی، سردرب | کابین ← فقط لته — نام قطعه با نام سازندهٔ درب (بیابانی، سلکوم، عبادت، یاران…) */
+function doorKit(name){
+  var dn=norm(name||'');if(!dn)return '';
+  if(dn.indexOf(norm('لولایی'))>=0)return 'kdoorH';
+  var isCab=dn.indexOf(norm('کابین'))>=0,isFlr=dn.indexOf(norm('طبقه'))>=0;
+  if(dn.indexOf(norm('اتوماتیک'))<0&&dn.indexOf(norm('بیابانی'))<0)return '';
+  if(!isCab&&!isFlr)return '';
+  var b=String(name).replace(/تمام\s*اتوماتیک|اتوماتیک|طبقه|کابین|درب/g,' ').replace(/\s+/g,' ').trim()||'اتوماتیک';
+  var key=(isCab?'kdC|':'kdF|')+b;
+  if(!KITS[key])KITS[key]=isCab
+    ?{t:'قطعات درب '+b+' کابین — تیک بزنید و تعداد را بنویسید',cat:'door',items:[{n:'لته درب '+b+' کابین'}]}
+    :{t:'قطعات درب '+b+' طبقه — قطعه‌هایی که رسیده تیک بزنید و تعداد را بنویسید',cat:'door',items:['لته','ستون','سیل','سینی','سردرب'].map(function(x){return {n:(x==='سردرب'?'سردرب ':x+' درب ')+b+' طبقه'}})};
+  return key;
 }
 /* پیش‌فرض: اقلام def همراه کالا انتخاب‌شده (باز) هستند تا سریالشان جا نماند */
 function kitDefaults(k){var K=KITS[k];if(!K)return;K.items.forEach(function(it){if(it.def&&!inKit[it.n])inKit[it.n]={on:true,qty:1}})}
@@ -1729,7 +1739,9 @@ function karInfo(prefix){
   });
   return {names:names,map:m};
 }
-var KAR_SH=karInfo('کاراسلینگ شکیب'),KAR_110=karInfo('کاراسلینگ 110');
+var KAR_SH=karInfo('کاراسلینگ شکیب'),KAR_110=karInfo('کاراسلینگ 110'),KAR_DANA=karInfo('کاراسلینگ اصفهان دانا');
+var DANA_SUBS=['سرجک (هرزگرد)','گلدانی','زیر جک','بست ستون','بست جک','لنت','لنت T9','لنت T16','فنر','بوش','بست کابین'];
+function danaItem(){return {id:'dana',n:'کاراسلینگ اصفهان دانا',brand:'اصفهان دانا',for:'جک',u:'دستگاه',opts:KAR_DANA.names,optL:'مدل کاراسلینگ',fields:['دهانه ریل','سایز ریل'],fopts:karFopts(KAR_DANA),subs:DANA_SUBS}}
 function karFopts(K){return function(st){var x=K.map[st.opt]||{};var all=function(k){var u=[];K.names.forEach(function(n){(K.map[n][k]||[]).forEach(function(v){if(u.indexOf(v)<0)u.push(v)})});return u};
   return {'دهانه ریل':x.dah||all('dah'),'سایز ریل':x.rail||all('rail')}}}
 var HOSE_SH=accCat(/^شلنگ استاندارد شکیب /).map(function(c){return c.v.replace('شلنگ استاندارد شکیب','').trim()});
@@ -1742,6 +1754,7 @@ function motorAccItems(){return MOTOR_ACC.map(function(n,i){return {id:'mot'+i,n
 var PARTS={
   shakib:{t:'متعلقات شکیب',brand:'شکیب',items:[
     {id:'kar',n:'کاراسلینگ شکیب',for:'جک',u:'دستگاه',opts:KAR_SH.names,optL:'مدل کاراسلینگ',fields:['دهانه ریل','سایز ریل'],fopts:karFopts(KAR_SH)},
+    danaItem(),
     {id:'rupt',n:'رپچر شکیب',for:'جک',opts:['1 اینچ','1-1/2 اینچ','4 پیچ 1-1/4 اینچ'],optL:'سایز',ser:1},
     {id:'flow',n:'فلوکنترل شکیب',for:'جک'},
     {id:'mag',n:'مغزی شکیب',for:'جک'},
@@ -1762,6 +1775,7 @@ var PARTS={
     {id:'karcol',n:'ستون کاراسلینگ 110',for:'جک'},
     {id:'karbelt',n:'تسمه کاراسلینگ 110',for:'جک'},
     {id:'karbox',n:'قوطی کاراسلینگ 110',for:'جک'},
+    danaItem(),
     {id:'wjbox',n:'جعبه متعلقات جک ویتور',for:'جک',ser:'req'},
     {id:'hose',n:'شلنگ استاندارد ۱۱۰',for:'جک',opts:HOSE_110,optL:'سایز (اینچ)',fields:['متراژ (متر)'],num:['متراژ (متر)'],req:['متراژ (متر)']},
     {id:'cool',n:'کولینگ 110',for:'پاوریونیت',opts:['NEG10','NEG13']},
@@ -2067,7 +2081,9 @@ function renderParts(){
       if(it.manual){var mv=(st.opt&&uniq(it.opts.concat(custList('parts.'+S+'.'+it.id))).indexOf(st.opt)<0)?st.opt:'';b+='<div class="pf-grid"><label><span>✍️ یا '+esc(it.optL||'سایز')+' را دستی بنویسید</span><input data-pman="1" value="'+esc(mv)+'" placeholder="'+esc(it.manual)+'" autocomplete="off"></label></div>'}
       if(it.multi)b+='<div class="chips"><span class="o">همراه:</span>'+it.multi.map(function(o){var m=(st.multi||{})[o];return '<button type="button" class="chipb chk'+(m?' on':'')+'" data-pmul="'+esc(o)+'">'+(m?'☑ ':'☐ ')+esc(o)+'</button>'}).join('')+'</div>';
       if(it.fields){var FO=it.fopts?it.fopts(st):{};it.fields.forEach(function(fl){var cu=custList('parts.'+S+'.'+it.id+'.'+fl);if(cu.length)FO[fl]=uniq((FO[fl]||[]).concat(cu))});b+='<div class="pf-grid'+(it.wide?' wide':'')+'">'+it.fields.map(function(fl){var cv=(st.vals||{})[fl]||'';return '<label><span>'+esc(fl)+((it.req||[]).indexOf(fl)>=0?' <span class="req">*</span>':'')+'</span>'+(it.wide?'<textarea class="rtl" data-pf="'+esc(fl)+'" rows="2">'+esc(cv)+'</textarea>':'<input data-pf="'+esc(fl)+'" value="'+esc(cv)+'"'+(it.num&&it.num.indexOf(fl)>=0?' class="ltr" inputmode="decimal"':'')+' autocomplete="off">')+((FO[fl]||[]).length?'<span class="chips">'+FO[fl].map(function(o){return '<button type="button" class="chipb'+(cv===o?' on':'')+'" data-pfo="'+esc(fl)+'" data-pfv="'+esc(o)+'">'+esc(o)+'</button>'}).join('')+'</span>':'')+'</label>'}).join('')+'</div>';}
-      b+='<div class="pq"><span class="o">تعداد</span>'+stepperHtml('p',st.qty==null?1:st.qty)+'</div>';
+      b+='<div class="pq"><span class="o">'+(it.subs?'تعداد خود کاراسلینگ <span class="o">(اگر فقط قطعه رسیده ۰ بزنید)</span>':'تعداد')+'</span>'+stepperHtml('p',st.qty==null?1:st.qty)+'</div>';
+      if(it.subs){var SV=st.subs||{};b+='<div class="xb-t" style="margin-top:8px">🔧 متعلقات '+esc(it.n)+' <span class="o">(تعدادی — هر قطعه‌ای رسیده تعدادش را بنویسید)</span></div><div class="pf-grid">'+
+        it.subs.map(function(sb){return '<label><span>'+esc(sb)+'</span><input class="ltr" inputmode="decimal" data-psub="'+esc(sb)+'" value="'+esc(SV[sb]||'')+'" placeholder="۰" autocomplete="off"></label>'}).join('')+'</div>'}
       if(partNeedsSer(it,st))b+=serTableHtml('p',key,st,qtyOf(st.qty==null?1:st.qty),it.ser==='req',it.ser==='opt');
     }
     return '<div class="part'+(st.on?' on':'')+'" data-pk="'+esc(key)+'"><label class="part-h"><input type="checkbox" data-pon'+(st.on?' checked':'')+'><b>'+esc(it.n)+'</b>'+(it.ser?'<em class="sr">سریال‌دار</em>':it.serWhen?'<em class="sr">سریال برای چهار بوبین</em>':'')+'</label>'+(b?'<div class="part-b">'+b+'</div>':'')+'</div>';
@@ -2144,6 +2160,7 @@ $('inEditor').addEventListener('input',function(e){
         var again=sel&&document.querySelector('#inEditor '+sel+' [data-qi]');if(again){again.focus();var L=again.value.length;try{again.setSelectionRange(L,L)}catch(_){}}},450)}return}
   if(t.dataset.sk){var st4=stateOfEl(t);st4.sers=st4.sers||[];st4.sers[+t.dataset.si]=t.value;liveCheckAll();return}
   if(t.dataset.pman){var st7=stateOfEl(t);st7.opt=t.value.trim();t.classList.remove('err');[].forEach.call(t.closest('[data-pk]').querySelectorAll('[data-popt]'),function(b){b.classList.toggle('on',b.dataset.popt===st7.opt)});return}
+  if(t.dataset.psub){var st8=stateOfEl(t);st8.subs=st8.subs||{};st8.subs[t.dataset.psub]=t.value;return}
   if(t.dataset.pf){var st5=stateOfEl(t);st5.vals=st5.vals||{};st5.vals[t.dataset.pf]=t.value;return}
 });
 $('inEditor').addEventListener('keydown',function(e){
@@ -2223,7 +2240,9 @@ function partsAdd(){
   var S=partsSup,P=PARTS[S],ctx=ctxVals(),on=P.items.filter(function(it){return (inParts[S+'|'+it.id]||{}).on});
   if(!on.length){showMsg('inMsg','حداقل یک قطعه را علامت بزنید');return}
   var miss=[];
+  function subsOn(it,st){return it.subs?it.subs.filter(function(sb){return qtyOf((st.subs||{})[sb])>0}):[]}
   on.forEach(function(it){var st=inParts[S+'|'+it.id],q=qtyOf(st.qty==null?1:st.qty);
+    if(it.subs&&q<1){if(!subsOn(it,st).length)miss.push('تعداد «'+it.n+'» یا یکی از متعلقاتش');return}
     if(it.opts&&!st.opt)miss.push((it.optL||'نوع')+' «'+it.n+'»');
     if(q<1)miss.push('تعداد «'+it.n+'»');
     if(partNeedsSer(it,st)&&it.ser!=='opt'&&!st.noSer&&kitSerialsOf({ser:1},st,q).length<Math.min(q,30))miss.push('سریال «'+partName(it,st)+'»');
@@ -2235,9 +2254,10 @@ function partsAdd(){
   if(!askRsv(partsAdd))return;ctx=ctxVals();
   on.forEach(function(it){
     var st=inParts[S+'|'+it.id],q=qtyOf(st.qty==null?1:st.qty),g=++inGroupSeq;
+    if(it.subs){subsOn(it,st).forEach(function(sb){inStaged.push({cat:'acc',f:{company:ctx.company,project:ctx.project,brand:it.brand||P.brand,name:sb+' '+it.n,spec:'','for':it['for']},qty:qtyOf(st.subs[sb]),unit:'عدد',g:g})});if(q<1)return}
     var spec=(it.fields||[]).map(function(fl){var v2=((st.vals||{})[fl]||'').trim();return v2?fl+': '+v2:''}).filter(Boolean);
     var mul=Object.keys(st.multi||{}).filter(function(k){return st.multi[k]});if(mul.length)spec.push(mul.join(' + '));
-    var fo={company:ctx.company,project:ctx.project,brand:P.brand,name:partName(it,st),spec:spec.join(' · '),'for':it['for']};
+    var fo={company:ctx.company,project:ctx.project,brand:it.brand||P.brand,name:partName(it,st),spec:spec.join(' · '),'for':it['for']};
     var u=it.u||'عدد',ss=partNeedsSer(it,st)?kitSerialsOf({ser:1},st,q):[];
     if(ss.length){inStaged.push({cat:'acc',f:fo,serials:ss,unit:'عدد',g:g});if(q-ss.length>0)inStaged.push({cat:'acc',f:clone(fo),qty:q-ss.length,unit:u,g:g})}
     else inStaged.push({cat:'acc',f:fo,qty:q,unit:u,g:g});

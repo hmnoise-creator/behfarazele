@@ -3048,12 +3048,14 @@ function renderFalakePicker(){
   box.innerHTML = falakeCandidates.map((f,i)=>{
     let tag = '';
     if(f._hasKw) tag = f._kwMatch ? '<span class="tag ok">مطابق kW موتور</span>' : '<span class="tag warn">خارج از بازهٔ kW</span>';
-    const kwLine = type==='drum' ? `درامی ${kwText(f.kwDrum)}` : (type==='disk' ? `دیسکی ${kwText(f.kwDisk)}` : `دیسکی ${kwText(f.kwDisk)} · درامی ${kwText(f.kwDrum)}`);
+    /* هر عدد داخل یک قطعهٔ LTR جدا (bdi) تا ترتیب «برچسب ← عدد» در متن راست‌به‌چپ به هم نریزد */
+    const L = v => `<bdi dir="ltr">${v}</bdi>`;
+    const kwLine = type==='drum' ? `درامی ${L(kwText(f.kwDrum))}` : (type==='disk' ? `دیسکی ${L(kwText(f.kwDisk))}` : `دیسکی ${L(kwText(f.kwDisk))} · درامی ${L(kwText(f.kwDrum))}`);
     return `<label class="falake-opt${i===cur?' sel':''}" data-idx="${i}">
       <input type="radio" name="falakeModelRadio" value="${i}"${i===cur?' checked':''}>
       <span>
-        <span class="t1">کابین ${f.cabinCapacity} نفر — قطر فلکه ${f.sheave}mm — شیار ${f.grooveCount} — بکسل ${f.ropeSize}mm${tag}</span><br>
-        <span class="t2">${kwLine} · بلبرینگ ${f.bearingCount}×${f.bearingSize}mm · شفت ${f.shaftDia}mm · ${fmt(f.price)} ریال</span>
+        <span class="t1">کابین ${f.cabinCapacity} نفر — قطر فلکه ${L(f.sheave+'mm')} — شیار ${f.grooveCount} — بکسل ${L(f.ropeSize+'mm')}${tag}</span><br>
+        <span class="t2">${kwLine} · بلبرینگ ${L(f.bearingCount+'×'+f.bearingSize+'mm')} · شفت ${L(f.shaftDia+'mm')} · قیمت ${L(fmt(f.price))} ریال</span>
       </span>
     </label>`;
   }).join('');
@@ -4693,8 +4695,7 @@ function mcFalakePage(today){
       <td>${f.kwDisk?'<span class="mc-n">'+kwText(f.kwDisk).replace(' kW','')+'</span>':'—'}</td><td>${f.kwDrum?'<span class="mc-n">'+kwText(f.kwDrum).replace(' kW','')+'</span>':'—'}</td>
       <td class="fp-price">${mcMoney(f.price)}</td>
     </tr>`).join('');
-  const jp = (typeof FALAKE_JP_BEARING_PRICE==='number' && FALAKE_JP_BEARING_PRICE>0)
-    ? `<div>بلبرینگ ژاپن اختیاری است؛ به ازای هر بلبرینگ <span class="mc-n">${fmt(FALAKE_JP_BEARING_PRICE)}</span> ریال به قیمت فوق اضافه می‌شود و به‌صورت سفارشی تهیه می‌گردد .</div>` : '';
+  const jp = ''; // در PDF لیست قیمت فلکه، متن بلبرینگ ژاپن نمایش داده نمی‌شود
   return `<section class="mc-page fp-page">
     <div class="fp-box">
       <img class="fp-wm" src="${MC_LOGO_BEHFARAZ}" alt="">

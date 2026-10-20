@@ -58,6 +58,8 @@ button,input,select,textarea{font-family:inherit}
 .pend-banner{margin:0 0 10px;padding:10px 14px;border-radius:12px;background:#FDECEA;border:1px solid #F3B6AF;color:#8A1C12;font-weight:700;font-size:.85rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 #btnSaveIn.pulse{animation:pendp .5s 5}
 .amx td,.amx th{white-space:nowrap}.amx td.wr{white-space:normal}.am-tot{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 10px}.am-tot span{background:#F4F6F6;border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-size:.8rem}
+.cap-brw td{background:#F3EEFA !important}.cap-brw td:first-child{box-shadow:inset -5px 0 0 #6E4FB3}
+.cap-btag{display:inline-block;background:#6E4FB3;color:#fff;border-radius:8px;padding:1px 8px;font-size:.72rem;margin-inline-start:6px}
 .cap-loan{display:inline-block;background:#FFF4E5;border:1px solid #F0C98A;border-radius:8px;padding:1px 7px;margin:1px;font-size:.75rem}
 .am-banner{display:none;margin:0 0 12px;padding:10px 14px;border-radius:12px;background:#FBF3E8;border:1px solid #E7C9A0;color:#6B4316;font-weight:700;font-size:.85rem}
 body[data-tab="amani"] .am-banner{display:block}body[data-tab="amani"] .vsw{display:none}.nav button[data-t="out"]{--c:#2559B8}.nav button[data-t="hist"]{--c:#5B4FB3}.nav button[data-t="rep"]{--c:#0E7C9E}
@@ -779,7 +781,7 @@ em.sr{background:#EEF1F4;color:var(--ink2)}
         <div><label class="f">توضیحات <span class="o">(اختیاری)</span></label><input id="cpNote" autocomplete="off"></div>
       </div>
       <div class="msg bad" id="cpMsg"></div>
-      <div class="actions"><button class="btn grn" type="button" id="cpAdd">💾 ثبت ورود سرمایه</button></div>
+      <div class="actions"><button class="btn grn" type="button" id="cpAdd">💾 ثبت ورود سرمایه</button><button class="btn" type="button" id="cpBorrow" style="background:#6E4FB3;color:#fff;border-color:#6E4FB3">🤝 ثبت امانت نزد ما (کالای دیگران — باید برگردد)</button></div>
       <datalist id="dl_cap"></datalist>
     </div>
     <div class="card">
@@ -3484,35 +3486,39 @@ $('amXls').onclick=function(){
 
 /* ====================== 🏗️ سرمایه انبار (اموال و تجهیزات؛ جدا از موجودی انبار و امانی) ====================== */
 function capDB(){if(!DB.cap)DB.cap={items:[],moves:[]};DB.cap.items=DB.cap.items||[];DB.cap.moves=DB.cap.moves||[];return DB.cap}
-function capStat(id){var o={total:0,out:0,loans:{}};capDB().moves.forEach(function(m){if(m.itemId!==id||m.void)return;
+function capStat(id){var o={total:0,out:0,loans:{},back:0};capDB().moves.forEach(function(m){if(m.itemId!==id||m.void)return;
   if(m.type==='in')o.total=rnd(o.total+m.qty);
+  else if(m.type==='bback')o.back=rnd(o.back+m.qty);
   else if(m.type==='out'){o.out=rnd(o.out+m.qty);o.loans[m.party]=rnd((o.loans[m.party]||0)+m.qty)}
   else if(m.type==='ret'){o.out=rnd(o.out-m.qty);o.loans[m.party]=rnd((o.loans[m.party]||0)-m.qty)}});
-  Object.keys(o.loans).forEach(function(k){if(o.loans[k]<=0)delete o.loans[k]});o.avail=rnd(o.total-o.out);return o}
+  Object.keys(o.loans).forEach(function(k){if(o.loans[k]<=0)delete o.loans[k]});o.avail=rnd(o.total-o.out-o.back);return o}
 function capItem(id){return capDB().items.filter(function(x){return x.id===id})[0]}
-function capMove(itemId,type,qty,date,party,note){capDB().moves.push({id:uid(),itemId:itemId,type:type,qty:qty,date:date,party:party||'',note:note||'',user:curUser(),ts:Date.now()})}
+function capMove(itemId,type,qty,date,party,note){var it0=capItem(itemId);if(it0&&it0.kind==='borrow'&&!party)party=it0.lender||'';capDB().moves.push({id:uid(),itemId:itemId,type:type,qty:qty,date:date,party:party||'',note:note||'',user:curUser(),ts:Date.now()})}
 function renderCap(){
   if(!$('cpDate').value)$('cpDate').value=todayJ();
   var C=capDB(),q=norm($('cpQ').value);
   $('dl_cap').innerHTML=C.items.map(function(x){return '<option value="'+esc(x.name)+'">'}).join('');
-  var list=C.items.map(function(x){return {x:x,s:capStat(x.id)}}).filter(function(o){return !q||norm([o.x.name,o.x.spec,Object.keys(o.s.loans).join(' ')].join(' ')).indexOf(q)>=0})
-    .sort(function(a,b){return a.x.name.localeCompare(b.x.name,'fa')});
-  $('cpCount').textContent='('+fa(list.length)+' محصول)';
+  var list=C.items.map(function(x){return {x:x,s:capStat(x.id)}}).filter(function(o){return !q||norm([o.x.name,o.x.spec,o.x.lender||'',o.x.kind==='borrow'?'امانت نزد ما':'',Object.keys(o.s.loans).join(' ')].join(' ')).indexOf(q)>=0})
+    .sort(function(a,b){return ((a.x.kind==='borrow')-(b.x.kind==='borrow'))||a.x.name.localeCompare(b.x.name,'fa')});
+  var nB=list.filter(function(o){return o.x.kind==='borrow'}).length;$('cpCount').textContent='('+fa(list.length-nB)+' سرمایهٔ بهفراز'+(nB?' · '+fa(nB)+' امانت نزد ما':'')+')';
   $('cpTable').innerHTML=list.length?'<table class="amx"><thead><tr><th>#</th><th>محصول</th><th>مشخصات</th><th>کل</th><th>در انبار</th><th>امانی داده‌شده</th><th>نزد چه کسی</th><th></th></tr></thead><tbody>'+
-    list.map(function(o,i){var x=o.x,s=o.s;return '<tr><td class="n">'+fa(i+1)+'</td><td><b>'+esc(x.name)+'</b></td><td class="wr">'+esc(x.spec||'—')+'</td><td>'+fa(s.total)+' '+esc(x.unit)+'</td><td><b>'+fa(s.avail)+'</b></td><td>'+fa(s.out)+'</td><td class="wr">'+(Object.keys(s.loans).map(function(p){return '<span class="cap-loan">'+esc(p)+': '+fa(s.loans[p])+'</span>'}).join('')||'—')+'</td>'+
+    list.map(function(o,i){var x=o.x,s=o.s;
+      if(x.kind==='borrow')return '<tr class="cap-brw"><td class="n">'+fa(i+1)+'</td><td><b>'+esc(x.name)+'</b><span class="cap-btag">🤝 امانت نزد ما</span></td><td class="wr">'+esc(x.spec||'—')+'</td><td>'+fa(s.total)+' '+esc(x.unit)+'</td><td><b>'+fa(s.avail)+'</b></td><td>'+(s.back?'برگردانده: '+fa(s.back):'—')+'</td><td class="wr">'+(s.avail>0?'<span class="cap-loan" style="background:#EDE6FA;border-color:#C9B8EE">باید به <b>'+esc(x.lender||'—')+'</b> برگردد: '+fa(s.avail)+'</span>':'<span class="cap-loan" style="background:#E8F5EC;border-color:#9FD3B1">✅ کامل به '+esc(x.lender||'')+' برگردانده شد</span>')+'</td>'+
+        '<td style="white-space:nowrap"><button type="button" class="btn sm" data-cpb="'+x.id+'"'+(s.avail>0?'':' disabled')+'>↩️ بازگرداندن به صاحب</button> <button type="button" class="btn ghost sm" data-cpbi="'+x.id+'">➕ دریافت بیشتر</button></td></tr>';
+      return '<tr><td class="n">'+fa(i+1)+'</td><td><b>'+esc(x.name)+'</b></td><td class="wr">'+esc(x.spec||'—')+'</td><td>'+fa(s.total)+' '+esc(x.unit)+'</td><td><b>'+fa(s.avail)+'</b></td><td>'+fa(s.out)+'</td><td class="wr">'+(Object.keys(s.loans).map(function(p){return '<span class="cap-loan">'+esc(p)+': '+fa(s.loans[p])+'</span>'}).join('')||'—')+'</td>'+
       '<td style="white-space:nowrap"><button type="button" class="btn sm" data-cpo="'+x.id+'"'+(s.avail>0?'':' disabled')+'>📤 امانی دادن</button> <button type="button" class="btn sm" data-cpr="'+x.id+'"'+(s.out>0?'':' disabled')+'>📥 برگشت</button> <button type="button" class="btn ghost sm" data-cpi="'+x.id+'">➕ ورود</button></td></tr>'}).join('')+'</tbody></table>'
     :'<div class="empty">'+(q?'محصولی با این جستجو نیست':'هنوز سرمایه‌ای ثبت نشده — از فرم بالا اولین محصول را ثبت کنید')+'</div>';
   renderCapHist();
 }
 function capHistRows(){
-  var f=normDate($('cpFrom').value)||'',t=normDate($('cpTo').value)||'',q=norm($('cpHQ').value),T={'in':'ورود','out':'📤 امانی داده شد','ret':'📥 برگشت'};
-  return capDB().moves.filter(function(m){return !m.void}).map(function(m){var x=capItem(m.itemId)||{};return {date:m.date,ts:m.ts,type:T[m.type],name:x.name||'',spec:x.spec||'',qty:m.qty,unit:x.unit||'',party:m.party,note:m.note,user:m.user}})
+  var f=normDate($('cpFrom').value)||'',t=normDate($('cpTo').value)||'',q=norm($('cpHQ').value),T={'in':'ورود','out':'📤 امانی داده شد','ret':'📥 برگشت','bback':'↩️ بازگردانده شد به صاحب'};
+  return capDB().moves.filter(function(m){return !m.void}).map(function(m){var x=capItem(m.itemId)||{};return {brw:x.kind==='borrow',date:m.date,ts:m.ts,type:(x.kind==='borrow'&&m.type==='in')?'🤝 امانت گرفته شد':T[m.type],name:x.name||'',spec:x.spec||'',qty:m.qty,unit:x.unit||'',party:m.party,note:m.note,user:m.user}})
     .filter(function(r){return amInRange(r.date,f,t)&&(!q||norm([r.type,r.name,r.spec,r.party,r.note,r.user].join(' ')).indexOf(q)>=0)}).sort(function(a,b){return b.date.localeCompare(a.date)||b.ts-a.ts});
 }
 function renderCapHist(){
   var rows=capHistRows();
   $('cpHist').innerHTML=rows.length?'<table class="amx"><thead><tr><th>تاریخ</th><th>نوع</th><th>محصول</th><th>مقدار</th><th>طرف (تحویل‌گیرنده / برگرداننده)</th><th>توضیحات</th><th>کاربر</th></tr></thead><tbody>'+
-    rows.slice(0,400).map(function(r){return '<tr><td>'+fdate(r.date)+'</td><td>'+r.type+'</td><td class="wr">'+esc(r.name+(r.spec?' — '+r.spec:''))+'</td><td>'+fa(r.qty)+' '+esc(r.unit)+'</td><td>'+esc(r.party||'—')+'</td><td class="wr">'+esc(r.note||'—')+'</td><td>'+esc(r.user||'—')+'</td></tr>'}).join('')+'</tbody></table>'
+    rows.slice(0,400).map(function(r){return '<tr'+(r.brw?' class="cap-brw"':'')+'><td>'+fdate(r.date)+'</td><td>'+r.type+'</td><td class="wr">'+esc(r.name+(r.spec?' — '+r.spec:''))+'</td><td>'+fa(r.qty)+' '+esc(r.unit)+'</td><td>'+esc(r.party||'—')+'</td><td class="wr">'+esc(r.note||'—')+'</td><td>'+esc(r.user||'—')+'</td></tr>'}).join('')+'</tbody></table>'
     :'<div class="empty">گردشی در این بازه ثبت نشده</div>';
 }
 $('cpAdd').onclick=function(){
@@ -3525,30 +3531,51 @@ $('cpAdd').onclick=function(){
   capMove(x.id,'in',q,d,'',$('cpNote').value.trim());addLog('ورود سرمایه',name+' · '+q+' '+x.unit);save();
   ['cpName','cpSpec','cpQty','cpNote'].forEach(function(i){$(i).value=''});showMsg('cpMsg','');renderCap();toast('✓ سرمایه ثبت شد');
 };
+$('cpBorrow').onclick=function(){
+  var name=$('cpName').value.trim(),spec=$('cpSpec').value.trim(),d=normDate($('cpDate').value),q=qtyOf($('cpQty').value),unit=$('cpUnit').value,note=$('cpNote').value.trim();
+  if(!name){showMsg('cpMsg','نام محصول را بنویسید');$('cpName').focus();return}
+  if(!d){showMsg('cpMsg','تاریخ ورود نامعتبر است (مثال: 1405/07/28)');$('cpDate').focus();return}
+  if(!q){showMsg('cpMsg','تعداد را بنویسید');$('cpQty').focus();return}
+  var ls=[];capDB().items.forEach(function(x){if(x.lender&&ls.indexOf(x.lender)<0)ls.push(x.lender)});
+  openModal('<h3>🤝 امانت نزد ما — '+esc(name)+'</h3><div class="note" style="font-size:.8rem">این کالا مال ما نیست؛ ثبت می‌شود تا بعداً به صاحبش برگردانده شود.</div><div style="margin-top:10px"><label class="f">از چه کسی / کدام شرکت گرفته‌ایم؟ <span class="req">*</span></label><input id="cbL" list="dl_lender" autocomplete="off"><datalist id="dl_lender">'+ls.map(function(v){return '<option value="'+esc(v)+'">'}).join('')+'</datalist></div>'+
+    '<div class="msg bad" id="cbMsg"></div><div class="actions"><button type="button" class="btn grn" id="cbOk">✓ ثبت امانت</button><button type="button" class="btn ghost" onclick="closeModal()">انصراف</button></div>',function(){
+    $('cbL').focus();
+    $('cbOk').onclick=function(){var L=$('cbL').value.trim();if(!L){showMsg('cbMsg','نام صاحب کالا را بنویسید');return}
+      var C=capDB(),x=C.items.filter(function(i){return i.kind==='borrow'&&norm(i.name)===norm(name)&&norm(i.spec||'')===norm(spec)&&norm(i.lender||'')===norm(L)})[0];
+      if(!x){x={id:uid(),kind:'borrow',lender:L,name:name,spec:spec,unit:unit,ts:Date.now()};C.items.push(x)}
+      capMove(x.id,'in',q,d,L,note);addLog('امانت نزد ما',name+' · '+q+' '+x.unit+' · از '+L);save();closeModal();
+      ['cpName','cpSpec','cpQty','cpNote'].forEach(function(i){$(i).value=''});showMsg('cpMsg','');renderCap();toast('✓ امانت ثبت شد — باید به '+L+' برگردد')};
+    $('cbL').addEventListener('keydown',function(e){if(e.key==='Enter')$('cbOk').click()});
+  });
+};
 function capForm(title,id,mode){
   var x=capItem(id),s=capStat(id);if(!x)return;
   var loans=Object.keys(s.loans);
-  openModal('<h3>'+title+' — '+esc(x.name)+'</h3><div class="note" style="font-size:.8rem">در انبار: <b>'+fa(s.avail)+'</b> · امانی داده‌شده: <b>'+fa(s.out)+'</b> '+esc(x.unit)+'</div><div class="grid g2" style="margin-top:10px">'+
+  openModal('<h3>'+title+' — '+esc(x.name)+'</h3><div class="note" style="font-size:.8rem">'+(x.kind==='borrow'?'🤝 امانت نزد ما از <b>'+esc(x.lender||'')+'</b> · مانده نزد ما: <b>'+fa(s.avail)+'</b> '+esc(x.unit):'در انبار: <b>'+fa(s.avail)+'</b> · امانی داده‌شده: <b>'+fa(s.out)+'</b> '+esc(x.unit))+'</div><div class="grid g2" style="margin-top:10px">'+
     (mode==='ret'?'<div><label class="f">از چه کسی برگشت؟ <span class="req">*</span></label><select id="cmP">'+loans.map(function(p){return '<option value="'+esc(p)+'">'+esc(p)+' ('+fa(s.loans[p])+')</option>'}).join('')+'</select></div>'
       :mode==='out'?'<div><label class="f">تحویل‌گیرنده / پروژه <span class="req">*</span></label><input id="cmP" placeholder="مثلاً آقای احمدی — پروژه نیاوران" autocomplete="off"></div>':'')+
     '<div><label class="f">تعداد <span class="req">*</span></label><input id="cmQ" class="ltr" inputmode="decimal" autocomplete="off"></div><div><label class="f">تاریخ</label><input id="cmD" class="ltr" value="'+todayJ()+'" autocomplete="off"></div><div><label class="f">توضیحات</label><input id="cmN" autocomplete="off"></div></div>'+
     '<div class="msg bad" id="cmMsg"></div><div class="actions"><button type="button" class="btn grn" id="cmOk">✓ ثبت</button><button type="button" class="btn ghost" onclick="closeModal()">انصراف</button></div>',function(){
     $('cmOk').onclick=function(){var q=qtyOf($('cmQ').value),d=normDate($('cmD').value),p=$('cmP')?$('cmP').value.trim():'',s2=capStat(id);
+      if(mode==='bback')p=x.lender||'';
       if(mode!=='in'&&!p){showMsg('cmMsg','تحویل‌گیرنده را مشخص کنید');return}
+      if(mode==='bback'&&q>s2.avail){showMsg('cmMsg','بیشتر از مقداری است که نزد ما مانده ('+fa(s2.avail)+')');return}
       if(!q){showMsg('cmMsg','تعداد را بنویسید');return}if(!d){showMsg('cmMsg','تاریخ نامعتبر است');return}
       if(mode==='out'&&q>s2.avail){showMsg('cmMsg','بیشتر از موجودی انبار است ('+fa(s2.avail)+')');return}
       if(mode==='ret'&&q>(s2.loans[p]||0)){showMsg('cmMsg','بیشتر از مقداری است که نزد '+p+' است ('+fa(s2.loans[p]||0)+')');return}
-      capMove(id,mode,q,d,p,$('cmN').value.trim());addLog(mode==='out'?'امانی دادن سرمایه':mode==='ret'?'برگشت سرمایه':'ورود سرمایه',x.name+' · '+q+' '+x.unit+(p?' · '+p:''));save();closeModal();renderCap();toast('✓ ثبت شد')};
+      capMove(id,mode,q,d,p,$('cmN').value.trim());addLog(mode==='out'?'امانی دادن سرمایه':mode==='ret'?'برگشت سرمایه':mode==='bback'?'بازگرداندن امانت به صاحب':'ورود سرمایه',x.name+' · '+q+' '+x.unit+(p?' · '+p:''));save();closeModal();renderCap();toast('✓ ثبت شد')};
   });
 }
 $('cpTable').addEventListener('click',function(e){var b=e.target.closest('button');if(!b||b.disabled)return;
+  if(b.dataset.cpb){capForm('↩️ بازگرداندن به صاحب',b.dataset.cpb,'bback');return}
+  if(b.dataset.cpbi){capForm('➕ دریافت بیشتر (امانت)',b.dataset.cpbi,'in');return}
   if(b.dataset.cpo)capForm('📤 امانی دادن',b.dataset.cpo,'out');else if(b.dataset.cpr)capForm('📥 برگشت',b.dataset.cpr,'ret');else if(b.dataset.cpi)capForm('➕ ورود',b.dataset.cpi,'in')});
 ['cpQ'].forEach(function(i){$(i).addEventListener('input',renderCap)});['cpHQ','cpFrom','cpTo'].forEach(function(i){$(i).addEventListener('input',renderCapHist)});
 $('cpXls').onclick=function(){
   var C=capDB(),inv=[],loans=[];
-  C.items.forEach(function(x){var s=capStat(x.id);inv.push([x.name,x.spec||'',x.unit,s.total,s.avail,s.out]);Object.keys(s.loans).forEach(function(p){loans.push([x.name,x.spec||'',p,s.loans[p],x.unit])})});
+  var brw=[];C.items.forEach(function(x){var s=capStat(x.id);if(x.kind==='borrow'){brw.push([x.name,x.spec||'',x.lender||'',x.unit,s.total,s.back,s.avail]);return}inv.push([x.name,x.spec||'',x.unit,s.total,s.avail,s.out]);Object.keys(s.loans).forEach(function(p){loans.push([x.name,x.spec||'',p,s.loans[p],x.unit])})});
   var hist=capHistRows().map(function(r){return [r.date,r.type.replace(/^\S+ /,''),r.name,r.spec,r.qty,r.unit,r.party,r.note,r.user]});
-  dl(buildXlsx([{name:'سرمایه انبار',head:['محصول','مشخصات','واحد','کل','در انبار','امانی داده‌شده'],rows:inv},{name:'امانی‌های باز',head:['محصول','مشخصات','نزد','تعداد','واحد'],rows:loans},
+  dl(buildXlsx([{name:'سرمایه انبار',head:['محصول','مشخصات','واحد','کل','در انبار','امانی داده‌شده'],rows:inv},{name:'امانی‌های باز',head:['محصول','مشخصات','نزد','تعداد','واحد'],rows:loans},{name:'امانت نزد ما',head:['محصول','مشخصات','صاحب کالا','واحد','گرفته‌شده','برگردانده','مانده نزد ما (باید برگردد)'],rows:brw},
     {name:'تاریخچه سرمایه',head:['تاریخ','نوع','محصول','مشخصات','مقدار','واحد','طرف','توضیحات','کاربر'],rows:hist}]),'sarmaye-anbar-'+todayJ().replace(/\//g,'-')+'.xlsx');
   toast('✓ اکسل سرمایه ساخته شد');
 };

@@ -769,8 +769,8 @@ var CATS={
   pu   :{name:'پاوریونیت',icon:'⚙️',serial:true,fields:[{k:'spec',l:'نوع پاور',chips:1},{k:'brand',l:'برند / سازنده'},{k:'model',l:'مدل (kW-لیتر)',ph:'مثلاً 7.7kw-100L'}]},
   motor:{name:'موتور',icon:'🧲',serial:true,fields:[{k:'brand',l:'برند موتور',ph:'جنتلرایز / هوبر / داینا / بهران ...'},{k:'model',l:'مدل / مشخصات موتور'}]},
   falake:{name:'فلکه',icon:'🛞',serial:'opt',units:['عدد'],fields:[{k:'brand',l:'برند / سازنده',chips:1,ph:'پرهام صنعت یا برند جدید را بنویسید'},{k:'model',l:'مدل فلکه',ph:'از کارت‌های بالا انتخاب کنید یا دستی بنویسید'}]},
-  chcab:{name:'شاسی کابین',icon:'🚪',serial:true,units:['عدد'],fields:[{k:'model',l:'مدل / ابعاد',chips:1}]},
-  chflr:{name:'شاسی طبقه',icon:'🏢',serial:true,units:['عدد'],fields:[{k:'model',l:'مدل / ابعاد',chips:1}]},
+  chcab:{name:'شاسی کابین',icon:'🚪',serial:true,units:['عدد'],fields:[{k:'model',l:'مدل / ابعاد',chips:1,ph:'از دکمه‌ها انتخاب کنید یا مدل خاص را آزاد بنویسید'}]},
+  chflr:{name:'شاسی طبقه',icon:'🏢',serial:true,units:['عدد'],fields:[{k:'model',l:'مدل / ابعاد',chips:1,ph:'از دکمه‌ها انتخاب کنید یا مدل خاص را آزاد بنویسید'}]},
   oil  :{name:'روغن',icon:'🛢️',serial:false,newBrand:'type',units:['لیتر'],fields:[{k:'type',l:'برند روغن',ph:'از فهرست انتخاب کنید یا برند جدید بنویسید',chips:1},{k:'spec',l:'گرید',ph:'پیش‌فرض H68',chips:1}]},
   door :{name:'درب',icon:'🛗',serial:'opt',units:['عدد'],fields:[{k:'name',l:'نوع درب',ph:'از فهرست انتخاب کنید',chips:1}]},
   rail :{name:'ریل',icon:'📏',serial:false,units:['شاخه'],fields:[{k:'name',l:'مدل ریل',ph:'T5 / T9 / T89 / T90 / T125',chips:1},{k:'brand',l:'برند سازنده',chips:1},{k:'spec',l:'توضیحات',ph:'اختیاری — مثلاً طول شاخه'}]},
@@ -2009,10 +2009,12 @@ function xFieldsOf(cat){
     {k:'w',l:'عرض',u:'cm',ph:'یا دستی بنویسید',num:1,opts:['60','70','80','90','100','110']},
     {k:'h',l:'ارتفاع',u:'cm',ph:'یا دستی بنویسید',num:1,opts:['200','210','225']},
     {k:'cover',l:'روکش',opts:['رنگ','استیل نقره‌ای','استیل طلایی','استیل دودی','شیشه‌ای و استیل'],ph:'یا دستی بنویسید'}];
+  /* شاسی کابین و طبقه: جنس / نوع آزاد است — گزینه‌ها فقط پیشنهادند و هر چیزی (مدل خاص) قابل نوشتن است */
   if(cat==='chcab')return [
-    {k:'mat',l:'جنس / نوع شاسی',opts:['استیل','لمسی','شیشه‌ای','پلکسی','یک‌متری'],ph:'مثلاً استیل · ساده'},
+    {k:'mat',l:'جنس / نوع شاسی',opt:1,free:1,opts:['استیل','لمسی','شیشه‌ای','پلکسی','یک‌متری'],ph:'آزاد — هر چیزی بنویسید، مثلاً استیل طلایی یا مدل خاص'},
     {k:'desc',l:'توضیحات',ta:1,opt:1,ph:'هر توضیحی که باید در لیست انبار دیده شود'}];
   if(cat==='chflr')return [
+    {k:'mat',l:'جنس / نوع شاسی',opt:1,free:1,opts:['استیل','پلکسی','شیشه‌ای','میرور طلایی','میرور نقره‌ای','توکار'],ph:'آزاد — هر چیزی بنویسید، مثلاً استیل طلایی یا مدل خاص'},
     {k:'desc',l:'توضیحات',ta:1,opt:1,ph:'هر توضیحی که باید در لیست انبار دیده شود'}];
   if(cat==='rail')return [
     {k:'roll',l:'نوع نورد',opts:['نورد سرد','نورد گرم'],fixed:1},
@@ -2027,15 +2029,15 @@ function renderXBox(){
   if(inCat==='rail'&&(inVals.name||'').trim()){if(inVals.__rollFor!==inVals.name){inVals.__x_roll=railDefaultRoll(inVals.name);inVals.__rollFor=inVals.name}if(inVals.__x_pb==null||inVals.__x_pb==='')inVals.__x_pb='0'}
   var xf=xFieldsOf(inCat);
   var xmain=(inVals[MAIN_K[inCat]]||'').trim();
-  if(inCat==='chcab'&&xmain&&inVals.__matFor!==xmain){var ce=(CATALOG['chcab.model']||[]).filter(function(c){return c.v===xmain})[0];inVals.__x_mat=ce&&ce.h?ce.h:(inVals.__x_mat||'');inVals.__matFor=xmain}
+  if((inCat==='chcab'||inCat==='chflr')&&xmain&&inVals.__matFor!==xmain){var ce=(CATALOG[inCat+'.model']||[]).filter(function(c){return c.v===xmain})[0];inVals.__x_mat=ce&&ce.h?ce.h:(inVals.__x_mat||'');inVals.__matFor=xmain}
   if(xf&&xmain){
-    h+='<div class="xbox"><div class="xb-t">'+CATS[inCat].icon+' مشخصات «'+esc(xmain)+'» <span class="req">*</span></div><div class="grid g2">';
+    h+='<div class="xbox"><div class="xb-t">'+CATS[inCat].icon+' مشخصات «'+esc(xmain)+'»'+(xf.some(function(x){return !x.opt})?' <span class="req">*</span>':'')+'</div><div class="grid g2">';
     xf.forEach(function(x){var v=inVals['__x_'+x.k]||'';
       if(x.ta){h+='<div class="s2" style="grid-column:1/-1"><label class="f">📝 '+x.l+(x.opt?' <span class="o">(اختیاری — در لیست انبار نمایش داده می‌شود)</span>':'')+'</label><textarea data-xf="'+x.k+'" rows="2" class="rtl" placeholder="'+esc(x.ph||'')+'">'+esc(v)+'</textarea></div>';return}
       var xo=x.opts?uniq(x.opts.concat(custList(inCat+'.x_'+x.k))):null,lock=false;
       if(inCat==='rail'&&x.k==='roll'){var dr=railRollFixed(inVals.name);if(dr){xo=[dr];v=dr;inVals.__x_roll=dr;lock=true}}
       if(lock){h+='<div><label class="f">'+x.l+'</label><input data-xf="'+x.k+'" value="'+esc(v)+'" readonly style="background:#F4F6F6"><div class="chips"><span class="chipb on">'+esc(v)+'</span><span class="o" style="font-size:.7rem">طبق مدل ریل — نوع دیگر غیرفعال است</span></div></div>';return}
-      h+='<div><label class="f">'+x.l+(x.u?' <span class="o">('+x.u+')</span>':'')+'</label><input data-xf="'+x.k+'" class="'+(x.num?'ltr':'')+'"'+(x.num?' inputmode="decimal"':'')+' placeholder="'+esc(x.ph||'')+'" value="'+esc(v)+'" autocomplete="off">'+
+      h+='<div><label class="f">'+x.l+(x.u?' <span class="o">('+x.u+')</span>':'')+(x.free?' <span class="o">(آزاد — از گزینه‌ها انتخاب کنید یا هر چیزی بنویسید)</span>':'')+'</label><input data-xf="'+x.k+'" class="'+(x.num?'ltr':'')+'"'+(x.num?' inputmode="decimal"':'')+' placeholder="'+esc(x.ph||'')+'" value="'+esc(v)+'" autocomplete="off">'+
         (xo?'<div class="chips">'+xo.map(function(o){return '<button type="button" class="chipb'+(v===o?' on':'')+'" data-xk="'+x.k+'" data-xv="'+esc(o)+'">'+esc(o)+'</button>'}).join('')+'</div>':'')+'</div>'});
     h+='</div></div>';
   }
@@ -2151,6 +2153,7 @@ $('inEditor').addEventListener('input',function(e){
   if(t.dataset.lf){var k=t.dataset.lf;inVals[k]=t.value;t.classList.remove('err');
     if(inCat==='falake'&&k==='brand')falakeSyncModel();
     if(k==='name'){updateHint();clearTimeout(renderXBox._t);renderXBox._t=setTimeout(renderXBox,300)}
+    else if(k===MAIN_K[inCat]&&xFieldsOf(inCat)){clearTimeout(renderXBox._t);renderXBox._t=setTimeout(renderXBox,300)}
     syncChips();
     if(k==='brand'||k===MAIN_K[inCat]){clearTimeout(renderKit._t);renderKit._t=setTimeout(renderKit,250)}
     return}

@@ -1989,21 +1989,29 @@
       <button type="button" id="btnSingleTypeHose">🧵 فقط شلنگ</button>
       <button type="button" id="btnSingleTypeOilPipe">🛢️ لوله انتقال روغن</button>
       <button type="button" id="btnSingleTypeKarasling">🏗️ فقط کاراسلینگ</button>
-      <button type="button" id="btnSingleTypeStage">🪜 فقط جک دو/سه استیج</button>
+      <button type="button" id="btnSingleTypeStage" style="display:none;">🪜 فقط جک دو/سه استیج</button>
       <button type="button" id="btnSingleTypeValveAcc">🧰 شیر و متعلقات</button>
     </div>
 
     <div class="grid" id="singleJackGrid" style="display:none;">
-      <div class="card">
-        <label><span class="num">1</span>قطر جک (Ø شفت)</label>
-        <select id="selSingleDia"></select>
+      <div class="card" id="cardSingleJackType">
+        <label><span class="num">1</span>نوع جک</label>
+        <div class="valve-toggle">
+          <button type="button" id="btnSingleJIndirect">غیر مستقیم</button>
+          <button type="button" id="btnSingleJDirect">مستقیم</button>
+          <button type="button" id="btnSingleJStage">جک های دو استیج و سه استیج</button>
+        </div>
+      </div>
+      <div class="card disabled" id="cardSingleDia">
+        <label><span class="num">2</span>قطر جک (Ø شفت)</label>
+        <select id="selSingleDia" disabled></select>
       </div>
       <div class="card disabled" id="cardSingleLength">
-        <label><span class="num">2</span>طول جک (کورس)</label>
+        <label><span class="num">3</span>طول جک (کورس)</label>
         <select id="selSingleLength" disabled></select>
       </div>
       <div class="card" id="cardSingleJackQty">
-        <label><span class="num">3</span>تعداد</label>
+        <label><span class="num">4</span>تعداد</label>
         <input type="number" id="qtySingleJackInput" class="single-qty-input" min="1" value="1">
       </div>
     </div>
@@ -2147,19 +2155,19 @@
 
     <div class="grid" id="singleStageGrid" style="display:none;">
       <div class="card">
-        <label><span class="num">1</span>تعداد استیج</label>
+        <label><span class="num">2</span>تعداد استیج</label>
         <select id="selSingleStageCount"></select>
       </div>
       <div class="card disabled" id="cardSingleStageType">
-        <label><span class="num">2</span>نوع جک استیج</label>
+        <label><span class="num">3</span>نوع جک استیج</label>
         <select id="selSingleStageType" disabled></select>
       </div>
       <div class="card disabled" id="cardSingleStageLength">
-        <label><span class="num">3</span>طول جک (کورس)</label>
+        <label><span class="num">4</span>طول جک (کورس)</label>
         <select id="selSingleStageLength" disabled></select>
       </div>
       <div class="card" id="cardSingleStageQty">
-        <label><span class="num">4</span>تعداد</label>
+        <label><span class="num">5</span>تعداد</label>
         <input type="number" id="qtySingleStageInput" class="single-qty-input" min="1" value="1">
       </div>
     </div>
@@ -5336,8 +5344,9 @@ function resetSingleItemSelectionOnly(){
   // در تب «موتور خشک» فقط فیلدهای انتخاب پلکانی خودش بازنشانی می‌شود — نوع کالا و بقیه گرید‌ها دست‌نخورده/مخفی می‌مانند
   if(calcMode==='drymotor'){ resetDrySelectionOnly(); return; }
   singleItemType = null;
-  singleSel = { dia:null, length:null, kw:null, puIdx:null, valve:'belin', ruptureIdx:null };
+  singleSel = { jtype:null, dia:null, variantIdx:null, length:null, kw:null, puIdx:null, valve:'belin', ruptureIdx:null };
   singlePuOptions = [];
+  try{ bfSJSetType(null, true); }catch(_){}
   hideAllSingleTypeGrids();
   singleChromeInclude = false; singleChromeMeters = null; singleChromeMetersManual = false;
   singleChromeIncludeCb.checked = false;
@@ -5405,7 +5414,7 @@ btnSingleTypeJack.addEventListener('click', ()=>{
   hideAllSingleTypeGrids();
   btnSingleTypeJack.classList.add('active');
   singleJackGrid.style.display = '';
-  singleChromeBox.style.display = ''; syncSingleChromeUI();
+  bfSJSetType(null, true);
   renderSingleResult();
 });
 btnSingleTypePu.addEventListener('click', ()=>{
@@ -5529,6 +5538,37 @@ function resetSingleStageForm(){
   qtySingleStageInput.value = 1;
 }
 resetSingleStageForm();
+/* نوع جک در «فقط جک»: غیرمستقیم / مستقیم (تک استیج — قطر/ضخامت/کورس از جدول «سفارش بر اساس جک») یا دو/سه استیج */
+const btnSingleJIndirect = document.getElementById('btnSingleJIndirect');
+const btnSingleJDirect = document.getElementById('btnSingleJDirect');
+const btnSingleJStage = document.getElementById('btnSingleJStage');
+const cardSingleDia = document.getElementById('cardSingleDia');
+// کارت‌های جک استیج درست زیر کارت «نوع جک» نمایش داده شوند
+if(singleStageGrid && singleJackGrid && singleJackGrid.parentNode) singleJackGrid.parentNode.insertBefore(singleStageGrid, singleJackGrid.nextSibling);
+function bfSJSetType(t, silent){
+  singleSel.jtype = (t==='stage') ? null : t;
+  btnSingleJIndirect.classList.toggle('active', t==='indirect');
+  btnSingleJDirect.classList.toggle('active', t==='direct');
+  btnSingleJStage.classList.toggle('active', t==='stage');
+  const single = (t==='indirect' || t==='direct');
+  cardSingleDia.style.display = t==='stage' ? 'none' : '';
+  cardSingleLength.style.display = t==='stage' ? 'none' : '';
+  document.getElementById('cardSingleJackQty').style.display = t==='stage' ? 'none' : '';
+  singleStageGrid.style.display = t==='stage' ? '' : 'none';
+  singleChromeBox.style.display = single ? '' : 'none';
+  singleSel.dia = null; singleSel.variantIdx = null; singleSel.length = null;
+  selSingleLength.innerHTML = ''; selSingleLength.disabled = true; cardSingleLength.classList.add('disabled');
+  if(single){ populateSingleDia(); selSingleDia.disabled = false; cardSingleDia.classList.remove('disabled'); }
+  else { selSingleDia.innerHTML = ''; selSingleDia.disabled = true; cardSingleDia.classList.add('disabled'); }
+  if(t==='stage'){ singleItemType = 'stagejack'; resetSingleStageForm(); }
+  else if(btnSingleTypeJack.classList.contains('active')) singleItemType = 'jack';
+  if(single) syncSingleChromeUI();
+  if(!silent) renderSingleResult();
+}
+btnSingleJIndirect.addEventListener('click', ()=>bfSJSetType('indirect'));
+btnSingleJDirect.addEventListener('click', ()=>bfSJSetType('direct'));
+btnSingleJStage.addEventListener('click', ()=>bfSJSetType('stage'));
+resetSingleStageForm();
 btnSingleTypeStage.addEventListener('click', ()=>{
   singleItemType = 'stagejack';
   hideAllSingleTypeGrids();
@@ -5608,19 +5648,29 @@ selSingleRupture.addEventListener('change', ()=>{
 qtySingleRuptureInput.addEventListener('input', renderSingleResult);
 
 // گام‌های «فقط جک» — دقیقاً از همان کاتالوگ رسمی قیمت جک شکیب (JACK_FULL_PRICE_TABLE)
-(function populateSingleDia(){
-  const dias = Object.keys(JACK_FULL_PRICE_TABLE).map(Number).sort((a,b)=>a-b);
+// گام‌های «فقط جک» — همان قاعدهٔ «سفارش بر اساس جک»: نوع جک (غیرمستقیم / مستقیم / دو و سه استیج) ← قطر (با نسخهٔ ضخامت) ← کورس ← تعداد
+function populateSingleDia(){
+  const jt = singleSel.jtype;
+  const dias = Object.keys(JACK_BYJACK_TABLE).map(Number).sort((a,b)=>a-b);
   selSingleDia.innerHTML = '<option value="" disabled selected>انتخاب کنید...</option>';
   dias.forEach(d=>{
-    const opt = document.createElement('option');
-    opt.value = d; opt.textContent = 'Ø ' + d + ' mm';
-    selSingleDia.appendChild(opt);
+    const all = getByJackVariants(d);
+    const variants = all.filter(v => jt==='direct' ? !!v.direct : !!v.indirect);
+    variants.forEach(v=>{
+      const opt = document.createElement('option');
+      opt.value = d + '|' + all.indexOf(v);
+      opt.textContent = 'Ø ' + d + ' mm' + (all.length>1 ? ' (ضخامت شفت ' + v.thickness + 'mm)' : (v.thickness==='توپر' ? ' (توپر)' : ''));
+      selSingleDia.appendChild(opt);
+    });
   });
-})();
+}
 selSingleDia.addEventListener('change', ()=>{
-  singleSel.dia = Number(selSingleDia.value);
+  const [dStr, iStr] = String(selSingleDia.value).split('|');
+  singleSel.dia = Number(dStr); singleSel.variantIdx = Number(iStr);
   singleSel.length = null;
-  const lengths = Object.keys(getCatalogSizes(singleSel.dia)).map(Number).sort((a,b)=>a-b);
+  const v = getByJackVariants(singleSel.dia)[singleSel.variantIdx];
+  const table = v ? (singleSel.jtype==='direct' ? v.direct : v.indirect) : null;
+  const lengths = table ? Object.keys(table).map(Number).sort((a,b)=>a-b) : [];
   selSingleLength.innerHTML = '<option value="" disabled selected>انتخاب کنید...</option>';
   lengths.forEach(l=>{
     const opt = document.createElement('option');
@@ -5851,13 +5901,13 @@ function computeSingleItem(){
     return { kind:'drymotor', title, spec: subItems.map(it=>it.spec).join(' · '), unitPrice, qty: 1 };
   }
   if(singleItemType==='jack'){
-    if(singleSel.dia==null || singleSel.length==null) return null;
-    const hit = getCatalogJackPrice(singleSel.dia, singleSel.length);
+    if(!singleSel.jtype || singleSel.dia==null || singleSel.variantIdx==null || singleSel.length==null) return null;
+    const hit = getByJackPrice(singleSel.dia, singleSel.variantIdx, singleSel.jtype, singleSel.length);
     if(!hit) return null;
     const qtyN = Math.max(1, Number(qtySingleJackInput.value)||1);
     return {
       kind:'jack',
-      title: 'جک هیدرولیک شکیب غیرمستقیم تک استیج',
+      title: 'جک هیدرولیک شکیب ' + (singleSel.jtype==='direct' ? 'مستقیم' : 'غیرمستقیم') + ' تک استیج',
       spec: 'H9 وارداتی - پکینگ گارنتیک ایتالیا · سایز ' + hit.sizeStr,
       unitPrice: hit.price,
       qty: qtyN

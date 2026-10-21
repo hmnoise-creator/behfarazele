@@ -1445,7 +1445,7 @@ function sbTable(items){
   for(i=0;i<list.length;i++){var it=list[i],pk=it.sup+'#'+it.pk;
     if(it.tab!==prevTab){var tn=0;for(j=i;j<list.length&&list[j].tab===it.tab;j++)tn++;
       rows+='<tr class="sbt-g"><td colspan="11">'+esc(sbValLabel('type',it.tab))+' <span>('+fa(tn)+' ردیف)</span></td></tr>';prevTab=it.tab;prevP=''}
-    if(pk!==prevP){var rr0=(window.__sbRM||{})[it.rid]||{};rows+='<tr class="sbt-p'+sbSupCls(it.sup)+'"><td></td><td colspan="2"><b>'+esc(it.title)+'</b>'+(it.sub?' — '+esc(it.sub):'')+'</td><td colspan="2">جمع موجودی: <b>'+fa(pc[pk].q)+'</b> '+esc(pc[pk].unit)+'</td><td colspan="6">🧾 سفارش '+esc(fa(rr0.no||'—'))+(rr0.invNo?' · فاکتور '+esc(fa(rr0.invNo)):'')+(rr0.date?' · '+fdate(rr0.date):'')+' · '+esc(it.sup)+'</td></tr>'}
+    if(pk!==prevP){var rr0=(window.__sbRM||{})[it.rid]||{};rows+='<tr class="sbt-p'+sbSupCls(it.sup)+'"><td></td><td colspan="2"><b>'+esc(it.title)+'</b>'+(it.sub?' — '+esc(it.sub):'')+'</td><td colspan="2">جمع موجودی: <b>'+fa(pc[pk].q)+'</b> '+esc(pc[pk].unit)+'</td><td colspan="6">🧾 سفارش '+esc(fa(rr0.no||'—'))+(rr0.invNo?' · فاکتور '+esc(fa(rr0.invNo)):'')+(rr0.date?' · <b class="bdate">'+fdate(rr0.date)+'</b>':'')+' · '+esc(it.sup)+'</td></tr>'}
     prevP=pk;n++;
     var f=it.f,cust=[f.company,f.project].filter(Boolean).join(' / ');
     var lv=it.k==='l'?boardLevel(it.qty,it.unit):'ok';
@@ -1461,7 +1461,7 @@ function sbTable(items){
     rows+='<tr class="sbt-r'+(it.isOut?' out':'')+sbSupCls(it.sup)+'"><td class="c">'+fa(n)+'</td><td><b>'+esc(it.title)+'</b><small>'+esc(CATS[it.cat].name)+(f['for']&&it.cat==='acc'?' · ویژهٔ '+esc(f['for']):'')+'</small></td><td>'+esc(it.sub||'—')+'</td>'+
       '<td class="mono">'+(it.serial?esc(it.serial):'<span class="o">—</span>')+'</td>'+
       '<td class="c"><b>'+fa(it.qty)+'</b> <small class="u">'+esc(it.unit)+'</small>'+(it.k==='l'?'<small>'+(it.inn!==it.qty?'از '+fa(it.inn)+' ورودی · ':'')+fa(it.rnos.length)+' بار ورود</small>':'')+'</td>'+
-      '<td>'+esc(it.sup)+'</td><td class="c">'+fdate(it.date)+(it.rnos.length?'<small>رسید '+esc(fa(it.rnos.slice(-3).join('، ')))+'</small>':'')+'</td>'+
+      '<td>'+esc(it.sup)+'</td><td class="c"><b class="bdate">'+fdate(it.date)+'</b>'+(it.rnos.length?'<small>رسید '+esc(fa(it.rnos.slice(-3).join('، ')))+'</small>':'')+'</td>'+
       '<td>'+(cust?esc(cust):'<span class="o">انبار</span>')+'</td><td class="c">'+st+'</td>'+
       '<td class="c acs">'+(it.k==='u'?acctCell('u',it.id,it.acct,''):acctCell('l',it.id,it.acctDate,it.acctState))+'</td><td class="c nw">'+act+'</td></tr>'+
       (it.k==='l'&&sbHist[it.id]?'<tr class="sbt-h"><td></td><td colspan="10">'+sbLotHist(it.id)+'</td></tr>':'');
@@ -2745,7 +2745,7 @@ function renderPick(){
       :'<span style="display:inline-flex;gap:4px;align-items:center"><input class="ltr" inputmode="decimal" data-xlq="'+esc(o.key)+'" placeholder="مقدار" style="width:70px;padding:4px 6px" autocomplete="off"><button class="btn pri sm" data-addl="'+esc(o.key)+'">➕</button></span>';
     rows+='<tr class="sbt-r'+sbSupCls(o.sup)+'"><td class="c">'+fa(n)+'</td><td><b>'+esc(o.title)+'</b><small>'+esc(CATS[o.cat].name)+'</small></td><td>'+esc(o.sub||'—')+'</td><td class="mono">'+(o.serial?esc(o.serial):'<span class="o">—</span>')+'</td>'+
       '<td class="c"><b>'+fa(o.qty)+'</b> <small class="u">'+esc(o.unit)+'</small></td>'+
-      '<td>'+(o.proj?'<b>'+esc(o.proj)+'</b>':'<span class="o">انبار</span>')+'</td><td>'+esc(o.sup)+'</td><td class="c">'+fdate(o.date)+'</td><td class="c nw">'+act+'</td></tr>';
+      '<td>'+(o.proj?'<b>'+esc(o.proj)+'</b>':'<span class="o">انبار</span>')+'</td><td>'+esc(o.sup)+'</td><td class="c"><b class="bdate">'+fdate(o.date)+'</b></td><td class="c nw">'+act+'</td></tr>';
   });
   $('xPick').innerHTML=shown.length?'<table class="sbt2 xt"><thead><tr><th class="c">#</th><th>نام قطعه</th><th>برند / مشخصات</th><th>سریال</th><th class="c">موجودی</th><th>خریدار / پروژه</th><th>تأمین‌کننده</th><th class="c">تاریخ سفارش</th><th class="c"></th></tr></thead><tbody>'+rows+'</tbody></table>'+
     (list.length>LIM?'<div class="empty">'+fa(list.length-LIM)+' مورد دیگر — جستجو را دقیق‌تر کنید</div>':'')
@@ -3850,6 +3850,11 @@ input.bf-money{direction:ltr;text-align:left;font-weight:700;letter-spacing:.3px
 .shk-fam.mt > h3{background:linear-gradient(90deg,#7A3E0C,#C26A12)}
 .shk-fam > h3 small{font-weight:600;opacity:.9;font-size:.78rem}
 .shk-fam .shk-grp{margin:10px}
+table.sbt2.shk{min-width:820px}
+.shk-pr{color:#C0201A;font-weight:900;white-space:nowrap}
+.bdate{font-weight:800;color:var(--ink)}
+.fin-tbl tbody td:first-child{font-weight:800}
+table.sbt2 td.c b.bdate{font-weight:800}
 </style>
 <script>
 /* ===== [BF-ORDER] ثبت سفارش شکیب (خرید از شکیب + فروش به مشتری) · انبار شکیب · مالی و حسابداری =====
@@ -4023,18 +4028,21 @@ function renderShkWh(){
     if(q&&norm([gk(f),row.title,row.sub,r.invNo||'',r.no||''].join(' ')).indexOf(q)<0)return;
     var G=F[famOf(o)];(G[o.rid]=G[o.rid]||{r:r,k:gk(f),rows:[]}).rows.push(row)}
   shkUnits().forEach(function(u){add(u,true)});shkLots().forEach(function(l){add(l,false)});
-  var h='<div class="fin-h"><h3>'+bfLogo('shakib','sm')+' انبار شکیب — هر سفارش یک بخش جدا</h3><span class="sp"></span><input id="shkQ" placeholder="🔎 مشتری، پروژه، کالا، فاکتور…" value="'+esc(shkQ)+'" style="max-width:280px" autocomplete="off"></div>';
+  var h='<div class="fin-h"><h3>'+bfLogo('shakib','sm')+' انبار شکیب</h3><span class="sp"></span><input id="shkQ" placeholder="🔎 مشتری، پروژه، کالا، فاکتور…" value="'+esc(shkQ)+'" style="max-width:280px" autocomplete="off"></div>';
   var FAM=[['jp','🔩 جک، پاور و متعلقات'],['mt','🧲 موتور و متعلقات موتور']],any=false;
   FAM.forEach(function(fm0){var G=F[fm0[0]],ids=Object.keys(G).sort(function(x,y){return String(G[y].r.date||'').localeCompare(String(G[x].r.date||''))||(G[y].r.ts||0)-(G[x].r.ts||0)});
     var nS=0,nC=0;ids.forEach(function(id){if(G[id].r.dest==='cust'||G[id].k.indexOf('انبار —')!==0&&G[id].k)nS++;else nC++});
     h+='<div class="shk-fam '+fm0[0]+'"><h3>'+fm0[1]+' <small>'+(soldF==='sold'?'فروخته‌شده':soldF==='cap'?'سرمایه انبار':'همه')+' · '+fa(ids.length)+' سفارش</small></h3>';
     if(!ids.length)h+='<div class="o" style="padding:12px 14px">موردی نیست.</div>';
     ids.forEach(function(id){any=true;var g=G[id],r=g.r,sold=r.dest==='cust'||(!!g.k&&g.k.indexOf('انبار —')!==0);
+      var pr=sold&&(r.buyTotal||r.sellTotal)?'<span class="shk-pr">خرید سفارش <bdi dir="ltr">'+fm(r.buyTotal||0)+'</bdi> ریال<br>فروش <bdi dir="ltr">'+fm(r.sellTotal||0)+'</bdi> ریال</span>':'';
       h+='<div class="shk-grp"><div class="shk-gh"><span style="font-size:20px">'+(sold?'🏷️':'💼')+'</span><b>'+(sold?esc(g.k):'سرمایه انبار'+(r.project?' — پروژه '+esc(r.project):''))+'</b>'+
-        '<span class="cnt">🧾 سفارش '+esc(fa(r.no||'—'))+(r.invNo?' · فاکتور شکیب '+esc(fa(r.invNo)):'')+' · '+fdate(r.date)+(r.buyTotal?' · جمع خرید سفارش '+fm(r.buyTotal):'')+(r.sellTotal?' · فروش '+fm(r.sellTotal):'')+'</span><span class="sp"></span>'+
+        '<span class="cnt">🧾 سفارش '+esc(fa(r.no||'—'))+(r.invNo?' · فاکتور شکیب '+esc(fa(r.invNo)):'')+' · <b class="bdate">'+fdate(r.date)+'</b>'+(!sold&&r.buyTotal?' · جمع خرید سفارش '+fm(r.buyTotal):'')+'</span><span class="sp"></span>'+
         (ro()?'':'<button type="button" class="btn sm grn" data-shkmv="'+esc(id)+'" data-fam="'+fm0[0]+'">📦 انتقال به انبار بهفراز</button>')+'</div>'+
-        '<div style="overflow:auto"><table class="fin-tbl"><thead><tr><th>#</th><th>کالا</th><th>مشخصات</th><th>تعداد</th><th>کامنت</th></tr></thead><tbody>'+
-        g.rows.map(function(rw,i){var cm=(rw.o.cmts||[]).length;return '<tr><td>'+fa(i+1)+'</td><td><b>'+esc(rw.title)+'</b></td><td>'+esc(rw.sub||'—')+'</td><td>'+fa(rw.qty)+' '+esc(rw.unit)+'</td><td><button type="button" class="shk-cm'+(cm?' has':'')+'" data-whc="'+(rw.u?'u':'l')+'|'+rw.o.id+'">💬 '+(cm?fa(cm):'')+'</button></td></tr>'}).join('')+'</tbody></table></div></div>'});
+        '<div class="sbt-wrap" style="border-radius:0;border-width:1px 0 0"><table class="sbt2 shk"><thead><tr><th class="c">#</th><th>کالا</th><th>برند / مشخصات</th>'+(sold?'<th>قیمت سفارش</th>':'')+'<th class="c">موجودی</th><th class="c">تاریخ سفارش</th><th>خریدار / پروژه</th><th class="c">کامنت</th></tr></thead><tbody>'+
+        g.rows.map(function(rw,i){var cm=(rw.o.cmts||[]).length;return '<tr class="sbt-r"><td class="c">'+fa(i+1)+'</td><td><b>'+esc(rw.title)+'</b><small>'+esc(CATS[rw.o.cat]?CATS[rw.o.cat].name:'')+'</small></td><td>'+esc(rw.sub||'—')+'</td>'+(sold?'<td>'+pr+'</td>':'')+
+          '<td class="c"><b>'+fa(rw.qty)+'</b> <small class="u">'+esc(rw.unit)+'</small></td><td class="c"><b class="bdate">'+fdate(r.date)+'</b></td><td>'+(sold?esc(g.k):'<span class="o">'+(r.project?'انبار — '+esc(r.project):'انبار')+'</span>')+'</td>'+
+          '<td class="c"><button type="button" class="shk-cm'+(cm?' has':'')+'" data-whc="'+(rw.u?'u':'l')+'|'+rw.o.id+'">💬 '+(cm?fa(cm):'')+'</button></td></tr>'}).join('')+'</tbody></table></div></div>'});
     h+='</div>'});
   p.innerHTML=h;var qi=$('shkQ');if(qi&&shkQ){qi.focus();qi.setSelectionRange(qi.value.length,qi.value.length)}
   whBar();

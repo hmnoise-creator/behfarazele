@@ -7582,11 +7582,13 @@ const PART_SOURCE_META = {
   floor:   {section:'floor',   cat:'پنل طبقه'}
 };
 let PART_INDEX = [];
+const PSB_ALWAYS = ['مبدل سیم کارت به خط ثابت','برد مبدل سریال ریزشی یا لاتیس'];
 function buildPartIndex(){
   const list = [];
   const pushItem = (section, catLabel, group, label, priceItem) => {
     if(!label) return;
-    if(priceItem._remove) return;
+    // [BF-PSB-CONV] «برد مبدل سریال ریزشی یا لاتیس» در داده مخفی (_remove) است ولی باید در جستجو بیاید
+    if(priceItem._remove && !PSB_ALWAYS.some(x=>label.indexOf(x)!==-1)) return;
     list.push({section, catLabel, group: group||'', label, priceItem});
   };
   Object.keys(PART_SOURCE_META).forEach(key=>{
@@ -7625,6 +7627,16 @@ function buildPartIndex(){
   (DATA.secondKeyOptions||[]).forEach(it=>{
     pushItem('equip', 'کلید دوم / توقف مازاد ('+(it.source||'')+')', it.group, it.label, it);
   });
+  // [BF-PSB-CONV] اگر این اقلام در دادهٔ قیمت فعلی نبودند، از دادهٔ پیش‌فرض اضافه شوند تا همیشه در جستجو باشند
+  PSB_ALWAYS.forEach(lbl=>{
+    if(list.some(p=>p.label===lbl)) return;
+    Object.keys(PART_SOURCE_META).forEach(key=>{
+      const d = DEFAULT_DATA[key]; if(!d) return;
+      ['equipment','supplementary'].forEach(arr=>{
+        (d[arr]||[]).forEach(it=>{ if(it.label===lbl) list.push({section:PART_SOURCE_META[key].section, catLabel:PART_SOURCE_META[key].cat, group:it.group||'', label:it.label, priceItem:Object.assign({}, it, {_remove:false})}); });
+      });
+    });
+  });
   PART_INDEX = list;
 }
 
@@ -7645,7 +7657,11 @@ function renderPartSearchResults(query){
   if(!box) return;
   const q = normalizeFaSearch(query);
   if(!q){ box.classList.remove('show'); box.innerHTML=''; return; }
-  const matches = PART_INDEX.filter(p => normalizeFaSearch(p.label).indexOf(q)!==-1 || normalizeFaSearch(p.group).indexOf(q)!==-1);
+  buildPartIndex(); // [BF-PSB-CONV] هر بار با آخرین قیمت‌ها ساخته شود
+  // جستجوی منعطف: فاصله / نیم‌فاصله / خط تیره مهم نیست («سیمکارت» = «سیم کارت») و ترتیب کلمات آزاد است
+  const cmp = s => normalizeFaSearch(s).replace(/[\s\u200c\u200d\-_\/]+/g,'');
+  const toks = q.split(/[\s\u200c]+/).map(cmp).filter(Boolean);
+  const matches = PART_INDEX.filter(p => { const hay = cmp(p.label+' '+p.group+' '+p.catLabel); return hay.indexOf(cmp(q))!==-1 || (toks.length && toks.every(t=>hay.indexOf(t)!==-1)); });
   if(matches.length===0){
     box.innerHTML = '<div class="psb-empty">قطعه‌ای با این نام پیدا نشد.</div>';
     box.classList.add('show');

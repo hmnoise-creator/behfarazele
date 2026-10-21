@@ -2542,7 +2542,7 @@ const PU_DEFAULTS = {
   '11-150':   { tank:210, hm:{price:9367600000, wire:76000000}, heAssembly:{price:9376400000, wire:50000000}, heItaly:{price:14301488520, wire:null} },
   '12.5-150': { tank:210, hm:{price:9485300000, wire:76000000}, heAssembly:{price:9444600000, wire:50000000}, heItaly:{price:14420799360, wire:null} },
   '12.5-180': { tank:320, hm:{price:10918600000, wire:76000000}, heAssembly:{price:10265200000, wire:50000000}, heItaly:{price:15733218600, wire:null} },
-  '14.7-180': { tank:320, hm:{price:11098783080, wire:76000000}, heAssembly:{price:10400500000, wire:60000000}, heItaly:{price:17594755200, wire:null} },
+  '14.7-180': { tank:320, hm:{price:11098783080, wire:76000000}, heAssembly:{price:10400500000, wire:50000000}, heItaly:{price:17594755200, wire:null} },
   '18.4-210': { tank:320, hm:{price:11601700000, wire:76000000}, heAssembly:{price:11511500000, wire:50000000}, heItaly:{price:16221961800, wire:null} },
   // --- کلیدهای جدید که در جدول جک «حالت دقیق» لازم‌اند ولی قیمت‌شان در لیست پاوریونیت فعلی درج نشده بود.
   // تا زمان دریافت قیمت رسمی، price/wire=null است و در محاسبه‌گر به‌صورت «تماس با فروش» نمایش داده می‌شود.
@@ -2556,9 +2556,9 @@ const PU_DEFAULTS = {
   '11-180':   { tank:320, hm:{price:10736000000, wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
   '11-210':   { tank:320, hm:{price:null,      wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
   '12.5-210': { tank:320, hm:{price:10918600000, wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
-  '14.7-150': { tank:210, hm:{price:9604100000, wire:76000000}, heAssembly:{price:9903300000, wire:60000000}, heItaly:{price:null, wire:null} },
-  '14.7-210': { tank:320, hm:{price:11103095520, wire:76000000}, heAssembly:{price:10435700000, wire:60000000}, heItaly:{price:null, wire:null} },
-  '18.4-250': { tank:320, hm:{price:12134100000, wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
+  '14.7-150': { tank:210, hm:{price:9604100000, wire:76000000}, heAssembly:{price:9903300000, wire:50000000}, heItaly:{price:null, wire:null} },
+  '14.7-210': { tank:320, hm:{price:11103095520, wire:76000000}, heAssembly:{price:10435700000, wire:50000000}, heItaly:{price:null, wire:null} },
+  '18.4-250': { tank:320, hm:{price:12134100000, wire:76000000}, heAssembly:{price:null, wire:50000000}, heItaly:{price:null, wire:null} },
 };
 const PU_LABELS = { hm:'HM (Soft Plus)', heAssembly:'HE Hevos (تحت لیسانس ایتالیا)', heItaly:'HE Hevos (ایتالیا)' };
 // نوع جک — فقط در بخش «جک و پاور سفارشی ← کاملاً دستی» قابل انتخاب است
@@ -2621,10 +2621,10 @@ function ampForKwLiters(kw, liters){
 const PU_SINGLE_EXTRA = {
   '1.5-16':   { tank:40,  hm:{price:7087300000,  wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
   '4.9-75':   { tank:110, hm:{price:null,        wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
-  '14.7-250': { tank:320, hm:{price:11671000000, wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
-  '14.7-300': { tank:450, hm:{price:null,        wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
-  '18.4-180': { tank:320, hm:{price:11601700000, wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
-  '18.4-300': { tank:450, hm:{price:null,        wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
+  '14.7-250': { tank:320, hm:{price:11671000000, wire:76000000}, heAssembly:{price:null, wire:50000000}, heItaly:{price:null, wire:null} },
+  '14.7-300': { tank:450, hm:{price:null,        wire:76000000}, heAssembly:{price:null, wire:50000000}, heItaly:{price:null, wire:null} },
+  '18.4-180': { tank:320, hm:{price:11601700000, wire:76000000}, heAssembly:{price:null, wire:50000000}, heItaly:{price:null, wire:null} },
+  '18.4-300': { tank:450, hm:{price:null,        wire:76000000}, heAssembly:{price:null, wire:50000000}, heItaly:{price:null, wire:null} },
   '22-210':   { tank:320, hm:{price:12135200000, wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
   '22-250':   { tank:320, hm:{price:12035100000, wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },
   '22-300':   { tank:320, hm:{price:12128600000, wire:76000000}, heAssembly:{price:null, wire:null}, heItaly:{price:null, wire:null} },

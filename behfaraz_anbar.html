@@ -1328,17 +1328,17 @@ function sbItems(){
     if(u.status==='void'||(u.status!=='in'&&!sbOut))return;if(isAm(u)!==amOnly)return;
     var f=u.f||{},bt=boardTabOf(u.cat,f);if(!bt)return;var r=rm[u.rid]||{},x=u.exitId?em[u.exitId]:null;
     out.push({k:'u',id:u.id,cat:u.cat,f:f,g:bt.g.id,gi:DASH.indexOf(bt.g),tab:bt.t.id,ti:bt.g.tabs.indexOf(bt.t),sup:sbSupName(r.supplier),brand:f.brand||'',
-      pk:boardKeyOf(u.cat,f,'عدد'),serial:u.serial,qty:u.status==='in'?1:0,unit:'عدد',date:r.date||'',rnos:r.no!=null?[r.no]:[],isOut:u.status==='out',xno:x?x.no:'',acct:u.acct});
+      pk:boardKeyOf(u.cat,f,'عدد')+'|r:'+u.rid,rid:u.rid,serial:u.serial,qty:u.status==='in'?1:0,unit:'عدد',date:r.date||'',rnos:r.no!=null?[r.no]:[],isOut:u.status==='out',xno:x?x.no:'',acct:u.acct});
   });
   DB.lots.forEach(function(l){
     if(l.status==='void')return;if(isAm(l)!==amOnly)return;var r=rm[l.rid]||{};
-    var g=m[l.key]||(m[l.key]={key:l.key,cat:l.cat,f:l.f||{},unit:l.unit,inn:0,rem:0,date:'',rnos:[],sup:sbSupName(r.supplier),nL:0,nA:0,acctDate:''});
+    var gk2=l.key+'#'+l.rid;var g=m[gk2]||(m[gk2]={key:l.key,rid:l.rid,cat:l.cat,f:l.f||{},unit:l.unit,inn:0,rem:0,date:'',rnos:[],sup:sbSupName(r.supplier),nL:0,nA:0,acctDate:''});
     g.inn=rnd(g.inn+l.qty);g.rem=rnd(g.rem+l.rem);g.nL++;if(l.acct){g.nA++;if(l.acct>g.acctDate)g.acctDate=l.acct}
     if(r.date&&r.date>g.date)g.date=r.date;if(r.no!=null&&g.rnos.indexOf(r.no)<0)g.rnos.push(r.no);
   });
   Object.keys(m).forEach(function(k){var g=m[k];if(g.rem<=0&&!sbOut)return;var bt=boardTabOf(g.cat,g.f);if(!bt)return;
     out.push({k:'l',id:g.key,cat:g.cat,f:g.f,g:bt.g.id,gi:DASH.indexOf(bt.g),tab:bt.t.id,ti:bt.g.tabs.indexOf(bt.t),sup:g.sup,brand:g.f.brand||'',
-      pk:boardKeyOf(g.cat,g.f,g.unit),serial:g.f.bser||'',qty:g.rem,inn:g.inn,unit:g.unit,date:g.date,rnos:g.rnos,isOut:g.rem<=0,acctDate:g.acctDate,acctState:g.nA===0?0:(g.nA===g.nL?2:1)})});
+      pk:boardKeyOf(g.cat,g.f,g.unit)+'|r:'+g.rid,rid:g.rid,serial:g.f.bser||'',qty:g.rem,inn:g.inn,unit:g.unit,date:g.date,rnos:g.rnos,isOut:g.rem<=0,acctDate:g.acctDate,acctState:g.nA===0?0:(g.nA===g.nL?2:1)})});
   out.forEach(function(it){var f=it.f;if(!it.brand&&it.cat==='oil')it.brand=f.type||'';it.main=f.size||f.model||f.type||f.name||'';it.title=it.cat==='acc'?(f.name||'متعلقات'):it.cat==='motor'?('موتور '+(f.brand||'')).trim():(it.main||CATS[it.cat].name);it.sub=it.cat==='motor'?[f.model,boardSpec(f)].filter(Boolean).join(' · '):[f.brand,boardSpec(f)].filter(Boolean).join(' · ')});
   return out;
 }
@@ -1439,13 +1439,13 @@ function sbTable(items){
   var list=sbFilter(items);
   if(!list.length)return '<div class="sb-empty">کالایی با این فیلتر در انبار نیست.</div>';
   list.sort(function(a,b){return a.gi-b.gi||a.ti-b.ti||sbSupRank(a.sup)-sbSupRank(b.sup)||String(a.title).localeCompare(String(b.title),'fa')||a.pk.localeCompare(b.pk)||(a.isOut-b.isOut)||String(a.serial).localeCompare(String(b.serial))});
-  var su=sbStagedU(),sl=sbStagedL(),rows='',n=0,prevTab='',i,j;
+  window.__sbRM=rMap();var su=sbStagedU(),sl=sbStagedL(),rows='',n=0,prevTab='',i,j;
   var pc={};list.forEach(function(it){var k=it.sup+'#'+it.pk;pc[k]=pc[k]||{n:0,q:0,unit:it.unit};pc[k].n++;pc[k].q=rnd(pc[k].q+it.qty)});
   var prevP='';
   for(i=0;i<list.length;i++){var it=list[i],pk=it.sup+'#'+it.pk;
     if(it.tab!==prevTab){var tn=0;for(j=i;j<list.length&&list[j].tab===it.tab;j++)tn++;
       rows+='<tr class="sbt-g"><td colspan="11">'+esc(sbValLabel('type',it.tab))+' <span>('+fa(tn)+' ردیف)</span></td></tr>';prevTab=it.tab;prevP=''}
-    if(pk!==prevP&&pc[pk].n>1)rows+='<tr class="sbt-p'+sbSupCls(it.sup)+'"><td></td><td colspan="2"><b>'+esc(it.title)+'</b>'+(it.sub?' — '+esc(it.sub):'')+'</td><td colspan="2">جمع موجودی: <b>'+fa(pc[pk].q)+'</b> '+esc(pc[pk].unit)+'</td><td colspan="6">'+esc(it.sup)+'</td></tr>';
+    if(pk!==prevP){var rr0=(window.__sbRM||{})[it.rid]||{};rows+='<tr class="sbt-p'+sbSupCls(it.sup)+'"><td></td><td colspan="2"><b>'+esc(it.title)+'</b>'+(it.sub?' — '+esc(it.sub):'')+'</td><td colspan="2">جمع موجودی: <b>'+fa(pc[pk].q)+'</b> '+esc(pc[pk].unit)+'</td><td colspan="6">🧾 سفارش '+esc(fa(rr0.no||'—'))+(rr0.invNo?' · فاکتور '+esc(fa(rr0.invNo)):'')+(rr0.date?' · '+fdate(rr0.date):'')+' · '+esc(it.sup)+'</td></tr>'}
     prevP=pk;n++;
     var f=it.f,cust=[f.company,f.project].filter(Boolean).join(' / ');
     var lv=it.k==='l'?boardLevel(it.qty,it.unit):'ok';
@@ -2154,7 +2154,7 @@ function renderInForm(){
   if(ser)h+='<div class="ser-cell"><label class="f">شماره سریال <span class="req">*</span>'+((inCat==='chflr'||inCat==='chcab')?' <span class="o">(یک سریال برای کل این تعداد کافی است)</span>':'')+'</label><div class="rel"><input id="inSerials" class="ltr ser-in" placeholder="بنویسید یا اسکن کنید" autocomplete="off"></div><div class="sercheck" id="inSerChk"></div></div>';
   h+='</div><div id="inXBox"></div>';
   if(c.serial==='opt')h+='<label class="chk"><input type="checkbox" id="inSerChkbox"'+(inSerOn?' checked':'')+'> این کالا شماره سریال دارد (هر سریال یک عدد)</label>';
-  if(!ser)h+='<div class="qty-row"><label class="f">تعداد / مقدار <span class="req">*</span></label><div class="qty-flex">'+stepperHtml('main',inVals.__qty||'')+'<select id="inUnit">'+(c.units||['عدد']).map(function(u){return '<option'+(inVals.__unit===u?' selected':'')+'>'+esc(u)+'</option>'}).join('')+'</select></div></div>';
+  if(!ser)h+='<div class="qty-row"><label class="f">تعداد / مقدار <span class="req">*</span></label><div class="qty-flex">'+stepperHtml('main',inVals.__qty||'1')+'<select id="inUnit">'+(c.units||['عدد']).map(function(u){return '<option'+(inVals.__unit===u?' selected':'')+'>'+esc(u)+'</option>'}).join('')+'</select></div></div>';
   h+='<div id="inHint"></div><div id="inKitBox"></div>'+(inCat==='chcab'?'<div id="inFlrBox"></div>':'');
   h+='<div class="msg bad" id="inMsg"></div><div class="actions"><button class="btn pri big" id="btnAddLine" type="button">افزودن به سبد سفارش</button>'+(ser?'<span class="hint">کلید Enter روی خانهٔ سریال هم افزودن می‌کند</span>':'')+'</div>';
   ed.innerHTML=h;
@@ -3266,7 +3266,7 @@ var __renderXStaged0=renderXStaged;
 renderXStaged=function(){__renderXStaged0();renderKitHint()};
 
 /* ====================== نمای ایزومتریک انبار (چیدمان بر اساس تأمین‌کننده) ====================== */
-var stockMode='wh';try{stockMode=localStorage.getItem('behfaraz_stock_view')||'wh'}catch(e){}
+var stockMode='tbl'; /* نمای نقشهٔ انبار حذف شد — فقط جدول و جزئیات */
 var whFocus='';
 /* ---------- هندسهٔ ایزومتریک ---------- */
 var ISO={CX:20,CY:11.5,ZH:22,OX:0,OY:0,RW:28,RD:28.5,WH:5};
@@ -3812,6 +3812,44 @@ input.bf-money{direction:ltr;text-align:left;font-weight:700;letter-spacing:.3px
 .fin-h h3{margin:0;font-size:1rem}.fin-h .sp{flex:1}
 .fin-chips{display:flex;gap:6px;flex-wrap:wrap}
 @media (max-width:640px){.shk-tiles,.dst{grid-template-columns:1fr}}
+
+/* [BF-ORDER v3] */
+.vsw,#whView{display:none !important}
+#tblView{display:block !important}
+.sup[data-sup="سنا پنل"]{display:none !important}
+#inEditor .part{border-width:2px;border-radius:14px;background:#fff}
+#inEditor .part-h{padding:13px 14px;font-size:.98rem;gap:12px}
+#inEditor .part-h b{font-weight:800;color:var(--ink)}
+#inEditor .part-h input{width:22px;height:22px}
+#inEditor .part.on{border-color:var(--teal);box-shadow:0 0 0 3px rgba(14,107,102,.12)}
+#inEditor .kit-row{padding:11px 14px;font-size:.92rem}
+#inEditor .kit-l input{width:20px;height:20px}
+#inEditor .chipb{font-size:.86rem;padding:8px 15px}
+#inEditor label.f{font-size:.86rem}
+.shk-tile{min-height:150px;padding:18px 20px;border-radius:22px;overflow:hidden;color:#fff;border:0;box-shadow:0 10px 26px rgba(0,0,0,.12)}
+.shk-tile[data-tile="jp"]{background:linear-gradient(135deg,#0E6B66 0%,#13958C 60%,#2BC1A9 100%)}
+.shk-tile[data-tile="mt"]{background:linear-gradient(135deg,#7A3E0C 0%,#C26A12 60%,#F2A33A 100%)}
+.shk-tile:hover{transform:translateY(-3px);box-shadow:0 16px 32px rgba(0,0,0,.18)}
+.shk-tile.on{outline:4px solid rgba(255,255,255,.9);outline-offset:-8px;box-shadow:0 16px 34px rgba(0,0,0,.22)}
+.shk-tile .lg{width:84px;height:84px;border-radius:20px;background:rgba(255,255,255,.95);box-shadow:0 6px 16px rgba(0,0,0,.15)}
+.shk-tile .lg img{max-width:74px;max-height:56px}
+.shk-tile b{font-size:1.3rem;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.2)}
+.shk-tile small{color:rgba(255,255,255,.9);font-size:.82rem}
+.shk-tile .ill{position:absolute;left:-6px;bottom:-14px;width:150px;height:150px;opacity:.22;pointer-events:none}
+.shk-tile .chips2{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.shk-tile .chips2 i{font-style:normal;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:3px 10px;font-size:.74rem;font-weight:700}
+.shk-tile .n{background:#fff;color:var(--ink);font-weight:800}
+.shk-tile .go{position:absolute;left:16px;top:50%;transform:translateY(-50%);font-size:1.6rem;opacity:.85}
+.shk-filt{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-inline-start:auto}
+.shk-filt span{font-size:.76rem;color:var(--ink2);font-weight:700}
+.shk-filt button{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+.shk-filt button.on{background:#1E2B2A;color:#fff;border-color:#1E2B2A}
+.shk-fam{margin-top:14px;border-radius:16px;border:2px solid var(--line);overflow:hidden}
+.shk-fam > h3{margin:0;padding:12px 14px;display:flex;align-items:center;gap:10px;font-size:1rem;color:#fff}
+.shk-fam.jp > h3{background:linear-gradient(90deg,#0E6B66,#13958C)}
+.shk-fam.mt > h3{background:linear-gradient(90deg,#7A3E0C,#C26A12)}
+.shk-fam > h3 small{font-weight:600;opacity:.9;font-size:.78rem}
+.shk-fam .shk-grp{margin:10px}
 </style>
 <script>
 /* ===== [BF-ORDER] ثبت سفارش شکیب (خرید از شکیب + فروش به مشتری) · انبار شکیب · مالی و حسابداری =====
@@ -3835,6 +3873,12 @@ function finDB(){if(!DB.fin)DB.fin={pays:[]};DB.fin.pays=DB.fin.pays||[];return 
 document.addEventListener('input',function(e){var t=e.target;if(!t.classList||!t.classList.contains('bf-money'))return;var v=money(t.value);t.value=v?fm(v):'';try{t.setSelectionRange(t.value.length,t.value.length)}catch(_){}},true);
 
 /* ---------- سفارش شکیب بدون سریال: در حالت شکیب همهٔ سریال‌ها (کالا، کیت، متعلقات) خاموش است ---------- */
+/* متعلقات شکیب: اولویت رپچر ← فلوکنترل ← مغزی ← شلنگ؛ «درخت سیم داینا لیفت» فقط در «متعلقات موتور» */
+(function(){var it=PARTS.shakib.items,first=['rupt','flow','mag','hose'],head=[],rest=[];
+  first.forEach(function(id){it.forEach(function(x){if(x.id===id)head.push(x)})});it.forEach(function(x){if(head.indexOf(x)<0)rest.push(x)});PARTS.shakib.items=head.concat(rest)})();
+var PARTS_SHK_ALL=PARTS.shakib.items;
+function shkPartsView(){if(!isShk()||curTab!=='in'){PARTS.shakib.items=PARTS_SHK_ALL;return}
+  PARTS.shakib.items=tileOn==='mt'?PARTS_SHK_ALL.filter(function(x){return x.id==='motdyna'}):PARTS_SHK_ALL.filter(function(x){return x.id!=='motdyna'})}
 var serBak=null;
 function serOff(on){
   if(on&&!serBak){serBak={cats:{},items:[]};
@@ -3851,6 +3895,9 @@ var TILES=[
   {id:'jp',lg:'shakib',ic:'🔩',t:'جک، پاور و متعلقات',s:'جک هیدرولیک · پاور یونیت · متعلقات شکیب',sub:[['jack','🔩 جک'],['pu','⚙️ پاور یونیت'],['parts','🧩 متعلقات']]},
   {id:'mt',lg:'dyna',ic:'🧲',t:'موتور و متعلقات',s:'موتور داینا لیفت · درخت سیم و متعلقات موتور',sub:[['motor','🧲 موتور'],['parts','🧰 متعلقات موتور']]}
 ];
+var ILL={
+  jp:'<svg class="ill" viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"><rect x="38" y="8" width="24" height="60" rx="4"/><rect x="44" y="2" width="12" height="10" rx="2"/><line x1="50" y1="68" x2="50" y2="88"/><rect x="30" y="86" width="40" height="8" rx="3"/><line x1="38" y1="24" x2="62" y2="24"/><line x1="38" y1="40" x2="62" y2="40"/><path d="M14 60h16v26H14z"/><path d="M22 60v-8"/></svg>',
+  mt:'<svg class="ill" viewBox="0 0 100 100" fill="none" stroke="#fff" stroke-width="4"><circle cx="50" cy="50" r="34"/><circle cx="50" cy="50" r="20"/><circle cx="50" cy="50" r="6" fill="#fff"/><path d="M50 16v-8M50 92v-8M16 50H8M92 50h-8M26 26l-6-6M80 80l-6-6M26 74l-6 6M80 20l-6 6" stroke-linecap="round"/></svg>'};
 var tileOn='';
 function tileOf(l){return l.shkT||(l.cat==='motor'?'mt':'jp')}
 function ensureSheet(){
@@ -3867,7 +3914,7 @@ function renderSheet0(){
   s=ensureSheet();s.style.display='';
   var cnt={};inStaged.forEach(function(l){if(!l.shkT)l.shkT=tileOn||tileOf(l);if(!l.child)cnt[l.shkT]=(cnt[l.shkT]||0)+1});
   var T=TILES.filter(function(t){return t.id===tileOn})[0];
-  s.innerHTML='<div class="shk-tiles">'+TILES.map(function(t){var lg=bfLogo(t.lg);return '<button type="button" class="shk-tile'+(tileOn===t.id?' on':'')+'" data-tile="'+t.id+'">'+(cnt[t.id]?'<span class="n">'+fa(cnt[t.id])+' کالا</span>':'')+'<span class="lg">'+(lg||t.ic)+'</span><span><b>'+t.t+'</b><small>'+t.s+'</small></span></button>'}).join('')+'</div>'+
+  s.innerHTML='<div class="shk-tiles">'+TILES.map(function(t){var lg=bfLogo(t.lg);return '<button type="button" class="shk-tile'+(tileOn===t.id?' on':'')+'" data-tile="'+t.id+'">'+ILL[t.id]+(cnt[t.id]?'<span class="n">'+fa(cnt[t.id])+' کالا در لیست</span>':'')+'<span class="lg">'+(lg||t.ic)+'</span><span><b>'+t.t+'</b><small>'+t.s+'</small><span class="chips2">'+t.sub.map(function(b){return '<i>'+b[1]+'</i>'}).join('')+'</span></span></button>'}).join('')+'</div>'+
     (T?'<div class="shk-sub"><span class="o">کدام؟</span>'+T.sub.map(function(b){return '<button type="button" class="'+(inCat===b[0]?'on':'')+'" data-sub="'+b[0]+'">'+b[1]+'</button>'}).join('')+'<span class="sp" style="flex:1"></span><span class="o" style="font-size:.74rem">سریال و قیمت در این مرحله لازم نیست</span></div>':'')+
     listHtml();
 }
@@ -3894,7 +3941,7 @@ function commentModal(obj,after){
 }
 window.bfCommentModal=commentModal;
 /* ---------- اتصال به فرم موجود ---------- */
-var _rif=renderInForm;renderInForm=function(){if(isShk())serOff(true);var r=_rif.apply(this,arguments);try{renderSheet()}catch(e){console.error(e)}return r};window.renderInForm=renderInForm;
+var _rif=renderInForm;renderInForm=function(){if(isShk())serOff(true);shkPartsView();var r=_rif.apply(this,arguments);try{renderSheet()}catch(e){console.error(e)}return r};window.renderInForm=renderInForm;
 var _ris=renderInStaged;renderInStaged=function(){var r=_ris.apply(this,arguments);try{if(isShk())renderSheet()}catch(e){console.error(e)}return r};window.renderInStaged=renderInStaged;
 var _ask=askRsv;askRsv=function(again){if(isShk())return true;return _ask.apply(this,arguments)};window.askRsv=askRsv;
 var _osc=onSupChange;onSupChange=function(){tileOn='';serOff(isShk());var r=_osc.apply(this,arguments);renderSheet();return r};window.onSupChange=onSupChange;
@@ -3949,16 +3996,18 @@ function doSave(m){
 }
 
 /* ---------- انبار شکیب (خرید از شکیب) ---------- */
-var stkView='bf',shkQ='';
-var _sbi=sbItems;sbItems=function(){return _sbi.apply(this,arguments).filter(function(it){return !(it.f&&it.f.wh==='shakib')})};window.sbItems=sbItems;
-function gk(f){return f.company?(f.company+' / '+(f.project||'—')):(f.project?'انبار — پروژه '+f.project:'')}
+var stkView='bf',shkQ='',soldF='all';
+function soldOK(f){f=f||{};return soldF==='all'||(soldF==='sold'?!!f.company:!f.company)}
+var _sbi=sbItems;sbItems=function(){return _sbi.apply(this,arguments).filter(function(it){return !(it.f&&it.f.wh==='shakib')&&soldOK(it.f)})};window.sbItems=sbItems;
+function gk(f){return f.company?(f.company+(f.project?' / '+f.project:'')):(f.project?'انبار — پروژه '+f.project:'')}
 function shkUnits(){return DB.units.filter(function(u){return u.status==='in'&&u.f&&u.f.wh==='shakib'})}
 function shkLots(){return DB.lots.filter(function(l){return l.status!=='void'&&l.rem>0&&l.f&&l.f.wh==='shakib'})}
 function whBar(){var st=$('t-stock');var b=st.querySelector('.shk-whbar');
   if(!b){b=document.createElement('div');b.className='shk-whbar';st.insertBefore(b,st.firstChild);
-    b.addEventListener('click',function(e){var t=e.target.closest('[data-wv]');if(!t)return;stkView=t.dataset.wv;applyStkView()})}
+    b.addEventListener('click',function(e){var f=e.target.closest('[data-sf]');if(f){soldF=f.dataset.sf;if(stkView==='bf'){try{renderStock()}catch(_){}}applyStkView();return}var t=e.target.closest('[data-wv]');if(!t)return;stkView=t.dataset.wv;applyStkView()})}
   var n=shkUnits().length+shkLots().length;
-  b.innerHTML='<button type="button" data-wv="bf" class="'+(stkView==='bf'?'on':'')+'">🏭 انبار بهفراز</button><button type="button" data-wv="shk" class="'+(stkView==='shk'?'on':'')+'">'+bfLogo('shakib','sm')+' انبار شکیب — خرید از شکیب'+(n?' ('+fa(n)+')':'')+'</button>';
+  b.innerHTML='<button type="button" data-wv="bf" class="'+(stkView==='bf'?'on':'')+'">🏭 انبار بهفراز</button><button type="button" data-wv="shk" class="'+(stkView==='shk'?'on':'')+'">'+bfLogo('shakib','sm')+' انبار شکیب — خرید از شکیب'+(n?' ('+fa(n)+')':'')+'</button>'+
+    '<div class="shk-filt"><span>نمایش:</span><button type="button" data-sf="all" class="'+(soldF==='all'?'on':'')+'">همه</button><button type="button" data-sf="sold" class="'+(soldF==='sold'?'on':'')+'">🏷️ فروخته‌شده (مشتری / پروژه)</button><button type="button" data-sf="cap" class="'+(soldF==='cap'?'on':'')+'">💼 سرمایه انبار (موجودی)</button></div>';
   return b}
 function applyStkView(){
   if(curTab!=='stock'){go('stock')}
@@ -3966,31 +4015,37 @@ function applyStkView(){
   var p=document.getElementById('shkWh');if(!p){p=document.createElement('div');p.id='shkWh';p.className='card';st.appendChild(p);p.addEventListener('click',onWhClick);p.addEventListener('input',function(e){if(e.target.id==='shkQ'){shkQ=e.target.value;clearTimeout(p._t);p._t=setTimeout(renderShkWh,200)}})}
   p.style.display=stkView==='shk'?'':'none';if(stkView==='shk')renderShkWh();
 }
+function famOf(o){var f=o.f||{};return (o.cat==='motor'||f['for']==='موتور'||/داینا|درخت سیم 6 متری|درخت سیم 10 متری/.test(f.name||''))?'mt':'jp'}
 function renderShkWh(){
-  var p=$('shkWh'),rm=rMap(),q=norm(shkQ),G={},GT={};
-  DB.receipts.forEach(function(r){if(r.void||r.kind!=='shk')return;var k=gk({company:r.company,project:r.project});var g=GT[k]=GT[k]||{b:0,s:0,inv:[]};g.b+=r.buyTotal||0;g.s+=r.sellTotal||0;if(g.inv.indexOf(r.invNo)<0)g.inv.push(r.invNo)});
-  function add(o,isU){var f=o.f||{},r=rm[o.rid]||{},k=gk(f),inf=xInfo(o.cat,f,o.rid);
-    var row={o:o,u:isU,title:inf.title,sub:inf.sub,qty:isU?1:o.rem,unit:isU?'عدد':o.unit,inv:r.invNo||r.docNo||'',date:r.date||''};
-    if(q&&norm([k,row.title,row.sub,row.inv].join(' ')).indexOf(q)<0)return;(G[k]=G[k]||[]).push(row)}
+  var p=$('shkWh'),rm=rMap(),q=norm(shkQ),F={jp:{},mt:{}};
+  function add(o,isU){var f=o.f||{};if(!soldOK(f))return;var r=rm[o.rid]||{},inf=xInfo(o.cat,f,o.rid);
+    var row={o:o,u:isU,title:inf.title,sub:inf.sub,qty:isU?1:o.rem,unit:isU?'عدد':o.unit};
+    if(q&&norm([gk(f),row.title,row.sub,r.invNo||'',r.no||''].join(' ')).indexOf(q)<0)return;
+    var G=F[famOf(o)];(G[o.rid]=G[o.rid]||{r:r,k:gk(f),rows:[]}).rows.push(row)}
   shkUnits().forEach(function(u){add(u,true)});shkLots().forEach(function(l){add(l,false)});
-  var keys=Object.keys(G).sort(function(a,b){return !a?1:!b?-1:a.localeCompare(b,'fa')});
-  var h='<div class="fin-h"><h3>'+bfLogo('shakib','sm')+' انبار شکیب — کالاهای خریداری‌شده از شکیب به تفکیک پروژه</h3><span class="sp"></span><input id="shkQ" placeholder="🔎 مشتری، پروژه، کالا، فاکتور…" value="'+esc(shkQ)+'" style="max-width:280px" autocomplete="off"></div>';
-  if(!keys.length)h+='<div class="o" style="padding:14px">کالایی در انبار شکیب نیست. سفارش‌های ثبت‌شده با تأمین‌کنندهٔ «شکیب جک» این‌جا می‌آیند.</div>';
-  keys.forEach(function(k){var rows=G[k],t=GT[k]||{b:0,s:0};
-    h+='<div class="shk-grp"><div class="shk-gh"><span style="font-size:20px">'+(k&&k.indexOf('انبار —')!==0?'🏷️':'📦')+'</span><b>'+(k?esc(k):'برای انبار (بدون پروژه)')+'</b><span class="cnt">'+fa(rows.length)+' ردیف · خرید '+fm(t.b)+(t.s?' · فروش '+fm(t.s):'')+' ریال</span><span class="sp"></span>'+
-      (ro()?'':'<button type="button" class="btn sm grn" data-shkmv="'+esc(k)+'">📦 انتقال به انبار بهفراز</button>')+'</div>'+
-      '<div style="overflow:auto"><table class="fin-tbl"><thead><tr><th>#</th><th>کالا</th><th>مشخصات</th><th>تعداد</th><th>فاکتور شکیب</th><th>تاریخ سفارش</th><th>کامنت</th></tr></thead><tbody>'+
-      rows.map(function(r,i){var cm=(r.o.cmts||[]).length;return '<tr><td>'+fa(i+1)+'</td><td><b>'+esc(r.title)+'</b></td><td>'+esc(r.sub||'—')+'</td><td>'+fa(r.qty)+' '+esc(r.unit)+'</td><td>'+esc(fa(r.inv||'—'))+'</td><td>'+fdate(r.date)+'</td><td><button type="button" class="shk-cm'+(cm?' has':'')+'" data-whc="'+(r.u?'u':'l')+'|'+r.o.id+'">💬 '+(cm?fa(cm):'')+'</button></td></tr>'}).join('')+'</tbody></table></div></div>'});
+  var h='<div class="fin-h"><h3>'+bfLogo('shakib','sm')+' انبار شکیب — هر سفارش یک بخش جدا</h3><span class="sp"></span><input id="shkQ" placeholder="🔎 مشتری، پروژه، کالا، فاکتور…" value="'+esc(shkQ)+'" style="max-width:280px" autocomplete="off"></div>';
+  var FAM=[['jp','🔩 جک، پاور و متعلقات'],['mt','🧲 موتور و متعلقات موتور']],any=false;
+  FAM.forEach(function(fm0){var G=F[fm0[0]],ids=Object.keys(G).sort(function(x,y){return String(G[y].r.date||'').localeCompare(String(G[x].r.date||''))||(G[y].r.ts||0)-(G[x].r.ts||0)});
+    var nS=0,nC=0;ids.forEach(function(id){if(G[id].r.dest==='cust'||G[id].k.indexOf('انبار —')!==0&&G[id].k)nS++;else nC++});
+    h+='<div class="shk-fam '+fm0[0]+'"><h3>'+fm0[1]+' <small>'+(soldF==='sold'?'فروخته‌شده':soldF==='cap'?'سرمایه انبار':'همه')+' · '+fa(ids.length)+' سفارش</small></h3>';
+    if(!ids.length)h+='<div class="o" style="padding:12px 14px">موردی نیست.</div>';
+    ids.forEach(function(id){any=true;var g=G[id],r=g.r,sold=r.dest==='cust'||(!!g.k&&g.k.indexOf('انبار —')!==0);
+      h+='<div class="shk-grp"><div class="shk-gh"><span style="font-size:20px">'+(sold?'🏷️':'💼')+'</span><b>'+(sold?esc(g.k):'سرمایه انبار'+(r.project?' — پروژه '+esc(r.project):''))+'</b>'+
+        '<span class="cnt">🧾 سفارش '+esc(fa(r.no||'—'))+(r.invNo?' · فاکتور شکیب '+esc(fa(r.invNo)):'')+' · '+fdate(r.date)+(r.buyTotal?' · جمع خرید سفارش '+fm(r.buyTotal):'')+(r.sellTotal?' · فروش '+fm(r.sellTotal):'')+'</span><span class="sp"></span>'+
+        (ro()?'':'<button type="button" class="btn sm grn" data-shkmv="'+esc(id)+'" data-fam="'+fm0[0]+'">📦 انتقال به انبار بهفراز</button>')+'</div>'+
+        '<div style="overflow:auto"><table class="fin-tbl"><thead><tr><th>#</th><th>کالا</th><th>مشخصات</th><th>تعداد</th><th>کامنت</th></tr></thead><tbody>'+
+        g.rows.map(function(rw,i){var cm=(rw.o.cmts||[]).length;return '<tr><td>'+fa(i+1)+'</td><td><b>'+esc(rw.title)+'</b></td><td>'+esc(rw.sub||'—')+'</td><td>'+fa(rw.qty)+' '+esc(rw.unit)+'</td><td><button type="button" class="shk-cm'+(cm?' has':'')+'" data-whc="'+(rw.u?'u':'l')+'|'+rw.o.id+'">💬 '+(cm?fa(cm):'')+'</button></td></tr>'}).join('')+'</tbody></table></div></div>'});
+    h+='</div>'});
   p.innerHTML=h;var qi=$('shkQ');if(qi&&shkQ){qi.focus();qi.setSelectionRange(qi.value.length,qi.value.length)}
   whBar();
 }
 function onWhClick(e){var t;
   if(t=e.target.closest('[data-whc]')){var a=t.dataset.whc.split('|'),o=(a[0]==='u'?DB.units:DB.lots).filter(function(x){return x.id===a[1]})[0];if(o)commentModal(o,function(){save();renderShkWh()});return}
   if(t=e.target.closest('[data-shkmv]')){if(ro())return;var k=t.dataset.shkmv;
-    var us=shkUnits().filter(function(u){return gk(u.f)===k}),ls=shkLots().filter(function(l){return gk(l.f)===k});
-    if(!confirm((k||'کالاهای انبار بدون پروژه')+'\n'+fa(us.length+ls.length)+' ردیف از انبار شکیب به انبار بهفراز منتقل شود؟'))return;
+    var fm1=t.dataset.fam,us=shkUnits().filter(function(u){return u.rid===k&&famOf(u)===fm1&&soldOK(u.f)}),ls=shkLots().filter(function(l){return l.rid===k&&famOf(l)===fm1&&soldOK(l.f)});
+    if(!confirm('این سفارش ('+fa(us.length+ls.length)+' ردیف) از انبار شکیب به انبار بهفراز منتقل شود؟'))return;
     us.forEach(function(u){delete u.f.wh});ls.forEach(function(l){delete l.f.wh;l.key=lotKey(l.cat,l.f,l.unit)});
-    addLog('انتقال از انبار شکیب به انبار بهفراز',(k||'بدون پروژه')+' · '+fa(us.length+ls.length)+' ردیف');save();renderShkWh();toast('✓ به انبار بهفراز منتقل شد')}
+    addLog('انتقال از انبار شکیب به انبار بهفراز','سفارش '+((rMap()[k]||{}).no||'—')+' · '+fa(us.length+ls.length)+' ردیف');save();renderShkWh();toast('✓ به انبار بهفراز منتقل شد')}
 }
 
 /* ---------- تب مالی و حسابداری ---------- */
@@ -4002,7 +4057,7 @@ function onWhClick(e){var t;
 })();
 var _go=go;go=function(t){if(t==='amani'||t==='cap')t='stock';var r=_go.apply(this,[t].concat([].slice.call(arguments,1)));
   var fs=$('t-fin');if(fs)fs.style.display=curTab==='fin'?'':'none';if(curTab==='fin')renderFin();
-  serOff(curTab==='in'&&isShk());
+  serOff(curTab==='in'&&isShk());shkPartsView();
   if(curTab==='stock'){try{applyStkView()}catch(e){}}return r};window.go=go;
 function recItems(r){var n=0;r.lines.forEach(function(l){if(!l.child)n+=lineQty(l)});return n}
 function finData(){

@@ -2298,28 +2298,46 @@
     </div>
 
     <div class="grid" id="manualSpecGrid">
-      <div class="card">
-        <label><span class="num">1</span>قطر شفت جک (mm)</label>
+      <div class="card" id="cardManJType" style="grid-column:span 2;">
+        <label><span class="num">1</span>نوع جک</label>
+        <div class="valve-toggle">
+          <button type="button" id="btnManJIndirect">غیر مستقیم</button>
+          <button type="button" id="btnManJDirect">مستقیم</button>
+          <button type="button" id="btnManJStage">جک های دو استیج و سه استیج</button>
+        </div>
+      </div>
+      <div class="card" id="cardManStageCount" style="display:none;">
+        <label><span class="num">2</span>تعداد استیج</label>
+        <select id="manStageCount"><option value="" disabled selected>انتخاب کنید...</option><option value="2">2 استیج (دو استیج)</option><option value="3">3 استیج (سه استیج)</option></select>
+      </div>
+      <div class="card" id="cardManStageType" style="display:none;">
+        <label><span class="num">3</span>نوع جک استیج</label>
+        <input type="text" id="manStageType" class="single-qty-input" list="manStageTypeList" placeholder="مثال: 60*80" dir="ltr">
+        <datalist id="manStageTypeList"></datalist>
+        <div class="manual-field-hint">از لیست انتخاب کنید یا سایز دلخواه را بنویسید</div>
+      </div>
+      <div class="card" id="cardManDia">
+        <label><span class="num">2</span>قطر شفت جک (mm)</label>
         <input type="number" id="manDia" class="single-qty-input" placeholder="مثال: 95">
       </div>
-      <div class="card">
-        <label><span class="num">2</span>ضخامت (mm)</label>
+      <div class="card" id="cardManThickness">
+        <label><span class="num">3</span>ضخامت (mm)</label>
         <input type="number" id="manThickness" class="single-qty-input" placeholder="مثال: 5">
       </div>
       <div class="card">
-        <label><span class="num">3</span>طول کورس جک (mm)</label>
+        <label><span class="num">4</span>طول کورس جک (mm)</label>
         <input type="number" id="manLength" class="single-qty-input" placeholder="مثال: 4800">
       </div>
       <div class="card">
-        <label><span class="num">4</span>KW موتور</label>
+        <label><span class="num">5</span>KW موتور</label>
         <input type="number" id="manKw" class="single-qty-input" step="0.1" placeholder="مثال: 9.6">
       </div>
       <div class="card">
-        <label><span class="num">5</span>حجم پمپ (لیتر)</label>
+        <label><span class="num">6</span>حجم پمپ (لیتر)</label>
         <input type="number" id="manPump" class="single-qty-input" placeholder="مثال: 125">
       </div>
       <div class="card">
-        <label><span class="num">6</span>ظرفیت تانک پاوریونیت (لیتر)</label>
+        <label><span class="num">7</span>ظرفیت تانک پاوریونیت (لیتر)</label>
         <input type="number" id="manTank" class="single-qty-input" placeholder="مثال: 135">
         <div class="manual-field-hint">اختیاری — فقط برای محاسبه/ثبت میزان روغن هیدرولیک</div>
       </div>
@@ -2388,7 +2406,7 @@
       <button class="print-btn" id="btnManualAddAll" type="button" style="background:#1565c0;" disabled>➕ افزودن کل سفارش (جک + پاوریونیت + اقلام) به پیش‌فاکتور</button>
       <button class="print-btn" id="btnManualClearAdded" type="button" style="background:#7a2a2a;display:none;">🗑 خالی کردن اقلام افزوده‌شده</button>
     </div>
-    <div class="manual-field-hint" id="manualAddHint" style="margin-bottom:18px;">با تکمیل «قطر، ضخامت و کورس جک» و درج قیمت، دکمهٔ افزودن جک فعال می‌شود؛ با تکمیل «kW، پمپ و تانک» و درج قیمت، دکمهٔ افزودن پاوریونیت. دو دکمهٔ اول فقط همان یک قلم را (با همان تعداد) اضافه می‌کنند؛ دکمهٔ «افزودن کل سفارش» همهٔ آنچه نوشته‌اید (جک، پاوریونیت، رپچر، اتصالات و اقلام جانبی) را یک‌جا اضافه می‌کند تا بتوانید سفارش بعدی را پشت سرش بنویسید.</div>
+    <div class="manual-field-hint" id="manualAddHint" style="margin-bottom:18px;">با انتخاب «نوع جک» و تکمیل «قطر، ضخامت و کورس» (یا برای جک استیج: «تعداد استیج، نوع جک استیج و کورس») و درج قیمت، دکمهٔ افزودن جک فعال می‌شود؛ با تکمیل «kW، پمپ و تانک» و درج قیمت، دکمهٔ افزودن پاوریونیت. دو دکمهٔ اول فقط همان یک قلم را (با همان تعداد) اضافه می‌کنند؛ دکمهٔ «افزودن کل سفارش» همهٔ آنچه نوشته‌اید (جک، پاوریونیت، رپچر، اتصالات و اقلام جانبی) را یک‌جا اضافه می‌کند تا بتوانید سفارش بعدی را پشت سرش بنویسید.</div>
 
     <div id="bfxManualHost" class="no-print"></div>
 
@@ -6602,7 +6620,32 @@ let manualAdded = []; // اقلام «تکی» افزوده‌شده با دکم
 })();
 btnManualMode.addEventListener('click', ()=>switchSubOrderMode('manual'));
 
+/* ===== نوع جک در «سفارش کاملا دستی» — همان قاعدهٔ «سفارش بر اساس جک»: غیرمستقیم / مستقیم / دو و سه استیج ===== */
+let manJType = null; // 'indirect' | 'direct' | 'stage'
+const manStageCount = document.getElementById('manStageCount');
+const manStageType = document.getElementById('manStageType');
+function manJTypeLabel(){ return manJType==='direct' ? 'مستقیم تک استیج' : (manJType==='indirect' ? 'غیرمستقیم تک استیج' : (manJType==='stage' && manStageCount.value ? stageCountLabelFa(manStageCount.value) : '')); }
+function manFillStageTypes(){
+  const dl = document.getElementById('manStageTypeList'); if(!dl) return;
+  const n = Number(manStageCount.value)||0;
+  dl.innerHTML = n ? getStageTypes(n).map(t=>'<option value="'+t+'">'+stageTypeLabel(getStageRanges(n,t)[0])+'</option>').join('') : '';
+}
+function manSetJType(t, silent){
+  manJType = t || null;
+  ['Indirect','Direct','Stage'].forEach(k=>{ const b=document.getElementById('btnManJ'+k); if(b) b.classList.toggle('active', manJType===k.toLowerCase()); });
+  const st = manJType==='stage';
+  document.getElementById('cardManStageCount').style.display = st ? '' : 'none';
+  document.getElementById('cardManStageType').style.display = st ? '' : 'none';
+  document.getElementById('cardManDia').style.display = st ? 'none' : '';
+  document.getElementById('cardManThickness').style.display = st ? 'none' : '';
+  if(!silent){ updateManualDescCells(); renderManualResult(); }
+}
+['Indirect','Direct','Stage'].forEach(k=>{ const b=document.getElementById('btnManJ'+k); if(b) b.addEventListener('click', ()=>manSetJType(k.toLowerCase())); });
+manStageCount.addEventListener('change', ()=>{ manFillStageTypes(); updateManualDescCells(); renderManualResult(); });
+manStageType.addEventListener('input', ()=>{ updateManualDescCells(); renderManualResult(); });
+
 function resetManualForm(){
+  manStageCount.value=''; manStageType.value=''; manSetJType(null, true);
   if(typeof bfxManualItems!=='undefined'){ bfxManualItems = []; if(typeof bfxMiniRenderAll==='function') bfxMiniRenderAll(); }
   manDia.value=''; manThickness.value=''; manLength.value=''; manKw.value=''; manPump.value=''; manTank.value='';
   manJackPrice.value=''; manJackQty.value=1;
@@ -6623,10 +6666,17 @@ function resetManualForm(){
 
 function manualJackSpecStr(){
   const parts = [];
+  if(manJType==='stage'){
+    if(manStageCount.value) parts.push(stageCountLabelFa(manStageCount.value));
+    if(manStageType.value.trim()) parts.push(manStageType.value.trim());
+    if(manLength.value) parts.push('کورس ' + manLength.value + 'mm');
+    return parts.join(' · ');
+  }
   if(manDia.value) parts.push('Ø' + manDia.value + 'mm');
   if(manThickness.value) parts.push('ضخامت ' + manThickness.value + 'mm');
   if(manLength.value) parts.push('کورس ' + manLength.value + 'mm');
-  return parts.join(' × ');
+  const sz = parts.join(' × ');
+  return manJType ? (manJTypeLabel() + (sz ? ' · ' + sz : '')) : sz;
 }
 function manualPuSpecStr(){
   const parts = [];
@@ -6636,7 +6686,7 @@ function manualPuSpecStr(){
   return parts.join(' × ');
 }
 // شرح جک/پاوریونیت به‌صورت خودکار و بدون نیاز به تایپ دستی، فقط از روی مشخصات فنی بالا ساخته می‌شود
-function manualJackTitle(){ const spec = manualJackSpecStr(); return 'جک هیدرولیک' + (spec ? (' ' + spec) : ' (سفارش دستی)'); }
+function manualJackTitle(){ const spec = manualJackSpecStr(); return (manJType==='stage' ? 'جک هیدرولیک' : 'جک هیدرولیک') + (spec ? (' ' + spec) : ' (سفارش دستی)'); }
 function manualPuTitle(){ const spec = manualPuSpecStr(); return 'پاوریونیت' + (spec ? (' ' + spec) : ' (سفارش دستی)'); }
 function updateManualDescCells(){
   const jSpec = manualJackSpecStr();
@@ -6823,11 +6873,14 @@ function bfApplyManualExtras(sel){
 
 // رکورد مجازی هم‌شکل با رکوردهای DATA — فقط برای این‌که جعبه‌های روغن/روکش کروم بتوانند از روی مشخصات دستی محاسبه کنند
 function bfManualSyntheticRecord(){
-  const dia = Number(manDia.value)||0, th = Number(manThickness.value)||0, len = Number(manLength.value)||0;
+  // جک استیج: بزرگ‌ترین شفت «نوع جک استیج» (مثلاً 80 در 60*80) برای محاسبهٔ روغن مبنا قرار می‌گیرد
+  const stDia = manJType==='stage' ? Math.max(0, ...((manStageType.value.match(/\d+/g)||[]).map(Number))) : 0;
+  const dia = manJType==='stage' ? stDia : (Number(manDia.value)||0), th = manJType==='stage' ? 0 : (Number(manThickness.value)||0), len = Number(manLength.value)||0;
   const kw = Number(manKw.value)||0, pump = Number(manPump.value)||0;
   const r = { _manual:true, cap:'سفارش دستی', travel: len||null, speed:'—', current:'—',
               sizeBelin:'', sizeShakib:'', pipeSize:'', pipePrice:0 };
-  if(dia && len) r.pipeSize = dia + '*' + (th||0) + '*' + len;
+  if(manJType==='stage'){ if(manStageType.value.trim() && len) r.pipeSize = manStageType.value.trim() + '-' + len; }
+  else if(dia && len) r.pipeSize = dia + '*' + (th||0) + '*' + len;
   if(dia) r._customDia = dia;
   if(kw){ r.sizeShakib = kw + 'kw-' + pump + 'L'; r.sizeBelin = r.sizeShakib; }
   return r;
@@ -6875,7 +6928,7 @@ function bfManualExtraItems(){
 }
 
 function bfManualSpecHasData(){
-  return !!(manDia.value || manThickness.value || manLength.value || manKw.value || manPump.value || manTank.value);
+  return !!(manJType || manDia.value || manThickness.value || manLength.value || manKw.value || manPump.value || manTank.value);
 }
 
 function renderManualSpecResult(){
@@ -6899,7 +6952,7 @@ function renderManualSpecResult(){
 
   const persons = manQtyExtra.persons;
   const cap = manQtyExtra.staticCap;
-  const diaTxt = manDia.value ? ('Ø' + manDia.value + ' mm') : '—';
+  const diaTxt = manJType==='stage' ? ((manStageType.value.trim() || '—') + (manStageCount.value ? ' · ' + stageCountLabelFa(manStageCount.value) : '')) : (manDia.value ? ('Ø' + manDia.value + ' mm') : '—');
   const lenTxt = manLength.value ? (fmt(Number(manLength.value)||0) + ' mm') : '—';
   const jackSpec = manualJackSpecStr();
   const puSpec = manualPuSpecStr();
@@ -6910,7 +6963,7 @@ function renderManualSpecResult(){
       <div>
         <div class="result-title">${jackSpec ? jackSpec : 'سفارش دستی'}</div>
         <div class="cap-table">
-          <div class="cell"><div class="k">قطر جک</div><div class="v numlt">${diaTxt}</div></div>
+          <div class="cell"><div class="k">${manJType==='stage' ? 'نوع جک استیج' : 'قطر جک'}</div><div class="v numlt">${diaTxt}</div></div>
           <div class="cell"><div class="k">طول جک (کورس)</div><div class="v numlt">${lenTxt}</div></div>
           <div class="cell"><div class="k">تعداد نفرات</div><div class="v numlt">${(persons!=null && persons!=='') ? persons : '—'}</div></div>
           <div class="cell"><div class="k">حداکثر وزن وارد بر سر جک</div><div class="v numlt">${(cap!=null && cap!=='') ? (cap + ' kg') : '—'}</div></div>
@@ -6993,7 +7046,7 @@ const btnManualAddJack = document.getElementById('btnManualAddJack');
 const btnManualAddPu = document.getElementById('btnManualAddPu');
 const btnManualAddAll = document.getElementById('btnManualAddAll');
 const btnManualClearAdded = document.getElementById('btnManualClearAdded');
-function manualJackSpecComplete(){ return Number(manDia.value)>0 && Number(manThickness.value)>0 && Number(manLength.value)>0; }
+function manualJackSpecComplete(){ if(manJType==='stage') return !!manStageCount.value && !!manStageType.value.trim() && Number(manLength.value)>0; return !!manJType && Number(manDia.value)>0 && Number(manThickness.value)>0 && Number(manLength.value)>0; }
 function manualPuSpecComplete(){ return Number(manKw.value)>0 && Number(manPump.value)>0 && Number(manTank.value)>0; }
 function updateManualAddButtons(){
   btnManualAddJack.disabled = !(manualJackSpecComplete() && Number(manJackPrice.value)>0);
@@ -7049,6 +7102,7 @@ manualResult.addEventListener('click', e=>{
    همان مقادیر را در فیلدهای بالا (قطر/ضخامت/کورس/kW/پمپ/تانک و قیمت‌های دستی هر قلم) بازسازی کنیم */
 function bfSnapshotManualSelection(){
   return {
+    jtype: manJType, stageCount: manStageCount.value, stageType: manStageType.value,
     dia: manDia.value, thickness: manThickness.value, length: manLength.value,
     kw: manKw.value, pump: manPump.value, tank: manTank.value,
     jackPrice: manJackPrice.value, jackQty: manJackQty.value,
@@ -7794,6 +7848,8 @@ function bfRestoreManualOrder(o){
   const sel = o.manualSelection;
   { const mn = document.getElementById('manualNote'); if(mn) mn.value = (o.note && o.note!=='—') ? o.note : ''; }
   if(!sel) return false; // سفارش‌های قدیمی‌تر این عکس فوری را ندارند
+  manStageCount.value = sel.stageCount||''; manFillStageTypes(); manStageType.value = sel.stageType||'';
+  manSetJType(sel.jtype || ((sel.dia||sel.thickness) ? 'indirect' : null), true);
   manDia.value = sel.dia||''; manThickness.value = sel.thickness||''; manLength.value = sel.length||'';
   manKw.value = sel.kw||''; manPump.value = sel.pump||''; manTank.value = sel.tank||'';
   manJackPrice.value = sel.jackPrice||''; manJackQty.value = sel.jackQty||1;

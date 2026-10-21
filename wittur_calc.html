@@ -1644,7 +1644,7 @@
 
     <div id="customSingle" style="display:none;">
       <div class="cust-panel" style="margin-top:0;">
-        <h3>سفارش تکی محصول — فقط یک قلم (جک، پاوریونیت یا روغن)</h3>
+        <h3>سفارش تکی محصول — فقط یک قلم (جک، پاوریونیت، روغن، شلنگ یا کاراسلینگ)</h3>
         <div class="sub" style="font-size:11.5px;color:var(--text-dim);margin:-6px 0 14px;">برای وقتی فقط یک عدد جک هیدرولیک، فقط یک عدد پاوریونیت یا فقط روغن هیدرولیک (بدون قلم دیگر) لازم است فاکتور شود. مشخصات را از کاتالوگ انتخاب کنید، قیمت فوری نمایش داده می‌شود و می‌توانید همان یک قلم را به پیش‌فاکتور اضافه کنید.</div>
 
         <div class="mode-switch" style="margin-bottom:16px;">
@@ -1652,6 +1652,7 @@
           <button type="button" class="mode-btn" id="singleTypeBtnPu">⚡ فقط پاوریونیت</button>
           <button type="button" class="mode-btn" id="singleTypeBtnOil">🛢 فقط روغن</button>
           <button type="button" class="mode-btn" id="singleTypeBtnHose">🧵 فقط شلنگ</button>
+          <button type="button" class="mode-btn" id="singleTypeBtnKar">🏗️ فقط کاراسلینگ</button>
         </div>
 
         <div id="singleJackPanel">
@@ -1768,6 +1769,8 @@
             <span class="unit">متر</span>
           </div>
         </div>
+        <div class="hose-box karasling-box" id="singleKarBox" style="display:none;"></div>
+        <div id="bfxSingleHost" class="no-print"></div>
       </div>
     </div>
 
@@ -4681,6 +4684,8 @@ function updateResult3(){
 
     ${ renderOilBox(r) }
 
+    <div id="bfxHost" class="no-print"></div>
+
     <div class="breakdown">
       <div class="breakdown-title">ریز اقلام قیمت</div>
       <table>
@@ -4690,8 +4695,9 @@ function updateResult3(){
           <tr><td>پاوریونیت</td><td>${puLabel} · موتور-پمپ <b style="color:#ef4444;" class="numlt">${r.kw}-${r.liters}</b>${ r.amp ? ' · '+r.amp : '' }${r.tank?' · tank <span class="numlt">'+r.tank+'</span>':''}</td><td class="num numlt">×${r.puQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.puPrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditPu3" value="${fmt(r.puPrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>
           ${ r.wireApplied ? `<tr><td>درخت سیم</td><td>مربوط به مدل ${puLabel} · <span class="numlt">${r.kw}-${r.liters}</span></td><td class="num numlt">×${r.wireQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.wirePrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditWire3" value="${fmt(r.wirePrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>` : '' }
           ${ oilInvoiceRow(r) }
+          ${ bfxTableRows() }
           ${ accessoriesBreakdownRows() }
-          <tr><td colspan="3">جمع کل</td><td class="num">${fmt(computeFinalSubtotal(r))}</td></tr>
+          <tr><td colspan="3">جمع کل</td><td class="num">${fmt(computeFinalSubtotal(r) + bfxCost())}</td></tr>
         </tbody>
       </table>
       <div class="price-edit-hint">برای ویرایش دستی هر مبلغ، روی آیکون ✏️ کنار آن بزنید؛ تغییر در پیش‌فاکتور نیز اعمال می‌شود.</div>
@@ -4737,7 +4743,7 @@ function updateResult3(){
       const badge = resultEl.querySelector('.oil-cost-badge');
       if(badge) badge.innerHTML = cost!=null ? `هزینه روغن در پیش‌فاکتور: <b class="numlt">${fmt(cost)}</b> ریال (<span class="numlt">${containers}</span> ظرف ۲۰ لیتری)` : 'برای درج در فاکتور، برند روغن را انتخاب یا قیمت هر لیتر را وارد کنید.';
       const totalCell = resultEl.querySelector('.breakdown tbody tr:last-child td:last-child');
-      if(totalCell) totalCell.textContent = fmt(computeFinalSubtotal(r2));
+      if(totalCell) totalCell.textContent = fmt(computeFinalSubtotal(r2) + bfxCost());
       const itemCostCell = resultEl.querySelector('#oilItemCost');
       const itemRow = resultEl.querySelector('#oilItemRow');
       if(cost!=null && itemCostCell){ itemCostCell.textContent = fmt(cost); }
@@ -4761,6 +4767,7 @@ function updateResult3(){
 
   printBtn.disabled = false; saveInvoiceBtn.disabled = false;
   refreshFinalPrice();
+  bfxRender(updateResult3);
 }
 
 // ---------- بخش ۲: کاملاً دستی (سایز سفارشی، خارج از کاتالوگ) ----------
@@ -4868,6 +4875,8 @@ function updateResult4(){
 
     ${ renderOilBox(r) }
 
+    <div id="bfxHost" class="no-print"></div>
+
     ${ priceKnown ? `
     <div class="breakdown">
       <div class="breakdown-title">ریز اقلام قیمت</div>
@@ -4878,8 +4887,9 @@ function updateResult4(){
           ${ showP4 ? `<tr><td>پاوریونیت</td><td>${puLabel} · موتور-پمپ <b style="color:#ef4444;" class="numlt">${r.kw}-${r.liters}</b>${ r.amp ? ' · '+r.amp : '' }</td><td class="num numlt">×${r.puQty}</td><td class="num numlt">${fmt(r.puPrice)}</td></tr>` : '' }
           ${ r.wireApplied ? `<tr><td>درخت سیم</td><td>سفارشی</td><td class="num numlt">×${r.wireQty}</td><td class="num numlt">${fmt(r.wirePrice)}</td></tr>` : '' }
           ${ oilInvoiceRow(r) }
+          ${ bfxTableRows() }
           ${ accessoriesBreakdownRows() }
-          <tr><td colspan="3">جمع کل</td><td class="num">${fmt(computeFinalSubtotal(r))}</td></tr>
+          <tr><td colspan="3">جمع کل</td><td class="num">${fmt(computeFinalSubtotal(r) + bfxCost())}</td></tr>
         </tbody>
       </table>
       <div class="price-edit-hint">برای تغییر هر مبلغ، فیلدهای «قیمت دستی» را در فرم بالا ویرایش کنید.</div>
@@ -4897,7 +4907,7 @@ function updateResult4(){
       const badge = resultEl.querySelector('.oil-cost-badge');
       if(badge) badge.innerHTML = cost!=null ? `هزینه روغن در پیش‌فاکتور: <b class="numlt">${fmt(cost)}</b> ریال (<span class="numlt">${containers}</span> ظرف ۲۰ لیتری)` : 'برای درج در فاکتور، برند روغن را انتخاب یا قیمت هر لیتر را وارد کنید.';
       const totalCell = resultEl.querySelector('.breakdown tbody tr:last-child td:last-child');
-      if(totalCell) totalCell.textContent = fmt(computeFinalSubtotal(r2));
+      if(totalCell) totalCell.textContent = fmt(computeFinalSubtotal(r2) + bfxCost());
       const itemCostCell = resultEl.querySelector('#oilItemCost');
       const itemRow = resultEl.querySelector('#oilItemRow');
       if(cost!=null && itemCostCell){ itemCostCell.textContent = fmt(cost); }
@@ -4923,6 +4933,7 @@ function updateResult4(){
 
   printBtn.disabled = !priceKnown; saveInvoiceBtn.disabled = !priceKnown;
   refreshFinalPrice();
+  bfxRender(updateResult4);
 }
 
 ['manShaft','manThickness','manCourse','manKw','manLiters','manTank','manJackPrice','manPuPrice','manWirePrice','manQtyJack','manQtyPu','manQtyWire'].forEach(id=>{
@@ -5462,7 +5473,7 @@ function renderHoseSingleResult5(){
 }
 
 function findRecord5(){
-  if(state5.productType==='oil' || state5.productType==='hose') return null;
+  if(state5.productType==='oil' || state5.productType==='hose' || state5.productType==='karasling') return null;
   if(state5.productType==='jack'){
     if(!state5.kind || !state5.diameter || !state5.course) return null;
     if(state5.kind!=='telescopic' && !state5.stage) return null;
@@ -5556,6 +5567,7 @@ function updateResult5(){
   syncManualBox5();
   if(state5.productType==='oil'){ renderOilSingleResult5(); return; }
   if(state5.productType==='hose'){ renderHoseSingleResult5(); return; }
+  if(state5.productType==='karasling'){ renderKarSingleResult5(); return; }
   const r = findRecord5();
   if(!r){
     resultEl.className = 'result empty';
@@ -5730,7 +5742,7 @@ function singleCartSubtotal(){
   return singleCart.reduce((s,it)=>s+(Number(it.total)||0), 0);
 }
 function markupCartItem(it, pct){
-  if(!pct || it.type==='oil') return it;
+  if(!pct || it.type==='oil' || it.type==='karasling' || it.type==='bfx') return it; // کاراسلینگ و محصولات تکمیلی: قیمت ثابت
   const nc = {...it};
   if(it.type==='hose'){
     nc.total = markupPrice(nc.total, pct);
@@ -5755,7 +5767,7 @@ function computeSingleCartFinal(){
   if(discountPct > 100) discountPct = 100;
   const isOfficial = officialToggle.checked;
   // توجه: روغن مشمول تخفیف نمی‌شود — تخفیف فقط روی سایر اقلام سبد اعمال می‌شود.
-  const oilSubtotal = items.filter(it=>it.type==='oil').reduce((s,it)=>s+(Number(it.total)||0), 0);
+  const oilSubtotal = items.filter(it=>it.type==='oil' || it.type==='karasling' || it.type==='bfx').reduce( /* روغن، کاراسلینگ و محصولات تکمیلی مشمول تخفیف نیستند */(s,it)=>s+(Number(it.total)||0), 0);
   const discountableSubtotal = subtotal - oilSubtotal; // شامل تعدیل مثبت
   // به درخواست مدیریت: انتخاب «فاکتور رسمی» فقط عنوان سند را تغییر می‌دهد و ارزش افزوده اعمال نمی‌شود.
   const discountableVat = 0;
@@ -5771,6 +5783,11 @@ function computeSingleCartFinal(){
 function singleCartItemRowsHtml(items){
   let rows = '';
   items.forEach(it=>{
+    if(it.type==='karasling'){ rows += bfKarCartRowHtml(it); return; }
+    if(it.type==='bfx'){
+      rows += `<tr><td>${bfxEsc(it.bfxName)}</td><td>${it.bfxSpec ? bfxEsc(it.bfxSpec) : '—'}</td><td class="num numlt">×${it.bfxQty}</td><td class="num">${fmt(it.total)}</td></tr>`;
+      return;
+    }
     if(it.type==='oil'){
       rows += `<tr>
         <td>روغن هیدرولیک H68${it.oilBrandLabel ? ' — '+it.oilBrandLabel : ''}</td>
@@ -5833,7 +5850,11 @@ function renderSingleCartPanel(){
   panel.style.display = '';
   const calc = computeSingleCartFinal();
   const rowsHtml = singleCart.map(it=>{
-    const label = it.type==='oil'
+    const label = it.type==='karasling'
+      ? `کاراسلینگ ${it.karCompany==='110'?'مدل 110':it.karCompany}${it.karModel?' · '+it.karModel:''} · دهانه ریل <span class="numlt">${it.karOpening}</span> · <span class="numlt">${it.karSize}</span>${it.karColLabel?' · '+it.karColLabel:''} · <span class="numlt">×${it.karQty}</span>`
+      : it.type==='bfx'
+      ? `محصول تکمیلی: ${bfxEsc(it.bfxName)}${it.bfxSpec?' · '+bfxEsc(it.bfxSpec):''} · <span class="numlt">×${it.bfxQty}</span>`
+      : it.type==='oil'
       ? `روغن هیدرولیک H68${it.oilBrandLabel ? ' — '+it.oilBrandLabel : ''} · <span class="numlt">${it.oilQty}</span> ظرف ۲۰ لیتری (<span class="numlt">${it.oilLiters}</span> لیتر)`
       : it.type==='hose'
       ? `شلنگ ${it.hoseProductLabel||''} · سایز <span class="numlt">${it.hoseSize||''}</span>" · <span class="numlt">${it.hoseMeters}</span> متر`
@@ -5851,7 +5872,7 @@ function renderSingleCartPanel(){
 
   panel.innerHTML = `
     <div class="result" style="border-color:#134a45;">
-      <div class="result-title" style="margin-bottom:10px;">🛒 پیش‌سفارش — ${singleCart.length} قلم (قابل افزودن جک + پاوریونیت + روغن + شلنگ با هم)</div>
+      <div class="result-title" style="margin-bottom:10px;">🛒 پیش‌سفارش — ${singleCart.length} قلم (قابل افزودن جک + پاوریونیت + روغن + شلنگ + کاراسلینگ + محصولات تکمیلی با هم)</div>
       ${rowsHtml}
       <div class="ps-totals" style="margin-top:10px;">
         <div><span>جمع اقلام</span><span class="numlt">${fmt(calc.subtotal)} ریال</span></div>
@@ -5889,7 +5910,7 @@ function bfBuildSingleCartInvoiceHtml(calc){
   const note = document.getElementById('invoiceNote').value.trim();
   const isOfficial = calc.isOfficial;
   const onlyOil = calc.items.length>0 && calc.items.every(it=>it.type==='oil');
-  const onlyAccessory = calc.items.length>0 && calc.items.every(it=>it.type==='oil' || it.type==='hose');
+  const onlyAccessory = calc.items.length>0 && calc.items.every(it=>it.type==='oil' || it.type==='hose' || it.type==='karasling' || it.type==='bfx');
   const hasJackOrPu = calc.items.some(it=>it.type==='jack' || it.type==='pu');
   return `
     <div class="bf-print-banner">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
@@ -7904,6 +7925,168 @@ function bfPlBar(label,onclick){
   }catch(e){alert('ساخت اکسل انجام نشد: '+e.message)}}
   bfPlBar('دانلود لیست قیمت ویتور (امارلیفت)',go);
 })();
+</script>
+<script id="bfKarSingleScript">
+/* ===== [BF-KAR-SINGLE] «سفارش تکی ← فقط کاراسلینگ» + «◀ محصولات تکمیلی سفارش» در سفارش تکی =====
+   - کاراسلینگ: همهٔ ردیف‌های KARASLING_GROUPS (110 / شکیب / اصفهان دانا) با همان قیمت و متعلقات ماژول اصلی؛
+     وضعیت انتخاب از ماژول کاراسلینگ تب‌های سریع/فنی جداست تا تداخل نکند. مشمول تخفیف و افزایش قیمت نیست.
+   - محصولات تکمیلی: هر ردیف (نام / مشخصات / تعداد / قیمت) یک قلم مستقل در سبد پیش‌سفارش، چاپ و پشت‌برگ. */
+var bfK5 = { company:'', gkey:'', opening:'', size:'', col:'', qty:1 };
+function bfKarEsc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function bfK5Row(){ return karaslingFindRow(bfK5.company, bfK5.gkey, bfK5.opening, bfK5.size); }
+function bfK5NeedsCol(g){ return !!(g && (bfK5.company==='شکیب' || bfK5.company==='اصفهان دانا') && g.columnPrice); }
+function bfK5Compute(){
+  var g = bfK5Row(); if(!g) return null;
+  var need = bfK5NeedsCol(g);
+  if(need && !bfK5.col) return null;
+  var unit = need ? ((g.price||0) + (bfK5.col==='with' ? (g.columnPrice||0) : 0)) : ((g.price||0) + (g.columnPrice||0));
+  var equip = need ? (bfK5.col==='with' ? (g.equipmentWith||'') : (g.equipmentWithout||'')) : (g.equipment || g.equipmentWith || '');
+  var qty = Math.max(1, parseInt(bfK5.qty,10)||1);
+  return { g:g, unit:Math.round(unit), qty:qty, total:Math.round(unit*qty), equip:equip,
+           colLabel: need ? (bfK5.col==='with' ? 'با قوطی زیر جک' : 'بدون قوطی زیر جک') : '' };
+}
+function bfKarCartRowHtml(it){
+  return '<tr><td>کاراسلینگ</td><td>' + (it.karCompany==='110'?'مدل 110':bfKarEsc(it.karCompany)) + (it.karModel?' · '+bfKarEsc(it.karModel):'')
+    + ' · ظرفیت پیشنهادی <span class="numlt">'+bfKarEsc(it.karCapacity)+'</span> · دهانه ریل <span class="numlt">'+bfKarEsc(it.karOpening)+'</span> · سایز ریل <span class="numlt">'+bfKarEsc(it.karSize)+'</span>'
+    + ' · عرض <span class="numlt">'+bfKarEsc(it.karWidth)+'</span>mm · ضخامت <span class="numlt">'+bfKarEsc(it.karThick)+'</span>mm · پیت <span class="numlt">'+bfKarEsc(it.karPit)+'</span>cm'
+    + (it.karColLabel?' · '+it.karColLabel:'')
+    + (it.karEquip?'<br><span style="font-size:10px;color:#333;">متعلقات کاراسلینگ: '+bfKarEsc(it.karEquip)+'</span>':'')
+    + '</td><td class="num numlt">×'+it.karQty+'</td><td class="num">'+fmt(it.total)+'</td></tr>';
+}
+function bfK5RenderBox(){
+  var box = document.getElementById('singleKarBox'); if(!box) return;
+  var companies = unique(KARASLING_GROUPS.map(function(g){ return g.company; }));
+  var groups = bfK5.company ? karaslingGroupOptionsForCompany(bfK5.company) : [];
+  var openings = (bfK5.company && bfK5.gkey) ? karaslingRailOpeningsFor(bfK5.company, bfK5.gkey) : [];
+  var entry = karaslingEntryForOpening(bfK5.company, bfK5.gkey, bfK5.opening);
+  var sizes = entry ? entry.railSizes : [];
+  var g = bfK5Row(), need = bfK5NeedsCol(g), c = bfK5Compute();
+  function opt(v, cur, lbl){ return '<option value="'+bfKarEsc(v)+'"'+(v===cur?' selected':'')+'>'+bfKarEsc(lbl==null?v:lbl)+'</option>'; }
+  box.innerHTML = '<div class="hose-head karasling-head">انتخاب کاراسلینگ</div>'
+    + '<div class="hose-select-row">'
+    +   '<div class="hose-field"><label>شرکت سازنده</label><select data-k="company"><option value="">— انتخاب —</option>'+companies.map(function(x){ return opt(x, bfK5.company, x==='110'?'110 (رسمی)':x); }).join('')+'</select></div>'
+    +   '<div class="hose-field"><label>ظرفیت / مدل</label><select data-k="gkey"'+(bfK5.company?'':' disabled')+'><option value="">— انتخاب —</option>'+groups.map(function(x){ return opt(karaslingGroupKeyOf(x), bfK5.gkey, karaslingGroupLabel(x)); }).join('')+'</select></div>'
+    +   '<div class="hose-field"><label>دهانه ریل (DBG)</label><select data-k="opening"'+(bfK5.gkey?'':' disabled')+'><option value="">— انتخاب —</option>'+openings.map(function(x){ return opt(x, bfK5.opening); }).join('')+'</select></div>'
+    +   '<div class="hose-field"><label>سایز ریل</label><select data-k="size"'+(bfK5.opening?'':' disabled')+'><option value="">— انتخاب —</option>'+sizes.map(function(x){ return opt(x, bfK5.size); }).join('')+'</select></div>'
+    +   (need ? '<div class="hose-field"><label>قوطی زیر جک (ستون)</label><select data-k="col"><option value="">— انتخاب —</option>'+opt('with', bfK5.col, 'با قوطی زیر جک (+'+fmt(g.columnPrice)+' ریال)')+opt('without', bfK5.col, 'بدون قوطی زیر جک')+'</select></div>' : '')
+    + '</div>'
+    + (g ? '<div class="hose-info-line karasling-info-line">ظرفیت پیشنهادی: <b class="numlt">'+bfKarEsc(g.capacity)+'</b> · عرض ستون‌ها: <b class="numlt">'+bfKarEsc(g.width)+'</b> mm · ضخامت ورق: <b class="numlt">'+bfKarEsc(g.thickness)+'</b> mm · پیت مورد نیاز: <b class="numlt">'+bfKarEsc(g.pit)+'</b> cm'
+         + (c && c.equip ? '<br><span style="font-size:10.5px;color:var(--text-dim);">متعلقات کاراسلینگ: '+bfKarEsc(c.equip)+'</span>' : '') + '</div>' : '')
+    + '<div class="hose-meters-row"><label>تعداد:</label><input type="number" min="1" step="1" class="numlt" data-k="qty" value="'+(parseInt(bfK5.qty,10)||1)+'"><span class="unit">دستگاه</span></div>';
+}
+function renderKarSingleResult5(){
+  var c = bfK5Compute();
+  printBtn.disabled = true; saveInvoiceBtn.disabled = true; // چاپ/ذخیره از طریق «پیش‌سفارش»
+  if(!c){
+    resultEl.className = 'result empty';
+    resultEl.innerHTML = 'شرکت سازنده، ظرفیت/مدل، دهانه ریل و سایز ریل کاراسلینگ را انتخاب کنید تا قیمت فوری نمایش داده شود.';
+    refreshFinalPrice(); renderSingleCartPanel(); return;
+  }
+  var g = c.g;
+  resultEl.className = 'result';
+  resultEl.innerHTML = '<div class="result-head"><div>'
+    + '<div class="result-title">سفارش تکی محصول · فقط کاراسلینگ</div>'
+    + '<div class="result-sub">'+(g.company==='110'?'مدل 110':bfKarEsc(g.company))+(g.model?' · '+bfKarEsc(g.model):'')+' · دهانه ریل <span class="numlt">'+bfKarEsc(bfK5.opening)+'</span> · سایز ریل <span class="numlt">'+bfKarEsc(bfK5.size)+'</span>'+(c.colLabel?' · '+c.colLabel:'')+' · قیمت واحد <span class="numlt">'+fmt(c.unit)+'</span> ریال × <span class="numlt">'+c.qty+'</span></div>'
+    + '</div><div class="price-badge"><div class="lbl">قیمت کل همین قلم</div><div class="val"><span class="numlt">'+fmt(c.total)+'</span> <small>ریال</small></div></div></div>'
+    + '<div style="margin-top:16px;"><button type="button" class="print-btn" id="addKarSingleBtn" style="background:#134a45;">➕ افزودن کاراسلینگ به پیش‌فاکتور</button></div>';
+  document.getElementById('addKarSingleBtn').addEventListener('click', function(){
+    singleCart.push({ cid:'c'+Date.now()+Math.floor(Math.random()*1000), type:'karasling',
+      karCompany:g.company, karModel:g.model||'', karCapacity:g.capacity, karOpening:bfK5.opening, karSize:bfK5.size,
+      karWidth:g.width, karThick:g.thickness, karPit:g.pit, karColLabel:c.colLabel, karEquip:c.equip,
+      karQty:c.qty, karUnit:c.unit, total:c.total });
+    bfToast('➕ به پیش‌سفارش اضافه شد (کاراسلینگ)', 'ok');
+    renderSingleCartPanel();
+  });
+  refreshFinalPrice(); renderSingleCartPanel();
+}
+(function(){
+  var btn = document.getElementById('singleTypeBtnKar'), box = document.getElementById('singleKarBox');
+  if(!btn || !box) return;
+  btn.addEventListener('click', function(){
+    state5.productType = 'karasling';
+    ['singleTypeBtnJack','singleTypeBtnPu','singleTypeBtnOil','singleTypeBtnHose'].forEach(function(id){ var b=document.getElementById(id); if(b) b.classList.remove('active'); });
+    btn.classList.add('active');
+    ['singleJackPanel','singlePuPanel','singleOilPanel','singleHoseBox'].forEach(function(id){ var e=document.getElementById(id); if(e) e.style.display='none'; });
+    box.style.display = '';
+    bfK5RenderBox(); updateResult5();
+  });
+  // انتخاب نوع دیگر ← باکس کاراسلینگ بسته شود
+  ['singleTypeBtnJack','singleTypeBtnPu','singleTypeBtnOil','singleTypeBtnHose'].forEach(function(id){
+    var b = document.getElementById(id);
+    if(b) b.addEventListener('click', function(){ btn.classList.remove('active'); box.style.display = 'none'; });
+  });
+  box.addEventListener('change', function(e){
+    var k = e.target && e.target.dataset ? e.target.dataset.k : ''; if(!k) return;
+    var v = e.target.value;
+    if(k==='company'){ bfK5.company=v; bfK5.gkey=''; bfK5.opening=''; bfK5.size=''; bfK5.col=''; }
+    else if(k==='gkey'){ bfK5.gkey=v; bfK5.opening=''; bfK5.size=''; bfK5.col=''; }
+    else if(k==='opening'){ bfK5.opening=v; bfK5.size=''; bfK5.col=''; var en=karaslingEntryForOpening(bfK5.company,bfK5.gkey,v); if(en && en.railSizes.length===1) bfK5.size=en.railSizes[0]; }
+    else if(k==='size'){ bfK5.size=v; }
+    else if(k==='col'){ bfK5.col=v; }
+    else if(k==='qty'){ bfK5.qty=Math.max(1, parseInt(v,10)||1); }
+    bfK5RenderBox(); updateResult5();
+  });
+  box.addEventListener('input', function(e){
+    if(!e.target || !e.target.dataset || e.target.dataset.k!=='qty') return;
+    bfK5.qty = Math.max(1, parseInt(e.target.value,10)||1); renderKarSingleResult5();
+  });
+})();
+
+/* ---- ◀ محصولات تکمیلی سفارش — سفارش تکی (هر ردیف مستقیم وارد سبد پیش‌سفارش می‌شود) ---- */
+(function(){
+  function dig(s){ return String(s==null?'':s).replace(/[۰-۹]/g,function(d){return String(d.charCodeAt(0)-0x06F0);}).replace(/[٠-٩]/g,function(d){return String(d.charCodeAt(0)-0x0660);}); }
+  function num(s){ var t=dig(s).replace(/[^\d]/g,''); return t?parseInt(t,10):0; }
+  function f(n){ return Math.round(Number(n)||0).toLocaleString('en-US'); }
+  var esc = bfKarEsc;
+  var st = { open:false, rows:[{name:'',spec:'',qty:'1',price:''}] };
+  function list(){ return singleCart.filter(function(it){ return it.type==='bfx'; }); }
+  function render(){
+    var host = document.getElementById('bfxSingleHost'); if(!host) return;
+    var added = list();
+    host.innerHTML = '<div class="bfx-tab'+(st.open?' bfx-open':'')+'" style="margin:14px 0 16px;">'
+      + '<button type="button" class="bfx-head" data-a="t"><span class="bfx-arrow">◀</span><span class="bfx-title">محصولات تکمیلی سفارش</span>'
+      + (added.length?'<span class="bfx-badge">'+added.length+' ردیف در پیش‌فاکتور</span>':'')+'</button>'
+      + '<div class="bfx-body"'+(st.open?'':' hidden')+'><div class="bfx-scroll"><table class="bfx-table"><thead><tr><th>#</th><th>نام محصول</th><th>مشخصات</th><th>تعداد</th><th>قیمت واحد (ریال)</th><th>جمع (ریال)</th><th></th></tr></thead><tbody>'
+      + added.map(function(it,i){ return '<tr class="bfx-added"><td class="bfx-idx">'+(i+1)+'</td><td>'+esc(it.bfxName)+'</td><td>'+(it.bfxSpec?esc(it.bfxSpec):'—')+'</td><td class="bfx-line">×'+it.bfxQty+'</td><td class="bfx-line">'+f(it.bfxUnit)+'</td><td class="bfx-line">'+f(it.total)+'</td><td class="bfx-ops"><span class="bfx-tag">✓ در پیش‌فاکتور</span><button type="button" class="bfx-btn bfx-btn-off" data-a="rm" data-c="'+esc(it.cid)+'">برداشتن</button></td></tr>'; }).join('')
+      + st.rows.map(function(r,i){ var lt=(num(r.qty)||1)*num(r.price); return '<tr><td class="bfx-idx">'+(added.length+i+1)+'</td>'
+        + '<td><input class="bfx-in" data-f="name" data-i="'+i+'" value="'+esc(r.name)+'" placeholder="نام محصول"></td>'
+        + '<td><input class="bfx-in" data-f="spec" data-i="'+i+'" value="'+esc(r.spec)+'" placeholder="مشخصات"></td>'
+        + '<td class="bfx-w-qty"><input class="bfx-in bfx-num" inputmode="numeric" dir="ltr" data-f="qty" data-i="'+i+'" value="'+esc(r.qty)+'"></td>'
+        + '<td class="bfx-w-price"><input class="bfx-in bfx-num" inputmode="numeric" dir="ltr" data-f="price" data-i="'+i+'" value="'+(num(r.price)?f(num(r.price)):'')+'" placeholder="قیمت واحد"></td>'
+        + '<td class="bfx-line" data-lt="'+i+'">'+(lt?f(lt):'—')+'</td>'
+        + '<td class="bfx-ops"><button type="button" class="bfx-btn bfx-btn-add" data-a="add" data-i="'+i+'">افزودن به پیش‌فاکتور</button><button type="button" class="bfx-del" data-a="del" data-i="'+i+'">✕</button></td></tr>'; }).join('')
+      + '</tbody></table></div><div class="bfx-actions"><button type="button" class="bfx-btn bfx-btn-line" data-a="row">➕ افزودن ردیف</button><button type="button" class="bfx-btn bfx-btn-main" data-a="all">✅ افزودن همه به پیش‌فاکتور</button></div>'
+      + '<div class="bfx-hint">هر ردیف بعد از «افزودن» به‌صورت یک قلم مستقل در سبد پیش‌سفارش، چاپ و پشت‌برگ همین سفارش درج می‌شود.</div></div></div>';
+    if(!host.__b){ host.__b=1;
+      host.addEventListener('input', function(e){ var t=e.target, i=+t.dataset.i, k=t.dataset.f; if(!k||!st.rows[i]) return;
+        if(k==='price'){ var n=num(t.value); t.value=n?f(n):''; st.rows[i].price=String(n||''); }
+        else if(k==='qty'){ t.value=dig(t.value).replace(/[^\d]/g,''); st.rows[i].qty=t.value; }
+        else st.rows[i][k]=t.value;
+        var c=host.querySelector('[data-lt="'+i+'"]'); if(c){ var lt=(num(st.rows[i].qty)||1)*num(st.rows[i].price); c.textContent=lt?f(lt):'—'; } });
+      host.addEventListener('click', function(e){ var b=e.target.closest('[data-a]'); if(!b) return; var a=b.dataset.a, i=+b.dataset.i;
+        if(a==='t'){ st.open=!st.open; render(); return; }
+        if(a==='row'){ st.rows.push({name:'',spec:'',qty:'1',price:''}); render(); return; }
+        if(a==='del'){ st.rows.splice(i,1); if(!st.rows.length) st.rows.push({name:'',spec:'',qty:'1',price:''}); render(); return; }
+        if(a==='rm'){ var cid=b.dataset.c; singleCart=singleCart.filter(function(it){ return it.cid!==cid; }); renderSingleCartPanel(); return; }
+        var idxs = a==='all' ? st.rows.map(function(_,j){return j;}) : [i], ok=0, bad=0;
+        idxs.forEach(function(j){ var r=st.rows[j]; if(!r) return; if(!String(r.name).trim()&&!num(r.price)) return;
+          if(!String(r.name).trim()||!num(r.price)){ bad++; return; }
+          var q=Math.max(1,num(r.qty)||1), u=num(r.price);
+          singleCart.push({ cid:'c'+Date.now()+Math.floor(Math.random()*100000)+'_'+j, type:'bfx', bfxName:String(r.name).trim(), bfxSpec:String(r.spec||'').trim(), bfxQty:q, bfxUnit:u, total:q*u });
+          r.__done=1; ok++; });
+        if(!ok){ alert('برای هر ردیف، نام محصول و قیمت واحد را وارد کنید.'); return; }
+        st.rows=st.rows.filter(function(r){return !r.__done;}); if(!st.rows.length) st.rows.push({name:'',spec:'',qty:'1',price:''});
+        renderSingleCartPanel(); if(typeof bfToast==='function') bfToast('➕ '+ok+' ردیف به پیش‌سفارش اضافه شد','ok');
+        if(bad) alert(bad+' ردیف چون نام یا قیمت نداشتند اضافه نشدند.'); });
+    }
+  }
+  window.bfxSingleRender = render;
+  // بعد از هر بازسازی سبد پیش‌سفارش، جدول محصولات تکمیلی هم هماهنگ شود (حذف از سبد / خالی کردن سبد)
+  var _r = renderSingleCartPanel;
+  renderSingleCartPanel = function(){ var x=_r.apply(this, arguments); render(); return x; };
+  render();
+})();
+
 </script>
 </body>
 </html>

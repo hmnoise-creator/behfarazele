@@ -224,6 +224,21 @@
   .app-frame-bar button:hover{ background:rgba(255,255,255,.25); }
   .app-frame-bar .title{ font-size:.9rem; font-weight:700; }
   .app-frame-wrap iframe{ flex:1 1 auto; width:100%; border:none; }
+  /* [BF-WIN] چند صفحهٔ باز هم‌زمان + کوچک کردن به نوار پایین */
+  .bf-frames{ flex:1 1 auto; display:flex; min-height:0; }
+  .bf-frames iframe{ display:none; }
+  .bf-frames iframe.on{ display:block; }
+  .bf-sw{ margin-inline-start:auto; display:flex; gap:6px; flex-wrap:wrap; }
+  .bf-sw button{ font-size:.76rem !important; padding:5px 10px !important; }
+  .bf-dock{ position:fixed; bottom:14px; left:50%; transform:translateX(-50%); z-index:60; display:none; gap:8px; align-items:center;
+    background:rgba(15,61,58,.96); padding:8px 10px; border-radius:16px; box-shadow:0 12px 34px rgba(0,0,0,.3); max-width:calc(100vw - 24px); overflow-x:auto; }
+  .bf-dock.show{ display:flex; }
+  .bf-dock .lbl{ color:#cfe9e4; font-size:.74rem; font-weight:700; white-space:nowrap; padding:0 4px; }
+  .bf-dock .w{ display:flex; align-items:center; gap:6px; background:#fff; border-radius:12px; padding:6px 6px 6px 10px; cursor:pointer; white-space:nowrap; font-size:.82rem; font-weight:700; color:#0f3d3a; border:0; font-family:inherit; animation:bfDockIn .25s ease; }
+  .bf-dock .w:hover{ background:#e8f4f1; }
+  .bf-dock .w i{ font-style:normal; width:22px; height:22px; border-radius:7px; background:#e8f4f1; display:inline-flex; align-items:center; justify-content:center; font-size:.85rem; }
+  .bf-dock .w .x{ background:none; border:0; color:#b9322a; font-size:.9rem; cursor:pointer; padding:0 4px; }
+  @keyframes bfDockIn{ from{ transform:translateY(12px); opacity:0 } to{ transform:none; opacity:1 } }
 
   /* ==== فاکتور پلاس ==== */
   .fp-wrap{ display:none; position:fixed; inset:0; background:linear-gradient(180deg,#f4f6f6 0%,#eef2f1 100%); flex-direction:column; z-index:50; }
@@ -1331,9 +1346,11 @@ function bfMoltenMetal(host, user){
   <div class="app-frame-wrap" id="appFrameWrap">
     <div class="app-frame-bar">
       <button onclick="closeApp()">↩ بازگشت به صفحه اصلی</button>
+      <button onclick="bfMinApp()" title="این صفحه باز می‌ماند؛ هر وقت خواستید از نوار پایین برمی‌گردید">▁ کوچک کردن</button>
       <span class="title" id="appFrameTitle"></span>
+      <span class="bf-sw" id="bfWinSwitch"></span>
     </div>
-    <iframe id="appFrame" src="about:blank"></iframe>
+    <div class="bf-frames" id="bfFrames"><iframe id="appFrame" src="about:blank"></iframe></div>
   </div>
 
 <script>
@@ -1348,18 +1365,82 @@ function bfMoltenMetal(host, user){
     showroom: { title:'طراحی‌های شاسی — شوروم سه‌بعدی بهفراز', src:'./behfaraz_showroom.html' },
     attendance: { title:'ثبت ورود و خروج', src:'./attendance.html' }
   };
+  /* ===== [BF-WIN] چند صفحهٔ باز: کوچک کردن یک محصول، رفتن سراغ محصول دیگر و برگشتن به همان‌جا =====
+     هر محصول در یک iframe جدا باز می‌ماند (فرم و سبد پیش‌فاکتور دست‌نخورده). از هر محصول فقط یک صفحه باز است. */
+  const BF_WIN_IC = {panel:'🎛️',motor:'⚙️',hydraulic:'💧',wittur:'🛠️',shakib:'🔩',elevator:'🛗',catalog:'📚',showroom:'🏢',attendance:'⏱️'};
+  function bfEsc(v){ return String(v==null?'':v).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  const BF_WINS = []; let bfActiveWin = null; const BF_WIN_MAX = 6;
+  function bfWinOf(key){ return BF_WINS.filter(function(w){ return w.key === key; })[0] || null; }
+  function bfWinShow(w){
+    BF_WINS.forEach(function(x){ x.frame.classList.toggle('on', x === w); x.frame.removeAttribute('id'); });
+    w.frame.id = 'appFrame'; bfActiveWin = w;
+    document.getElementById('homeWrap').classList.remove('show');
+    document.getElementById('appFrameTitle').textContent = w.title;
+    document.getElementById('appFrameWrap').classList.add('show');
+    bfDockRender();
+  }
   function openApp(key, editId, extra){
     const app = APPS[key];
     if(!app) return;
-    document.getElementById('homeWrap').classList.remove('show');
-    document.getElementById('appFrameTitle').textContent = app.title + (editId ? ' — حالت ویرایش' : '');
-    document.getElementById('appFrame').src = editId ? (app.src + '?editId=' + encodeURIComponent(editId) + (extra ? '&' + extra : '')) : app.src;
-    document.getElementById('appFrameWrap').classList.add('show');
+    const src = editId ? (app.src + '?editId=' + encodeURIComponent(editId) + (extra ? '&' + extra : '')) : app.src;
+    const title = app.title + (editId ? ' — حالت ویرایش' : '');
+    let w = bfWinOf(key);
+    if(w && !editId){ bfWinShow(w); return; }
+    if(w && editId){
+      if(!confirm('«' + w.title + '» الان باز است (کوچک شده). برای ویرایش این پیش‌فاکتور، آن صفحه بسته شود؟')){ bfWinShow(w); return; }
+      bfWinClose(w, true);
+    }
+    if(BF_WINS.length >= BF_WIN_MAX){ alert('حداکثر ' + BF_WIN_MAX + ' صفحه هم‌زمان باز می‌ماند. یکی از صفحه‌های نوار پایین را ببندید.'); return; }
+    let fr = document.querySelector('#bfFrames iframe[src="about:blank"]:not([data-used])');
+    if(!fr){ fr = document.createElement('iframe'); document.getElementById('bfFrames').appendChild(fr); }
+    fr.setAttribute('data-used', '1'); fr.src = src;
+    w = { id: Date.now().toString(36), key: key, title: title, icon: BF_WIN_IC[key] || '📄', frame: fr };
+    BF_WINS.push(w); bfWinShow(w);
   }
-  function closeApp(){
+  function bfWinClose(w, silent){
+    const i = BF_WINS.indexOf(w); if(i < 0) return;
+    BF_WINS.splice(i, 1);
+    try{ w.frame.src = 'about:blank'; }catch(e){}
+    if(document.querySelectorAll('#bfFrames iframe').length > 1) w.frame.remove(); else { w.frame.removeAttribute('data-used'); w.frame.classList.remove('on'); w.frame.id = 'appFrame'; }
+    if(bfActiveWin === w) bfActiveWin = null;
+    if(!silent) bfDockRender();
+  }
+  /* کوچک کردن: صفحه باز می‌ماند و در نوار پایین صفحهٔ اصلی می‌نشیند */
+  function bfMinApp(){
     document.getElementById('appFrameWrap').classList.remove('show');
-    document.getElementById('appFrame').src = 'about:blank';
+    if(bfActiveWin) bfActiveWin.frame.classList.remove('on');
+    bfActiveWin = null;
     document.getElementById('homeWrap').classList.add('show');
+    bfAfterApp();
+    bfDockRender();
+  }
+  window.bfMinApp = bfMinApp;
+  function bfDockRender(){
+    let d = document.getElementById('bfDock');
+    if(!d){ d = document.createElement('div'); d.id = 'bfDock'; d.className = 'bf-dock'; document.body.appendChild(d);
+      d.addEventListener('click', function(e){
+        const x = e.target.closest('[data-wx]');
+        if(x){ e.stopPropagation(); const w = BF_WINS.filter(function(v){ return v.id === x.dataset.wx; })[0];
+          if(w && confirm('صفحهٔ «' + w.title + '» بسته شود؟ (اطلاعات ذخیره‌نشدهٔ آن به‌صورت پیش‌فاکتور نیمه‌کاره نگه داشته می‌شود)')) bfWinClose(w); return; }
+        const b = e.target.closest('[data-wo]'); if(!b) return;
+        const w2 = BF_WINS.filter(function(v){ return v.id === b.dataset.wo; })[0]; if(w2) bfWinShow(w2);
+      }); }
+    const mins = BF_WINS.filter(function(w){ return w !== bfActiveWin; });
+    d.innerHTML = mins.length ? '<span class="lbl">📌 صفحه‌های باز:</span>' + mins.map(function(w){ return '<button type="button" class="w" data-wo="' + w.id + '" title="ادامهٔ همین صفحه"><i>' + bfEsc(w.icon) + '</i>' + bfEsc(w.title) + ' ↗<span class="x" data-wx="' + w.id + '" title="بستن">✕</span></button>'; }).join('') : '';
+    d.classList.toggle('show', mins.length > 0 && !bfActiveWin);
+    /* در نوار بالای هر محصول، دکمهٔ رفتن مستقیم به بقیهٔ صفحه‌های باز */
+    const sw = document.getElementById('bfWinSwitch');
+    if(sw) sw.innerHTML = bfActiveWin ? mins.map(function(w){ return '<button type="button" onclick="bfWinGo(\'' + w.id + '\')" title="رفتن به این صفحه (صفحهٔ فعلی باز می‌ماند)">⇄ ' + bfEsc(w.title) + '</button>'; }).join('') : '';
+  }
+  window.bfWinGo = function(id){ const w = BF_WINS.filter(function(v){ return v.id === id; })[0]; if(w) bfWinShow(w); };
+  function closeApp(){
+    if(bfActiveWin) bfWinClose(bfActiveWin, true);
+    document.getElementById('appFrameWrap').classList.remove('show');
+    document.getElementById('homeWrap').classList.add('show');
+    bfDockRender();
+    bfAfterApp();
+  }
+  function bfAfterApp(){
     renderDashboard(); // رندر فوری با آخرین mirror (پیش‌فاکتور تازه/حذف‌شده را همین الان نشان می‌دهد)
     renderCustomers();
     // بازگشت از هر ابزار = احتمال ثبت یا حذف پیش‌فاکتور، پس از سرور مرکزی هم دوباره می‌خوانیم

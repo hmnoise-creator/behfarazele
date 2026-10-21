@@ -7627,6 +7627,17 @@ function buildPartIndex(){
   (DATA.secondKeyOptions||[]).forEach(it=>{
     pushItem('equip', 'کلید دوم / توقف مازاد ('+(it.source||'')+')', it.group, it.label, it);
   });
+  // [BF-PSB-EXTRA] اقلامی که داخل کد تعریف شده‌اند (نه در DATA) و فقط با انتخاب مدل خاص ظاهر می‌شوند — در جستجو هم بیایند
+  try{
+    [
+      ['steel','استیل ۰.۵',{group:'چاپ و نورپردازی', label:'نورپردازی راهنمای طبقات (برای سری E500)', irr:24000000, fixedPrice:true}],
+      ['floor','پنل طبقه',{group:'چاپ و لوگو', label:'چاپ و حک لوگوی اختصاصی با نورپردازی - طبقه (طبقه A1000 / A3000)', irr:bfPM(2200000, 1800000)}],
+      ['floor','پنل طبقه',{group:'چاپ و لوگو', label:'نورپردازی راهنمای طبقات (3000PLUS)', irr:bfP(20000000)}],
+      ['floor','پنل طبقه',{group:'چاپ و لوگو', label:'پلکسی/شیشه رنگی سایز نرمال (طبقه A1000 / A3000)', irr:bfP(3000000)}],
+      ['floor','پنل طبقه',{group:'چاپ و لوگو', label:'پلکسی/شیشه رنگی سری 1000 و 3000 (طبقه A1000 / A3000)', irr:bfP(9000000)}],
+      ['floor','پنل طبقه',{group:'کلیدهای بیگ‌ساز', label:'کلید لمسی بزرگ - درکاو', fx:'USD', amount:27}]
+    ].forEach(x=>{ if(!list.some(p=>p.label===x[2].label)) list.push({section:x[0], catLabel:x[1], group:x[2].group, label:x[2].label, priceItem:x[2]}); });
+  }catch(e){}
   // [BF-PSB-CONV] اگر این اقلام در دادهٔ قیمت فعلی نبودند، از دادهٔ پیش‌فرض اضافه شوند تا همیشه در جستجو باشند
   PSB_ALWAYS.forEach(lbl=>{
     if(list.some(p=>p.label===lbl)) return;

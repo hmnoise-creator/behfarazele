@@ -3802,7 +3802,7 @@ selPU.addEventListener('change', ()=>{
    اگر پاوریونیت پیشنهادی سیستم در جدول زیر باشد، کاربر در کادر نتیجه می‌تواند آن را به موتور قوی‌تر (هم‌حجم یا بزرگ‌تر پمپ) ارتقا دهد.
    قیمت/درخت سیم/تانک از همان کاتالوگ پاوریونیت (PU_TABLE و در صورت نبود، PU_SINGLE_EXTRA) و جریان از PU_CURRENT_TABLE خوانده می‌شود. */
 const BF_W_BOOST = { '5.9-75':'7.7-75', '7.7-100':'9.6-100', '9.6-125':'11-125', '11-150':'12.5-150', '12.5-180':'14.7-180', '18.4-210':'22-210', '18.4-250':'22-250', '18.4-300':'22-300' };
-let bfWBoost = { classic:null, precise:null };
+let bfWBoost = { classic:null, precise:null, custom:null, single:null };
 function bfWEntry(key){ return (PU_TABLE[key] || PU_SINGLE_EXTRA[key] || null); }
 function bfWBoostTo(key, mode){ const t = BF_W_BOOST[key]; return (t && bfWBoost[mode] === key + '>' + t) ? t : null; }
 function bfWBoostSrc(base, mode){
@@ -4568,9 +4568,11 @@ selPU3.addEventListener('change', ()=>{
 function findRecord3(){
   const base = findJackDims3();
   if(!base) return null;
-  const speedOpt = base.speedOptions.find(o=>o.key===state3.speedKey);
-  if(!speedOpt) return null;
-  const puEntry = PU_TABLE[speedOpt.key] || null;
+  const speedOpt0 = base.speedOptions.find(o=>o.key===state3.speedKey);
+  if(!speedOpt0) return null;
+  const bT3 = bfWBoostTo(speedOpt0.key, 'custom');   // 🚀 BOOST CABIN (جک و پاور سفارشی)
+  const speedOpt = bT3 ? Object.assign({}, speedOpt0, { key:bT3, kw:bT3.split('-')[0], liters:bT3.split('-')[1], _boostFrom:speedOpt0.key }) : speedOpt0;
+  const puEntry = bT3 ? bfWEntry(bT3) : (PU_TABLE[speedOpt.key] || null);
   const typeData = puEntry ? puEntry[state3.puType] : null;
   const puUnitPrice = typeData ? typeData.price : null;
   const wireUnitPrice = typeData ? typeData.wire : null;
@@ -4592,6 +4594,7 @@ function findRecord3(){
     puPrice, puUnitPrice, wirePrice, wireUnitPrice, wireApplied, tank, total, puAvailable: puUnitPrice!=null,
     jackQty, puQty, wireQty
   };
+  if(speedOpt._boostFrom){ rec3._boostFrom = speedOpt._boostFrom; rec3._boostTo = speedOpt.key; }
   rec3.staticLoad = resolveStaticLoadForDims('customSmart', rec3, state3.diameter, state3.stage, base.course);
   rec3.speedRaw = resolveSpeedRaw('customSmart', rec3, speedOpt.speed);
   rec3.speed = rec3.speedRaw!=null ? rec3.speedRaw+'m/s' : null;
@@ -5496,7 +5499,9 @@ function findRecord5(){
     if(!state5.puKey) return null;
     // برای بخش «سفارش تکی محصول» علاوه‌بر PU_TABLE اصلی، ردیف‌های PU_SINGLE_EXTRA
     // (پاوریونیت‌های جاافتاده از POWER_UNITS.pdf) هم قابل جستجو هستند — فقط همین‌جا.
-    const puEntry = PU_TABLE[state5.puKey] || PU_SINGLE_EXTRA[state5.puKey];
+    const bT5 = bfWBoostTo(state5.puKey, 'single');   // 🚀 BOOST CABIN (سفارش تکی پاوریونیت)
+    const puKey5 = bT5 || state5.puKey;
+    const puEntry = PU_TABLE[puKey5] || PU_SINGLE_EXTRA[puKey5];
     if(!puEntry) return null;
     const typeData = puEntry[state5.puType];
     // نوع شیر بدون قیمت ثبت‌شده ← قیمت دستی کاربر
@@ -5509,17 +5514,18 @@ function findRecord5(){
     const wireApplied = state5.includeWire && wireUnitPrice!=null;
     const puPrice = puUnitPrice!=null ? puUnitPrice*puQty : null;
     const wirePrice = wireUnitPrice!=null ? wireUnitPrice*wireQty : null;
-    const parts = state5.puKey.split('-');
+    const parts = puKey5.split('-');
     const rec5 = {
       persons:null, kg:null, travel:null, course:null, speed:null,
       jackSize:'—', jackPrice:0, jackUnitPrice:null, jackQty:0,
       kw: (puEntry.kwLabel||parts[0])+'kW', liters: (puEntry.litersLabel||parts[1])+'L', tank: puEntry.tank,
-      amp: ampForPuKey(state5.puKey),
+      amp: ampForPuKey(puKey5),
       puPrice, puUnitPrice, wirePrice, wireUnitPrice, wireApplied,
       puAvailable: puUnitPrice!=null, puQty, wireQty,
       total: puPrice!=null ? (puPrice + (wireApplied ? wirePrice : 0)) : null,
       singleItem:'pu', manualPrice: isManual5
     };
+    if(bT5){ rec5._boostFrom = state5.puKey; rec5._boostTo = bT5; }
     return rec5;
   }
 }
@@ -6302,7 +6308,7 @@ function bfSnapshotWitturSelection(){
     markupPct: Number(markupInput.value) || 0,
     oilBrand: oilBrand,
     oilInclude: !!oilInclude,
-    puBoost: { classic: bfWBoost.classic, precise: bfWBoost.precise },
+    puBoost: { classic: bfWBoost.classic, precise: bfWBoost.precise, custom: bfWBoost.custom, single: bfWBoost.single },
     classic: { floor: state.floor, persons: state.persons, travel: state.travel, travelVariant: state.travelVariant||0, puType: state.puType, includeWire: state.includeWire },
     precise: { persons: state2.persons, travel: state2.travel, speedKey: state2.speedKey, puType: state2.puType, includeWire: state2.includeWire },
     customSmart: { diameter: state3.diameter, stage: state3.stage, course: state3.course, speedKey: state3.speedKey, puType: state3.puType, includeWire: state3.includeWire },
@@ -6518,7 +6524,7 @@ function bfRestoreWitturSelection(o){
   bfSetManualAdj(sel.manualAdj>0 ? 1 : -1, Math.abs(Number(sel.manualAdj)||0));
   if(sel.markupPct!=null && markupInput) markupInput.value = sel.markupPct;
   if(sel.oilInclude !== undefined){ oilInclude = !!sel.oilInclude; }
-  if(sel.puBoost){ bfWBoost = { classic: sel.puBoost.classic || null, precise: sel.puBoost.precise || null }; try{ (activeMode==='precise' ? updateResult2 : updateResult)(); }catch(e){} }
+  if(sel.puBoost){ bfWBoost = { classic: sel.puBoost.classic || null, precise: sel.puBoost.precise || null, custom: sel.puBoost.custom || null, single: sel.puBoost.single || null }; try{ (activeMode==='precise' ? updateResult2 : activeMode==='custom' ? (customSubMode==='single' ? updateResult5 : customSubMode==='smart' ? updateResult3 : updateResult4) : updateResult)(); }catch(e){} }
   if(sel.oilBrand !== undefined){
     oilBrand = sel.oilBrand; saveOilBrand(oilBrand);
     if(oilBrand && OIL_BRANDS[oilBrand] && OIL_BRANDS[oilBrand].price!=null){ oilRate = OIL_BRANDS[oilBrand].price; saveOilRate(oilRate); }
@@ -7578,17 +7584,20 @@ updateResult();
   let busy = false;
   function baseKey(mode){
     if(mode==='classic'){ const m = DATA.filter(r=>r.floor===state.floor && r.persons===state.persons && r.travel===state.travel); const b = m.length ? (m[state.travelVariant||0] || m[0]) : null; return b ? puKeyOf(b) : null; }
+    if(mode==='custom') return state3.speedKey || null;
+    if(mode==='single') return (state5.productType==='pu' && state5.puKey) ? state5.puKey : null;
     const b = JACK_TABLE2.find(r=>r.persons===state2.persons && r.travel===state2.travel); return b && state2.speedKey ? state2.speedKey : null;
   }
   function decorate(){
     if(busy) return; busy = true;
     try{
       el.querySelectorAll('.bf-boost').forEach(n=>n.remove());
-      const mode = activeMode; if(mode!=='classic' && mode!=='precise') return;
+      const mode = activeMode==='custom' ? (customSubMode==='smart' ? 'custom' : customSubMode==='single' ? 'single' : null) : activeMode;
+      if(mode!=='classic' && mode!=='precise' && mode!=='custom' && mode!=='single') return;
       const from = baseKey(mode), to = from && BF_W_BOOST[from]; if(!to) return;
-      const on = bfWBoost[mode] === from + '>' + to, pt = mode==='precise' ? state2.puType : state.puType;
+      const on = bfWBoost[mode] === from + '>' + to, pt = mode==='precise' ? state2.puType : mode==='custom' ? state3.puType : mode==='single' ? state5.puType : state.puType;
       const e0 = bfWEntry(from), e1 = bfWEntry(to), p0 = e0 && e0[pt] ? e0[pt].price : null, p1 = e1 && e1[pt] ? e1[pt].price : null;
-      const pq = Math.max(1, Number(qty.pu)||1), delta = (p0!=null && p1!=null) ? (p1 - p0) * pq : null;
+      const pq = Math.max(1, Number(mode==='single' ? state5.qtyPu : qty.pu)||1), delta = (p0!=null && p1!=null) ? (p1 - p0) * pq : null;
       const host = [...el.querySelectorAll('.spec')].find(x=>/سایز پاوریونیت/.test((x.querySelector('.k')||{}).textContent||''));
       const box = document.createElement('div'); box.className = 'bf-boost';
       const kw0 = parseFloat(from), kw1 = parseFloat(to);
@@ -7600,7 +7609,10 @@ updateResult();
       const btn = box.querySelector('button');
       if(p1==null && !on){ btn.disabled = true; btn.style.opacity = '.55'; btn.style.cursor = 'not-allowed'; }
       btn.onclick = ()=>{ bfWBoost[mode] = on ? null : (from + '>' + to);
-        if(mode==='precise'){ delete priceOverride2.puPrice; delete priceOverride2.wirePrice; updateResult2(); } else { delete priceOverride.puPrice; delete priceOverride.wirePrice; updateResult(); } };
+        if(mode==='precise'){ delete priceOverride2.puPrice; delete priceOverride2.wirePrice; updateResult2(); }
+        else if(mode==='custom'){ delete priceOverride3.puPrice; delete priceOverride3.wirePrice; updateResult3(); }
+        else if(mode==='single'){ updateResult5(); }
+        else { delete priceOverride.puPrice; delete priceOverride.wirePrice; updateResult(); } };
       if(host){ host.appendChild(box); if(on){ const v = host.querySelector('.v'); if(v && !v.querySelector('.bf-boost-tag')) v.insertAdjacentHTML('beforeend', '<span class="bf-boost-tag">BOOST</span>'); } }
       else el.insertBefore(box, el.firstChild);
     }catch(e){ console.warn('[boost]', e); }

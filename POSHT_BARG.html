@@ -6583,7 +6583,6 @@ function renderSavedOrders(){
         <button class="small-btn" style="background:#1565c0;color:#fff;border-color:#1565c0;" onclick="bfUpdateSavedOrder('${o.id}')" title="یک سفارش جدید (ذخیره‌نشده) با همان مشخصات و محصولات، اما با نرخ‌های فعالِ «تاریخچه قیمت» ساخته می‌شود؛ سفارش قبلی تغییر نمی‌کند">🔄 به‌روزرسانی</button>
         <button class="print-btn" onclick="printSavedOrder('${o.id}')">🖨 چاپ / PDF</button>
         <button class="print-btn" style="background:#555;" onclick="printSavedOrderBack('${o.id}')">🖨 چاپ پشت برگ</button>
-        <button class="small-btn" style="background:#1e8e3e;color:#fff;border-color:#1e8e3e;" onclick="bfExportOrderExcel('${o.id}')" title="فایل Excel برای حسابداری: فقط «شرح کالا (خلاصه)» و «تعداد»">📗 خروجی اکسل (حسابداری)</button>
         <button class="small-btn" style="background:#fff;color:#1e8e3e;border-color:#1e8e3e;" onclick="bfCopyAccounting('${o.id}', this, 'cab')" title="کپی «شرح کالا (خلاصه)» ردیف‌های کابین (به‌همراه تجهیزات و محصولات تکمیلی) برای Paste در حسابداری">📋 کپی کابین</button>
         <button class="small-btn" style="background:#fff;color:#1a5fb4;border-color:#1a5fb4;" onclick="bfCopyAccounting('${o.id}', this, 'floor')" title="کپی «شرح کالا (خلاصه)» ردیف‌های پنل طبقه برای Paste در حسابداری">📋 کپی طبقه</button>
         <button class="small-btn" style="background:#c0392b;color:#fff;border-color:#c0392b;" onclick="deleteSavedOrder('${o.id}')">🗑 حذف</button>`}

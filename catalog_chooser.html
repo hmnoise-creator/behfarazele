@@ -26,10 +26,22 @@
   .head h1{margin:0 0 6px;font-size:1.35rem;color:var(--teal);}
   .head p{margin:0;color:var(--muted);font-size:.9rem;}
 
-  .tabs{display:flex;gap:10px;margin:0 0 14px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:6px}
-  .tab{flex:1;border:0;background:transparent;border-radius:10px;padding:11px 12px;font:inherit;font-weight:800;font-size:.92rem;color:var(--teal);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
-  .tab .n{background:#eaf4f2;color:var(--teal);border-radius:999px;padding:1px 9px;font-size:.74rem}
-  .tab.on{background:var(--teal);color:#fff}.tab.on .n{background:rgba(255,255,255,.2);color:#fff}
+  /* [BF-CAT-TABS] تب‌های گرافیکی */
+  .tabs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0 0 16px}
+  .tab{position:relative;overflow:hidden;border:1.5px solid var(--line);background:#fff;border-radius:18px;padding:14px 16px;font:inherit;cursor:pointer;display:flex;align-items:center;gap:12px;text-align:right;color:var(--teal);transition:transform .15s,box-shadow .2s,border-color .2s;box-shadow:0 2px 8px rgba(15,61,58,.05)}
+  .tab:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(15,61,58,.12);border-color:#b9d7d2}
+  .tab .ti{flex:0 0 52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;background:linear-gradient(135deg,#eaf6f3,#d6efe9);transition:.2s}
+  .tab .tt{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .tab .tt b{font-size:1rem;font-weight:900}
+  .tab .tt small{font-size:.72rem;color:#6f8583;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tab .n{margin-right:auto;min-width:34px;height:34px;border-radius:12px;background:#eaf4f2;color:var(--teal);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.95rem}
+  .tab::after{content:"";position:absolute;inset:auto -40px -60px auto;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);opacity:0;transition:.2s}
+  .tab[data-tab="cat"].on{background:linear-gradient(135deg,#0f3d3a,#17807a);border-color:transparent}
+  .tab[data-tab="form"].on{background:linear-gradient(135deg,#3b2a7a,#6d4fd1);border-color:transparent}
+  .tab.on{color:#fff;box-shadow:0 12px 28px rgba(15,61,58,.25)}.tab.on::after{opacity:1}
+  .tab.on .ti{background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+  .tab.on .tt small{color:rgba(255,255,255,.78)}.tab.on .n{background:rgba(255,255,255,.2);color:#fff}
+  @media(max-width:560px){.tabs{gap:8px}.tab{padding:10px;gap:8px}.tab .ti{flex-basis:40px;height:40px;font-size:1.25rem;border-radius:12px}.tab .tt small{display:none}.tab .tt b{font-size:.86rem;white-space:nowrap}.tab .n{min-width:26px;height:26px;font-size:.8rem}}
 
   .search{position:relative;margin-bottom:14px}
   .search input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 40px 11px 14px;font:inherit;font-size:.9rem;background:#fff}
@@ -118,8 +130,8 @@
     </div>
 
     <div class="tabs" id="tabs">
-      <button type="button" class="tab on" data-tab="cat">📚 کاتالوگ‌ها <span class="n" id="nCat"></span></button>
-      <button type="button" class="tab" data-tab="form">📝 فرم‌های فنی <span class="n" id="nForm"></span></button>
+      <button type="button" class="tab on" data-tab="cat"><span class="ti">📚</span><span class="tt"><b>کاتالوگ‌ها</b><small>کاتالوگ محصولات · مشاهده و دانلود PDF</small></span><span class="n" id="nCat"></span></button>
+      <button type="button" class="tab" data-tab="form"><span class="ti">📝</span><span class="tt"><b>فرم‌های فنی</b><small>فرم کاراسلینگ · پشت‌برگ‌ها · فرم‌های داخلی</small></span><span class="n" id="nForm"></span></button>
     </div>
 
     <div class="search">

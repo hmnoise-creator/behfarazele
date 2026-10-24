@@ -4281,6 +4281,24 @@ h.style.setProperty('--mx',(x*100).toFixed(1)+'%');h.style.setProperty('--my',(y
 #bfSet .st-u .tg{font-size:.62rem;color:#7a8a88;display:block;font-weight:500}
 #bfSet .st-u .acts{display:flex;gap:4px}
 @media(max-width:520px){ #bfSet .st-row{grid-template-columns:1fr} #bfSet .st-u{grid-template-columns:1fr 1fr} #bfSet .st-u b{grid-column:1/-1} #bfSet .st-u .acts{grid-column:1/-1} }
+#bfSet .pu{border:1.5px solid #e3ecea;border-radius:14px;padding:10px 12px;margin-top:10px;background:#fbfdfd;transition:.15s}
+#bfSet .pu.off{background:#f6f6f6;opacity:.75}
+#bfSet .pu-hd{display:flex;align-items:center;gap:10px}
+#bfSet .pu-hd b{font-size:.88rem;color:#0f3d3a}#bfSet .pu-hd small{display:block;font-size:.68rem;color:#7a8a88;font-weight:600}
+#bfSet .pu-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#0f3d3a,#14b8a6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:0 0 34px}
+#bfSet .pu-full{margin-right:auto;font-size:.7rem;font-weight:800;color:#0f6e56;background:#e3f7ef;border-radius:20px;padding:4px 10px}
+#bfSet .pu-sw{margin:0 auto 0 0;display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.72rem}
+#bfSet .pu-sw input{display:none}#bfSet .pu-sw span{width:38px;height:21px;border-radius:20px;background:#cfd8d6;position:relative;transition:.15s}
+#bfSet .pu-sw span::after{content:"";position:absolute;top:2px;right:2px;width:17px;height:17px;border-radius:50%;background:#fff;transition:.15s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+#bfSet .pu-sw input:checked+span{background:#14b8a6}#bfSet .pu-sw input:checked+span::after{right:19px}#bfSet .pu-sw em{font-style:normal;font-weight:800;color:#0f3d3a}
+#bfSet .pu-acc{display:grid;grid-template-columns:1fr 1fr auto auto;gap:6px;margin-top:8px}#bfSet .pu-new .pu-acc{grid-template-columns:1fr 1fr 1fr auto}
+#bfSet .pu-acc input{padding:7px 9px;font-size:.78rem}
+#bfSet .pu-apps{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+#bfSet .pu-chip{border:1.5px solid #dbe5e3;background:#fff;color:#8a9998;border-radius:20px;padding:5px 10px;font:inherit;font-size:.72rem;font-weight:700;cursor:pointer;text-decoration:line-through}
+#bfSet .pu-chip.on{background:#e3f7ef;border-color:#14b8a6;color:#0f3d3a;text-decoration:none}
+#bfSet .pu-wh{display:flex;flex-wrap:wrap;gap:10px;margin-top:8px}#bfSet .pu-wh label{margin:0;display:flex;align-items:center;gap:6px;font-size:.74rem}
+#bfSet .pu-wh select{font:inherit;font-size:.74rem;padding:5px 8px;border:1.5px solid #dbe5e3;border-radius:9px;background:#fff}
+@media(max-width:620px){ #bfSet .pu-acc,#bfSet .pu-new .pu-acc{grid-template-columns:1fr 1fr} }
 </style>
 <script id="bfSettingsJs">
 /* ===== [BF-SETTINGS] تنظیمات حساب هر کاربر: نام کاربری ورود + رمز شخصی ===== */
@@ -4308,7 +4326,7 @@ h.style.setProperty('--mx',(x*100).toFixed(1)+'%');h.style.setProperty('--my',(y
           '<div class="st-note">حداقل ۴ کاراکتر. بعد از تغییر رمز، ورودِ شما روی دستگاه‌های دیگر بسته می‌شود.</div></div>' +
         '<div class="st-sec" style="background:#f7fbfa"><label for="stCur" style="margin-top:0">برای ذخیره، رمز فعلی را وارد کنید</label>' + eye('stCur') +
           '<div class="st-msg" id="stMsg"></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="st-btn" id="stSave">💾 ذخیرهٔ تغییرات</button><button type="button" class="st-btn ghost" data-close="1">انصراف</button></div></div>' +
-        (acc.canManage ? '<div class="st-sec" id="stUsers"><h4>👥 کاربران<small>تنظیم یا بازگردانی حساب دیگران</small></h4><div class="st-note">در حال بارگذاری…</div></div>' : '') +
+        (acc.canManage ? '<div class="st-sec" id="stUsers"><h4>👥 کاربران و دسترسی‌ها<small>ادمین و مدیریت</small></h4><div class="st-note">در حال بارگذاری…</div></div>' : '') +
       '</div></div>';
     document.body.appendChild(ov);
     const $ = id => ov.querySelector('#' + id), msg = (t, ok) => { const m = $('stMsg'); m.textContent = t; m.className = 'st-msg ' + (ok ? 'ok' : 'err'); };
@@ -4332,18 +4350,47 @@ h.style.setProperty('--mx',(x*100).toFixed(1)+'%');h.style.setProperty('--my',(y
     };
     if(acc.canManage) loadUsers(ov);
   };
+  /* [BF-PERMS] مدیریت کاربران و دسترسی‌ها — ادمین (نوری) و مدیریت (سیمنی) */
+  const APP_LBL = { panel:'🎛️ پنل آسانسور', motor:'⚙️ موتور گیرلس', wittur:'🛠️ ویتور', shakib:'🔩 شکیب', elevator:'🛗 محصولات آسانسور', factorplus:'🧾 فاکتور پلاس', hydraulic:'💧 هیدرولیک', attendance:'⏱️ ورود و خروج', catalog:'📚 کاتالوگ', showroom:'🏢 طراحی شاسی' };
+  const LVL = [['off','⛔ بدون دسترسی'],['view','👁 فقط مشاهده'],['edit','✏️ ثبت و ویرایش']];
   async function loadUsers(ov){
     const box = ov.querySelector('#stUsers'); if(!box) return;
+    ov.querySelector('.st-card').style.maxWidth = '820px';
     let d; try{ d = await api('/api/account/all'); }catch(e){ box.querySelector('.st-note').textContent = e.message; return; }
-    box.innerHTML = '<h4>👥 کاربران<small>تنظیم یا بازگردانی حساب دیگران</small></h4>' + d.users.map(u=>
-      '<div class="st-u" data-op="' + esc(u.name) + '"><b>' + esc(u.name) + '<span class="tg">' + (u.customPassword ? 'رمز شخصی' : 'رمز پیش‌فرض') + '</span></b>' +
-      '<input type="text" placeholder="نام کاربری" value="' + esc(u.username) + '" data-f="u"><input type="text" placeholder="رمز جدید (اختیاری)" data-f="p" autocomplete="off">' +
-      '<span class="acts"><button type="button" class="st-btn sm" data-a="save">ذخیره</button><button type="button" class="st-btn sm ghost" data-a="reset" title="بازگشت به نام و رمز پیش‌فرض">↺</button></span></div>').join('') +
+    const me = bfGetOperator() || {}, iAmAdmin = me.name === 'نوری';
+    const lvlSel = (k, v, dis) => '<select data-lv="'+k+'"'+(dis?' disabled':'')+'>' + LVL.map(x=>'<option value="'+x[0]+'"'+(x[0]===v?' selected':'')+'>'+x[1]+'</option>').join('') + '</select>';
+    box.innerHTML = '<h4>👥 کاربران و دسترسی‌ها<small>' + (iAmAdmin ? 'ادمین' : 'مدیریت') + ' — تغییرات دسترسی فوری ذخیره می‌شود</small></h4>' +
+      d.users.map(u=>{
+        const P = u.perms || {}, full = u.manager, lockAcc = u.admin && !iAmAdmin;
+        return '<div class="pu' + (P.active===false ? ' off' : '') + '" data-op="' + esc(u.name) + '">' +
+          '<div class="pu-hd"><span class="pu-av">' + esc(u.name.slice(0,1)) + '</span><div><b>' + esc(u.name) + '</b><small>' + (u.admin ? '👑 ادمین' : u.manager ? '⭐ مدیریت' : u.extra ? '🆕 کاربر جدید' : 'کاربر') + ' · ' + (u.customPassword ? 'رمز شخصی' : 'رمز پیش‌فرض') + '</small></div>' +
+            (full ? '<span class="pu-full">دسترسی کامل</span>' : '<label class="pu-sw"><input type="checkbox" data-act="1"' + (P.active!==false ? ' checked' : '') + '><span></span><em>' + (P.active!==false ? 'فعال' : 'غیرفعال') + '</em></label>') + '</div>' +
+          '<div class="pu-acc"><input type="text" placeholder="نام کاربری ورود" value="' + esc(u.username) + '" data-f="u"' + (lockAcc?' disabled':'') + '><input type="text" placeholder="رمز جدید (اختیاری)" data-f="p" autocomplete="off"' + (lockAcc?' disabled':'') + '>' +
+            '<button type="button" class="st-btn sm" data-a="save"' + (lockAcc?' disabled':'') + '>💾 حساب</button>' + (u.extra || lockAcc ? '' : '<button type="button" class="st-btn sm ghost" data-a="reset" title="بازگشت به نام و رمز پیش‌فرض">↺</button>') + '</div>' +
+          (full ? '' : '<div class="pu-apps">' + (d.apps||[]).map(k=>'<button type="button" class="pu-chip' + ((P.apps||{})[k]!==false ? ' on' : '') + '" data-app="' + k + '">' + (APP_LBL[k]||k) + '</button>').join('') + '</div>' +
+            '<div class="pu-wh"><label>📦 انبار ' + lvlSel('anbar', P.anbar) + '</label><label>🏷️ فروش انبار ' + lvlSel('anbarSale', P.anbarSale) + '</label></div>') +
+        '</div>';
+      }).join('') +
+      '<div class="pu pu-new"><div class="pu-hd"><span class="pu-av">➕</span><div><b>تعریف کاربر جدید</b><small>نام (روی پیش‌فاکتورها)، نام کاربری ورود و رمز — دسترسی‌ها را بعد از ساخت تنظیم کنید</small></div></div>' +
+        '<div class="pu-acc"><input type="text" placeholder="نام کاربر *" data-n="name"><input type="text" placeholder="نام کاربری ورود (اختیاری)" data-n="user"><input type="text" placeholder="رمز * (حداقل ۴ کاراکتر)" data-n="pass" autocomplete="off"><button type="button" class="st-btn sm" data-a="create">➕ ساخت کاربر</button></div></div>' +
       '<div class="st-msg" id="stUMsg"></div>';
+    const m = box.querySelector('#stUMsg'), set = (t, ok) => { m.textContent = t; m.className = 'st-msg ' + (ok ? 'ok' : 'err'); };
+    async function savePerm(row, patch){ const op = row.dataset.op;
+      try{ await api('/api/perms/set', { operator:op, perms:patch }); set('✓ دسترسی «' + op + '» ذخیره شد', true); }catch(err){ set(err.message); loadUsers(ov); } }
+    box.onchange = e=>{
+      const row = e.target.closest('.pu'); if(!row || row.classList.contains('pu-new')) return;
+      if(e.target.dataset.act){ const on = e.target.checked; row.classList.toggle('off', !on); row.querySelector('.pu-sw em').textContent = on ? 'فعال' : 'غیرفعال'; savePerm(row, { active:on }); return; }
+      if(e.target.dataset.lv){ savePerm(row, { [e.target.dataset.lv]: e.target.value }); return; }
+    };
     box.onclick = async e=>{
-      const b = e.target.closest('button[data-a]'); if(!b) return; const row = b.closest('.st-u'), op = row.dataset.op, m = box.querySelector('#stUMsg');
-      const set = (t, ok) => { m.textContent = t; m.className = 'st-msg ' + (ok ? 'ok' : 'err'); };
+      const c = e.target.closest('[data-app]');
+      if(c){ const row = c.closest('.pu'); c.classList.toggle('on'); savePerm(row, { apps:{ [c.dataset.app]: c.classList.contains('on') } }); return; }
+      const b = e.target.closest('button[data-a]'); if(!b) return; const row = b.closest('.pu');
       try{
+        if(b.dataset.a==='create'){ const g = k => row.querySelector('[data-n='+k+']').value.trim();
+          if(!g('name')){ set('نام کاربر را بنویسید'); return; } if(g('pass').length < 4){ set('رمز حداقل ۴ کاراکتر'); return; }
+          await api('/api/account/create', { name:g('name'), username:g('user'), password:g('pass') }); set('✓ کاربر «' + g('name') + '» ساخته شد', true); loadUsers(ov); return; }
+        const op = row.dataset.op;
         if(b.dataset.a==='reset'){ if(!confirm('نام کاربری و رمز «' + op + '» به حالت پیش‌فرض برگردد؟')) return; await api('/api/account/manage', { operator:op, reset:true }); set('✓ حساب «' + op + '» به پیش‌فرض برگشت', true); }
         else { const u = row.querySelector('[data-f=u]').value.trim(), p = row.querySelector('[data-f=p]').value; const body = { operator:op };
           const cur = d.users.find(x=>x.name===op); if(u && u !== cur.username) body.username = u; if(p) body.newPassword = p;
@@ -4554,6 +4601,30 @@ bfAutoSeqInit({product:'factorplus',seqEl:function(){return null},buttons:null})
       .then(function(r){return r.json()}).then(function(d){if(d&&d.autoIn)window.bfAttNote('✅ خوش برگشتید — ورود شما دوباره خودکار ثبت شد')}).catch(function(){});}
   setTimeout(ping,4000);setInterval(ping,60000);
   document.addEventListener('visibilitychange',function(){if(!document.hidden){mark();ping()}});
+})();
+</script>
+<script id="bfPermsJs">
+/* [BF-PERMS] اعمال دسترسی‌ها در صفحهٔ اصلی: کارت محصولات/انبار/فروش انبار طبق تنظیمات ادمین و مدیریت */
+(function(){
+  var MAP={panel:'panel',motor:'motor',wittur:'wittur',shakib:'shakib',elevator:'elevator',hydraulic:'hydraulic',attendance:'attendance',catalog:'catalog',showroom:'showroom'};
+  window.BF_PERMS=null;
+  function tok(){try{var o=JSON.parse(sessionStorage.getItem('bf_operator_session_v1')||'null');return o&&o.token||''}catch(e){return ''}}
+  function appOK(k){var P=window.BF_PERMS;return !P||!P.apps||P.apps[k]!==false}
+  function apply(){var P=window.BF_PERMS;
+    Object.keys(MAP).forEach(function(k){[].forEach.call(document.querySelectorAll('.choice-card[onclick="openApp(\''+k+'\')"]'),function(c){c.style.display=appOK(k)?'':'none'})});
+    [].forEach.call(document.querySelectorAll('.choice-card[onclick="openFactorPlus()"]'),function(c){c.style.display=appOK('factorplus')?'':'none'});
+    var w=document.getElementById('homeWhCard');if(w)w.style.display=bfWhAllowed()?'':'none';
+    var s=document.getElementById('homeWsCard');if(s)s.style.display=bfWsAllowed()?'':'none';}
+  window.bfApplyPerms=apply;
+  window.bfLoadPerms=function(){var t=tok();if(!t||location.protocol==='file:'){window.BF_PERMS=null;apply();return Promise.resolve()}
+    return fetch('/api/perms/me',{headers:{'x-operator-token':t},cache:'no-store'}).then(function(r){return r.ok?r.json():null}).then(function(d){window.BF_PERMS=d&&d.ok?d.perms:null;apply()}).catch(function(){})};
+  var _wh=bfWhAllowed;bfWhAllowed=function(){var P=window.BF_PERMS;return P?P.anbar!=='off':_wh()};
+  var _ws=bfWsAllowed;bfWsAllowed=function(){var P=window.BF_PERMS;return P?P.anbarSale!=='off':_ws()};
+  var _oa=openApp;openApp=function(key){if(MAP[key]&&!appOK(key)){alert('دسترسی به این بخش برای شما فعال نیست — با مدیریت تماس بگیرید');return}return _oa.apply(this,arguments)};window.openApp=openApp;
+  if(typeof openFactorPlus==='function'){var _fp=openFactorPlus;openFactorPlus=function(){if(!appOK('factorplus')){alert('دسترسی به فاکتور پلاس برای شما فعال نیست');return}return _fp.apply(this,arguments)};window.openFactorPlus=openFactorPlus}
+  var _am=bfApplyMgmtAccess;bfApplyMgmtAccess=function(){var r=_am.apply(this,arguments);try{apply();window.bfLoadPerms()}catch(e){}return r};
+  setTimeout(function(){window.bfLoadPerms()},300);
+  setInterval(function(){if(!document.hidden)window.bfLoadPerms()},120000);
 })();
 </script>
 </body>

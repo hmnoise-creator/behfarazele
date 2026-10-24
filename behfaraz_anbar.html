@@ -603,16 +603,43 @@ body.bf-ro [data-cpo],body.bf-ro [data-cpr],body.bf-ro [data-cpi],body.bf-ro [da
   </form>
 </div>
 <script>
+/* [BF-WH-GATE] رمز روی سرور چک می‌شود (POST /api/warehouse/unlock)؛ توکن انبار در همین تب نگه داشته می‌شود.
+   فقط وقتی سرور در دسترس نیست (باز کردن مستقیم فایل / نسخهٔ آنلاین بدون سرور) رمز به‌صورت محلی چک می‌شود. */
 (function(){
-  var KEY='bf_wh_gate_ok_v1', PASS='Aa', g=document.getElementById('bfWhGate');
+  var KEY='bf_wh_gate_ok_v1', TK='bf_wh_token_v1', g=document.getElementById('bfWhGate');
+  function hs(s){var x=5381;for(var i=0;i<s.length;i++)x=((x*33)^s.charCodeAt(i))>>>0;return x.toString(36)}
+  function opTok(){try{var o=JSON.parse(sessionStorage.getItem('bf_operator_session_v1')||localStorage.getItem('bf_operator_session_v1')||'null');return o&&o.token||''}catch(e){return ''}}
+  window.bfWhToken=function(){try{return sessionStorage.getItem(TK)||''}catch(e){return ''}};
+  window.bfWhRelock=function(){try{sessionStorage.removeItem(KEY);sessionStorage.removeItem(TK)}catch(e){}location.reload()};
   try{ if(sessionStorage.getItem(KEY)==='1'){ g.remove(); return; } }catch(e){}
   document.documentElement.style.overflow='hidden';
-  var p=document.getElementById('bfWhGateP'); setTimeout(function(){ p.focus(); },50);
+  var p=document.getElementById('bfWhGateP'),E=document.getElementById('bfWhGateE'),B=g.querySelector('button[type=submit]'); setTimeout(function(){ p.focus(); },50);
+  function ok(t){ try{ sessionStorage.setItem(KEY,'1'); if(t) sessionStorage.setItem(TK,t); }catch(x){} document.documentElement.style.overflow=''; g.remove(); if(t&&window.bfWhPullNow) window.bfWhPullNow(); }
+  function bad(m){ E.textContent=m||'رمز اشتباه است'; p.value=''; p.focus(); B.disabled=false; }
+  function local(v){ if(hs('bfwh|'+v)==='w9ecn6') ok(''); else bad(); }
   document.getElementById('bfWhGateF').addEventListener('submit',function(e){
-    e.preventDefault();
-    if(p.value===PASS){ try{ sessionStorage.setItem(KEY,'1'); }catch(x){} document.documentElement.style.overflow=''; g.remove(); }
-    else { document.getElementById('bfWhGateE').textContent='رمز اشتباه است'; p.value=''; p.focus(); }
+    e.preventDefault(); var v=p.value; if(!v){ bad('رمز را وارد کنید'); return; }
+    if(location.protocol==='file:'){ local(v); return; }
+    B.disabled=true; E.textContent='⏳ بررسی رمز…';
+    var h={'Content-Type':'application/json'},t=opTok(); if(t) h['x-operator-token']=t;
+    fetch('/api/warehouse/unlock',{method:'POST',headers:h,body:JSON.stringify({pass:v}),cache:'no-store'}).then(function(r){
+      return r.json().catch(function(){return {}}).then(function(d){
+        if(r.ok&&d.whToken) return ok(d.whToken);
+        if(r.status===403||r.status===429) return bad(d.error);
+        if(r.status===401) return bad('اول از صفحهٔ اصلی سامانه وارد شوید');
+        local(v); /* سرور قدیمی یا بدون سرور */
+      });
+    }).catch(function(){ local(v); });
   });
+})();
+/* [BF-SALE-LOGO] لوگوی فروش انبار روی تب «فروش» و آیکون مرورگر وقتی از کارت «فروش انبار» باز شده */
+(function(){
+  var L="data:image/png;base64,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";
+  var st=document.createElement('style');st.textContent='nav button[data-t="sale"] .bf-sale-logo{width:24px;height:24px;vertical-align:middle;margin-left:7px;display:inline-block;background:#fff;border-radius:50%;padding:2px;box-sizing:border-box;box-shadow:0 1px 4px rgba(0,0,0,.18)}';document.head.appendChild(st);
+  var n=0,iv=setInterval(function(){n++;var b=document.querySelector('nav button[data-t="sale"]');
+    if(b&&!b.querySelector('.bf-sale-logo')){var im=document.createElement('img');im.className='bf-sale-logo';im.src=L;im.alt='';var t=b.querySelector('.tl2');b.insertBefore(im,t||b.firstChild);clearInterval(iv)}
+    if(n>80)clearInterval(iv)},150);
+  try{if(new URLSearchParams(location.search).get('tab')==='sale'){var f=document.querySelector('link[rel="icon"]');if(f)f.href=L;document.title='فروش انبار بهفراز'}}catch(e){}
 })();
 </script>
 <div class="wrap">
@@ -4613,7 +4640,7 @@ try{finDB();renderSheet()}catch(e){console.error(e)}
   try{var bb=JSON.parse(localStorage.getItem(BASE_KEY)||'null');if(bb&&bb.rev){base=bb.data;rev=bb.rev}}catch(e){}
   try{dirty=localStorage.getItem(DIRTY_KEY)==='1'}catch(e){}
   function tok(){try{var o=bfWhOperator();return o&&o.token||''}catch(e){return ''}}
-  function hdr(){var h={'Content-Type':'application/json'},t=tok();if(t)h['x-operator-token']=t;return h}
+  function hdr(){var h={'Content-Type':'application/json'},t=tok();if(t)h['x-operator-token']=t;var w=window.bfWhToken&&window.bfWhToken();if(w)h['x-wh-token']=w;return h}
   function setBase(r,d){rev=r;base=d;try{localStorage.setItem(BASE_KEY,JSON.stringify({rev:r,data:d}))}catch(e){try{localStorage.removeItem(BASE_KEY)}catch(_){}}}
   function setDirty(v){dirty=v;try{localStorage.setItem(DIRTY_KEY,v?'1':'0')}catch(e){}}
   /* --- چیپ وضعیت --- */
@@ -4662,7 +4689,7 @@ try{finDB();renderSheet()}catch(e){console.error(e)}
   function normalize(d){var b=freshDB();for(var k in b){if(d[k]===undefined)d[k]=b[k]}try{migrateCats(d)}catch(e){}d.seq=Object.assign({in:0,out:0},d.seq);d.settings=Object.assign({user:'',lastBackup:0},d.settings);try{CUST_SUP=(Array.isArray(d.suppliers)?d.suppliers:[]).map(function(x){return String(x||'').trim()}).filter(function(x,i,a){return x&&SUPPLIER_SEEDS.indexOf(x)<0&&x!=='پرهام صنعت'&&a.indexOf(x)===i});d.suppliers=SUPPLIER_SEEDS.concat(CUST_SUP)}catch(e){}return d}
   function busyUI(){return !!(document.getElementById('modalRoot')&&document.getElementById('modalRoot').innerHTML.trim())||curTab==='in'||curTab==='out'||curTab==='sale'}
   function render(){
-    if(busyUI()){pendingRender=true;return}
+    if(busyUI()){pendingRender=true;try{updateHeader()}catch(e){}return}
     pendingRender=false;
     try{refreshDatalists()}catch(e){}try{renderSupChips()}catch(e){}try{updateHeader()}catch(e){}
     try{$('iNo').value=nextInNo();$('xNo').value=nextOutNo()}catch(e){}
@@ -4675,6 +4702,7 @@ try{finDB();renderSheet()}catch(e){console.error(e)}
     return fetch('/api/warehouse'+(started&&!force?'?rev='+rev:''),{headers:hdr(),cache:'no-store'}).then(function(r){return r.json().then(function(d){return {st:r.status,d:d}})}).then(function(x){
       busy=false;
       if(x.st===401){online=false;show();chip.textContent='🔒 برای اتصال به سرور از صفحهٔ اصلی وارد شوید';return}
+      if(x.st===423){online=false;show();chip.textContent='🔒 رمز انبار لازم است — کلیک کنید';chip.onclick=function(){window.bfWhRelock&&window.bfWhRelock()};if(!document.getElementById('bfWhGate')){window.bfWhRelock&&window.bfWhRelock()}return}
       if(!x.d||!x.d.ok)throw new Error(x.d&&x.d.error||'err');
       online=true;canWrite=!!x.d.canWrite;var first=!started;started=true;if(!canWrite&&dirty)setDirty(false);
       if(x.d.same){if(dirty&&canWrite)push();show();return}
@@ -4697,6 +4725,7 @@ try{finDB();renderSheet()}catch(e){console.error(e)}
     fetch('/api/warehouse',{method:'PUT',headers:hdr(),body:JSON.stringify({baseRev:rev,data:sent})}).then(function(r){return r.json().then(function(d){return {st:r.status,d:d}})}).then(function(x){
       busy=false;online=true;
       if(x.st===409&&x.d&&x.d.conflict){var m=merge3(base,DB,x.d.data||freshDB());setBase(x.d.rev,x.d.data);DB=normalize(m);try{__lsSave()}catch(e){}render();setDirty(true);setTimeout(push,50);return}
+      if(x.st===423){busy=false;online=false;show();return}
       if(x.st===403){canWrite=false;setDirty(false);show();return}
       if(!x.d||!x.d.ok)throw new Error('err');
       setBase(x.d.rev,sent);if(same(sent,DB))setDirty(false);else{clearTimeout(timer);timer=setTimeout(push,300)}
@@ -4710,6 +4739,7 @@ try{finDB();renderSheet()}catch(e){console.error(e)}
   window.save=save;var syncing=false;
   /* اگر صفحه در حال کار بود و دادهٔ تازه رسید، بعد از رفتن به تب دیگر/بستن پنجره نمایش داده شود */
   var _go=go;go=function(t){var r=_go.apply(this,arguments);if(pendingRender&&!busyUI()){pendingRender=false;setTimeout(render,0)}return r};window.go=go;
+  window.bfWhPullNow=function(){pull(true)};
   setInterval(function(){if(!document.hidden)pull(false)},15000);
   window.addEventListener('focus',function(){pull(false)});
   window.addEventListener('beforeunload',function(){if(dirty&&canWrite){try{fetch('/api/warehouse',{method:'PUT',headers:hdr(),body:JSON.stringify({baseRev:rev,data:DB}),keepalive:true})}catch(e){}}});

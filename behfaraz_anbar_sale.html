@@ -1031,7 +1031,7 @@ function specText(cat,f){return specParts(cat,f).concat(f.bser?['سریال '+f.
 function lotKey(cat,f,unit){return (f&&f.amani?'am:':'')+(f&&f.asup?'as:'+norm(f.asup)+':':'')+(f&&f.bser?'bs:'+nser(f.bser)+':':'')+cat+'|'+['brand','size','model','type','name','spec'].map(function(k){return norm(f[k]||'')}).join('|')+'|'+norm(unit||'')+(f.for?'|f:'+norm(f.for):'')+(f.company?'|c:'+norm(f.company):'')+(f.project?'|p:'+norm(f.project):'')+(f.parent?'|pr:'+nser(f.parent):'')+(f.wh?'|w:'+f.wh:'')}
 
 /* ====================== ذخیره‌سازی ====================== */
-var LS_KEY='behfaraz_anbar_v1', memOnly=false;
+var LS_KEY='behfaraz_anbar_sale_v1', memOnly=false; /* [BF-WHS] دادهٔ فروش انبار کاملاً جدا از انبار */
 function freshDB(){return {v:1,cap:{items:[],moves:[]},receipts:[],units:[],lots:[],exits:[],log:[],audit:[],seq:{in:0,out:0},settings:{user:'',lastBackup:0},suppliers:SUPPLIER_SEEDS.slice(),hidden:[],fin:{pays:[]},sales:[]}}
 
 /* انتقال داده‌های قدیمی: «کالای خاص» حذف شد و به «لوازم راه‌اندازی» منتقل می‌شود */
@@ -4591,7 +4591,7 @@ try{finDB();renderSheet()}catch(e){console.error(e)}
    - هر ۱۵ ثانیه تغییرات بقیه دریافت می‌شود. اگر سرور قطع باشد، کار در همین مرورگر ادامه پیدا می‌کند و بعد از وصل شدن خودکار ارسال می‌شود. */
 (function(){
   if(location.protocol==='file:')return;
-  var BASE_KEY='behfaraz_anbar_srvbase_v1',DIRTY_KEY='behfaraz_anbar_dirty_v1';
+  var BASE_KEY='behfaraz_anbar_sale_srvbase_v1',DIRTY_KEY='behfaraz_anbar_sale_dirty_v1';
   var base=null,rev=0,dirty=false,busy=false,timer=0,online=null,canWrite=false,pendingRender=false,started=false;
   try{var bb=JSON.parse(localStorage.getItem(BASE_KEY)||'null');if(bb&&bb.rev){base=bb.data;rev=bb.rev}}catch(e){}
   try{dirty=localStorage.getItem(DIRTY_KEY)==='1'}catch(e){}
@@ -4655,14 +4655,14 @@ try{finDB();renderSheet()}catch(e){console.error(e)}
   /* --- دریافت از سرور --- */
   function pull(force){
     if(busy)return Promise.resolve();busy=true;
-    return fetch('/api/warehouse'+(started&&!force?'?rev='+rev:''),{headers:hdr(),cache:'no-store'}).then(function(r){return r.json().then(function(d){return {st:r.status,d:d}})}).then(function(x){
+    return fetch('/api/warehouse-sale'+(started&&!force?'?rev='+rev:''),{headers:hdr(),cache:'no-store'}).then(function(r){return r.json().then(function(d){return {st:r.status,d:d}})}).then(function(x){
       busy=false;
       if(x.st===401){online=false;show();chip.textContent='🔒 برای اتصال به سرور از صفحهٔ اصلی وارد شوید';return}
       if(x.st===423){online=false;show();chip.textContent='🔒 رمز انبار لازم است — کلیک کنید';chip.onclick=function(){window.bfWhRelock&&window.bfWhRelock()};if(!document.getElementById('bfWhGate')){window.bfWhRelock&&window.bfWhRelock()}return}
       if(!x.d||!x.d.ok)throw new Error(x.d&&x.d.error||'err');
       online=true;canWrite=!!x.d.canWrite;var first=!started;started=true;if(!canWrite&&dirty)setDirty(false);
       /* [BF-WH-RESET] سرور انبار پاک‌سازی شده: دادهٔ قدیمی این مرورگر هم پاک و صفحه از نو بارگذاری می‌شود */
-      if(x.d.data&&x.d.data.resetId){var RK='behfaraz_anbar_reset_id',lr='';try{lr=localStorage.getItem(RK)||''}catch(e){}
+      if(x.d.data&&x.d.data.resetId){var RK='behfaraz_anbar_sale_reset_id',lr='';try{lr=localStorage.getItem(RK)||''}catch(e){}
         if(lr!==x.d.data.resetId){try{localStorage.setItem(RK,x.d.data.resetId);localStorage.removeItem(LS_KEY);localStorage.removeItem(BASE_KEY);localStorage.setItem(DIRTY_KEY,'0')}catch(e){}dirty=false;canWrite=false;try{save=function(){}}catch(e){}location.reload();return}}
       if(x.d.same){if(dirty&&canWrite)push();show();return}
       if(!x.d.data){ /* سرور هنوز خالی است: دادهٔ این سیستم اولین نسخهٔ سرور می‌شود */
@@ -4681,7 +4681,7 @@ try{finDB();renderSheet()}catch(e){console.error(e)}
     if(!canWrite||!dirty)return;
     if(busy){clearTimeout(timer);timer=setTimeout(push,700);return}
     busy=true;var sent=clone(DB);show();
-    fetch('/api/warehouse',{method:'PUT',headers:hdr(),body:JSON.stringify({baseRev:rev,data:sent})}).then(function(r){return r.json().then(function(d){return {st:r.status,d:d}})}).then(function(x){
+    fetch('/api/warehouse-sale',{method:'PUT',headers:hdr(),body:JSON.stringify({baseRev:rev,data:sent})}).then(function(r){return r.json().then(function(d){return {st:r.status,d:d}})}).then(function(x){
       busy=false;online=true;
       if(x.st===409&&x.d&&x.d.conflict){var m=merge3(base,DB,x.d.data||freshDB());setBase(x.d.rev,x.d.data);DB=normalize(m);try{__lsSave()}catch(e){}render();setDirty(true);setTimeout(push,50);return}
       if(x.st===423){busy=false;online=false;show();return}
@@ -4701,7 +4701,7 @@ try{finDB();renderSheet()}catch(e){console.error(e)}
   window.bfWhPullNow=function(){pull(true)};
   setInterval(function(){if(!document.hidden)pull(false)},15000);
   window.addEventListener('focus',function(){pull(false)});
-  window.addEventListener('beforeunload',function(){if(dirty&&canWrite){try{fetch('/api/warehouse',{method:'PUT',headers:hdr(),body:JSON.stringify({baseRev:rev,data:DB}),keepalive:true})}catch(e){}}});
+  window.addEventListener('beforeunload',function(){if(dirty&&canWrite){try{fetch('/api/warehouse-sale',{method:'PUT',headers:hdr(),body:JSON.stringify({baseRev:rev,data:DB}),keepalive:true})}catch(e){}}});
   window.bfWhSyncNow=function(){return pull(true)};
   pull(true);
 })();

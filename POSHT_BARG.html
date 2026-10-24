@@ -3048,6 +3048,8 @@ function renderTouch(panel){
   }
   function touchEquipDisabled(it, isPicked){
     const lbl = it.label || '';
+    // [BF-TG-CARD] همهٔ لمسی‌های سری TG (TG250 / TG350 / TG450): کدینگ کارتی تک، ۸ و ۱۰ خروجی غیرفعال
+    if(/^TG/.test(touchModel||'') && /^کدینگ کارتی\s*(تک|8|10)\s*خروجی\s*$/.test(lbl.trim())) return true;
     // ---- قوانین مخصوص AK300 و 1MD ----
     if(touchModel==='AK300' || touchModel==='1MD'){
       // روش نصب: AK300 فقط «نصب کشویی (استاندارد)»؛ 1MD همهٔ روش‌های نصب غیرفعال (فقط قاب پشت فعال)

@@ -4932,6 +4932,7 @@ setInterval(function(){try{updSaleBadge()}catch(e){}},4000);
 function cands(){var rm=rMap(),R=[],T=toks(SQ.q);
   function push(o,isU){var f=o.f||{};if(isAm(o)||f.wh==='misc')return;if(SQ.cat&&o.cat!==SQ.cat)return;
     var inf=xInfo(o.cat,f,o.rid),wh=f.wh==='shakib'?'shk':f.wh==='a110'?'a110':'bf',sup=canonSup((rm[o.rid]||{}).supplier||'');
+    if(sup==='سنا پنل')return; /* [BF-SALE2] سنا فقط برای انبار است، نه فروش انبار */
     if(T.length&&!hit([inf.title,inf.sub,isU?o.serial:'',specText(o.cat,f),CATS[o.cat].name,sup].join(' '),T))return;
     R.push({k:isU?'u':'l',o:o,id:isU?o.id:o.key,wh:wh,sold:!!f.company,title:inf.title,sub:inf.sub,serial:isU?o.serial:(f.bser||''),qty:isU?1:o.rem,unit:isU?'عدد':o.unit,sup:sup,co:f.company||'',pj:f.project||''})}
   DB.units.forEach(function(u){if(u.status==='in')push(u,true)});
@@ -5141,6 +5142,8 @@ function mtypeUI(){if(curTab!=='in'||inCat!=='motor')return;var ed=$('inEditor')
   function vis(){var bi=ed.querySelector('input[data-lf=brand]'),b=String((bi&&bi.value)||inVals.brand||'');var on=/داینا|dyna|جنتل|gentle/i.test(b)||(!b&&(inTile==='motorG'||isShk()));cell.style.display=on?'':'none';if(!on&&inVals.mtype){inVals.mtype='';inp.value='';[].forEach.call(g.children,function(x){x.classList.remove('on')})}}
   vis();var bi=ed.querySelector('input[data-lf=brand]');if(bi){bi.addEventListener('input',vis);bi.addEventListener('change',vis)}
   ed.__mtVis=vis;if(!ed.__mtL){ed.__mtL=1;ed.addEventListener('click',function(){setTimeout(function(){try{var i2=ed.querySelector('input[data-lf=mtype]');if(i2&&ed.__mtVis)ed.__mtVis()}catch(e){}},0)})}}
+/* سنا پنل فقط در «انبار» است — در فروش انبار نمایش داده نمی‌شود */
+var _sbiSN=sbItems;sbItems=function(){return _sbiSN.apply(this,arguments).filter(function(it){return canonSup(it.sup||'')!=='سنا پنل'})};window.sbItems=sbItems;
 var _rifSB=renderInForm;renderInForm=function(){var r=_rifSB.apply(this,arguments);try{mtypeUI()}catch(e){console.error(e)}return r};window.renderInForm=renderInForm;
 try{renderMiscWh()}catch(e){}updSaleBadge();
 })();

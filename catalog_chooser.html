@@ -3,14 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- [BF-ICON] آیکون بهفراز برای «افزودن به صفحهٔ اصلی» در آیفون / اندروید -->
-<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="apple-mobile-web-app-title" content="بهفراز">
-<meta name="theme-color" content="#0f3d3a">
-
-<title>کاتالوگ محصولات | بهفراز گروپ</title>
+<title>کاتالوگ و فرم‌های فنی | بهفراز گروپ</title>
 <style>
   :root{
     --teal:#0f3d3a;
@@ -21,250 +14,278 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
-  body{
-    font-family:"Vazirmatn","Tahoma",sans-serif;
-    background:var(--bg);
-    min-height:100vh;
-    padding:22px;
-  }
-  .wrap{ width:100%; max-width:900px; margin:0 auto; }
-  .head{ text-align:center; margin-bottom:26px; }
-  .head h1{ margin:0 0 6px; font-size:1.35rem; color:var(--teal); }
-  .head p{ margin:0; color:var(--muted); font-size:.9rem; }
+  body{font-family:"Vazirmatn","Tahoma",sans-serif;background:var(--bg);min-height:100vh;padding:22px;}
+  .wrap{width:100%;max-width:960px;margin:0 auto;}
+  .head{text-align:center;margin-bottom:18px;}
+  .head h1{margin:0 0 6px;font-size:1.35rem;color:var(--teal);}
+  .head p{margin:0;color:var(--muted);font-size:.9rem;}
 
-  .cat-list{ display:flex; flex-direction:column; gap:14px; }
-  .cat-card{
-    background:#fff; border:1.5px solid var(--line); border-radius:14px;
-    padding:18px 20px; display:flex; align-items:center; gap:16px;
-    flex-wrap:wrap; transition:box-shadow .15s ease, border-color .15s ease;
-  }
-  .cat-card:hover{ border-color:var(--teal); box-shadow:0 6px 18px rgba(15,61,58,.10); }
-  .cat-icon{
-    width:52px; height:52px; border-radius:50%; flex:0 0 auto;
-    display:flex; align-items:center; justify-content:center;
-    background:linear-gradient(135deg,var(--teal),var(--teal2)); color:#fff; font-size:22px;
-  }
-  .cat-icon svg{ width:26px; height:26px; }
-  .cat-icon img{ width:34px; height:34px; object-fit:contain; }
-  .cat-body{ flex:1 1 220px; min-width:180px; }
-  .cat-body h2{ margin:0 0 4px; font-size:1rem; color:#1a2b29; }
-  .cat-body p{ margin:0; font-size:.8rem; color:var(--muted); word-break:break-all; }
-  .cat-actions{ display:flex; gap:8px; flex:0 0 auto; flex-wrap:wrap; }
-  .cat-btn{
-    border:1.5px solid var(--line); background:#fff; color:var(--teal);
-    border-radius:9px; padding:8px 14px; font-size:.8rem; font-weight:700;
-    cursor:pointer; font-family:inherit; white-space:nowrap; transition:.15s;
-  }
-  .cat-btn.primary{ background:var(--teal); color:#fff; border-color:var(--teal); }
-  .cat-btn.primary:hover{ background:var(--teal2); }
-  .cat-btn:not(.primary):hover{ border-color:var(--teal); background:#eaf4f2; }
-  .cat-btn.copied{ background:#0f6e56; color:#fff; border-color:#0f6e56; }
+  .tabs{display:flex;gap:10px;margin:0 0 14px;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:6px}
+  .tab{flex:1;border:0;background:transparent;border-radius:10px;padding:11px 12px;font:inherit;font-weight:800;font-size:.92rem;color:var(--teal);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  .tab .n{background:#eaf4f2;color:var(--teal);border-radius:999px;padding:1px 9px;font-size:.74rem}
+  .tab.on{background:var(--teal);color:#fff}.tab.on .n{background:rgba(255,255,255,.2);color:#fff}
 
-  .viewer{
-    display:none; margin-top:22px; background:#fff; border:1.5px solid var(--line);
-    border-radius:14px; overflow:hidden;
-  }
-  .viewer.show{ display:block; }
-  .viewer-bar{
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-    padding:10px 16px; background:var(--teal); color:#fff; flex-wrap:wrap;
-  }
-  .viewer-bar .t{ font-size:.88rem; font-weight:700; }
-  .viewer-bar .acts{ display:flex; gap:8px; }
-  .viewer-bar button, .viewer-bar a{
-    background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.35); color:#fff;
-    border-radius:8px; padding:6px 12px; font-size:.78rem; cursor:pointer;
-    font-family:inherit; text-decoration:none; display:inline-block;
-  }
-  .viewer-bar button:hover, .viewer-bar a:hover{ background:rgba(255,255,255,.28); }
-  .viewer iframe{ width:100%; height:70vh; border:none; display:block; }
+  .search{position:relative;margin-bottom:14px}
+  .search input{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:11px 40px 11px 14px;font:inherit;font-size:.9rem;background:#fff}
+  .search input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(15,61,58,.12)}
+  .search .ic{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .search .clr{position:absolute;left:10px;top:50%;transform:translateY(-50%);border:0;background:#eef2f1;border-radius:8px;padding:3px 9px;cursor:pointer;font:inherit;font-size:.75rem;display:none}
 
-  .toast{
-    position:fixed; bottom:22px; left:50%; transform:translateX(-50%) translateY(20px);
-    background:#0f3d3a; color:#fff; padding:10px 18px; border-radius:10px; font-size:.82rem;
-    opacity:0; pointer-events:none; transition:opacity .2s ease, transform .2s ease; z-index:50;
-  }
-  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:-4px 0 14px}
+  .chip{border:1.5px solid var(--line);background:#fff;color:var(--teal);border-radius:999px;padding:6px 14px;font:inherit;font-size:.8rem;font-weight:700;cursor:pointer}
+  .chip.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+
+  .grp-t{margin:16px 0 8px;font-size:.9rem;font-weight:800;color:var(--teal2);display:flex;align-items:center;gap:8px}
+  .grp-t small{color:var(--muted);font-weight:600}
+
+  .cat-list{display:flex;flex-direction:column;gap:12px;}
+  .cat-card{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;transition:box-shadow .15s ease,border-color .15s ease;}
+  .cat-card:hover{border-color:var(--teal);box-shadow:0 6px 18px rgba(15,61,58,.10);}
+  .cat-icon{width:52px;height:52px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;background:#fff;}
+  .cat-icon img{width:34px;height:34px;object-fit:contain;}
+  .thumb{width:64px;height:80px;border:1px solid var(--line);border-radius:8px;flex:0 0 auto;background:#fff center/contain no-repeat;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+  .thumb.land{width:84px;height:60px}
+  .cat-body{flex:1 1 220px;min-width:180px;}
+  .cat-body h2{margin:0 0 4px;font-size:1rem;color:#1a2b29;}
+  .cat-body p{margin:0;font-size:.8rem;color:var(--muted);}
+  .cat-body .fn{font-size:.72rem;color:#8a9896;direction:ltr;text-align:right;margin-top:3px}
+  .cat-actions{display:flex;gap:8px;flex:0 0 auto;flex-wrap:wrap;}
+  .cat-btn{border:1.5px solid var(--line);background:#fff;color:var(--teal);border-radius:9px;padding:8px 13px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;transition:.15s;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+  .cat-btn.primary{background:var(--teal);color:#fff;border-color:var(--teal);}
+  .cat-btn.primary:hover{background:var(--teal2);}
+  .cat-btn:not(.primary):hover{border-color:var(--teal);background:#eaf4f2;}
+  .cat-btn.copied{background:#0f6e56;color:#fff;border-color:#0f6e56;}
+  mark{background:#ffe680;border-radius:3px;padding:0 1px}
+  .empty{background:#fff;border:1.5px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--muted);font-size:.86rem}
+
+  .viewer{display:none;margin-top:22px;background:#fff;border:1.5px solid var(--line);border-radius:14px;overflow:hidden;}
+  .viewer.show{display:block;}
+  .viewer-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 16px;background:var(--teal);color:#fff;flex-wrap:wrap;}
+  .viewer-bar .t{font-size:.88rem;font-weight:700;}
+  .viewer-bar .acts{display:flex;gap:8px;flex-wrap:wrap}
+  .viewer-bar button,.viewer-bar a{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:8px;padding:6px 12px;font-size:.78rem;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block;}
+  .viewer-bar button:hover,.viewer-bar a:hover{background:rgba(255,255,255,.28);}
+  .viewer iframe{width:100%;height:72vh;border:none;display:block;}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(10,30,28,.45);display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+  .modal-bg.show{display:flex}
+  .modal{background:#fff;border-radius:14px;max-width:460px;width:100%;padding:18px 20px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+  .modal h3{margin:0 0 8px;color:var(--teal);font-size:1rem}
+  .modal p{margin:0 0 12px;font-size:.84rem;color:#33413f;line-height:1.9}
+  .modal code{background:#eef2f1;border-radius:6px;padding:1px 6px;direction:ltr;display:inline-block}
+  .modal .acts{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#0f3d3a;color:#fff;padding:10px 18px;border-radius:10px;font-size:.82rem;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:70;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  @media (max-width:560px){body{padding:12px}.cat-actions{width:100%}.cat-btn{flex:1;justify-content:center}}
 </style>
-<style id="bfMobileFix">
-/* [BF-MOBILE] نمایش درست روی آیفون / موبایل: هیچ بخشی از صفحه از عرض گوشی بیرون نزند و نیازی به کشیدن صفحه به کنار نباشد.
-   فقط روی صفحهٔ نمایش (screen) اعمال می‌شود؛ روی چاپ و PDF پیش‌فاکتور هیچ اثری ندارد. */
-@media screen and (max-width:820px){
-  html,body{max-width:100%;overflow-x:hidden}
-  body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-  img,svg,canvas,video,iframe{max-width:100%}
-  .bf-mscroll{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .order-actions-print-row{flex-wrap:wrap}
-  .order-actions-print-row .btn{min-width:0 !important;flex:1 1 140px}
-  .actions,.btn-row,.order-actions-top{flex-wrap:wrap}
-  pre,code{white-space:pre-wrap;word-break:break-word}
-  .calc-mode-toggle{flex-wrap:wrap}.calc-mode-toggle .mode-tab{flex:1 1 44%;min-width:0}
-  .head .tag{white-space:normal}
-  .cust-grid>*,.grid>*{min-width:0}
-  .inv-footer-print-row,.print-row{flex-wrap:wrap}
-  .inv-footer-print-row .print-btn,.print-row .print-btn{min-width:0 !important;flex:1 1 140px}
-}
-@media screen and (max-width:560px){
-  .cust-grid,.cust-grid.compact-cust{grid-template-columns:minmax(0,1fr) !important}
-}
-@media print{.bf-mscroll{overflow:visible !important;max-width:none !important;display:block}}
-</style>
-<script id="bfMobileFixJs">
-/* جدول‌های پهن روی موبایل داخل یک قاب با اسکرول افقیِ خودشان قرار می‌گیرند (نه کل صفحه). روی دسکتاپ و چاپ تغییری ایجاد نمی‌شود. */
-(function(){
-  function narrow(){return Math.min(window.innerWidth||9999,screen.width||9999)<=820}
-  function fit(root){
-    if(!narrow())return;
-    (root||document).querySelectorAll('table').forEach(function(t){
-      var p=t.parentElement;if(!p||p.classList.contains('bf-mscroll'))return;
-      if(t.closest('#printArea,#printStageWrap,#catalogStage,#printStage,.print-only,[id*="print" i]'))return;
-      var cs=getComputedStyle(p);if(/(auto|scroll)/.test(cs.overflowX))return;if(t.offsetWidth<=p.clientWidth+2&&t.scrollWidth<=p.clientWidth+2)return;
-      var w=document.createElement('div');w.className='bf-mscroll';p.insertBefore(w,t);w.appendChild(t);
-    });
-  }
-  var tm=null;
-  function go(){fit(document);if(!window.MutationObserver||!narrow())return;
-    new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(function(){fit(document)},120)}).observe(document.body,{childList:true,subtree:true});}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go);else go();
-})();
-</script>
 </head>
 <body>
 
   <div class="wrap">
     <div class="head">
-      <h1>📚 کاتالوگ‌های آنلاین محصولات</h1>
-      <p>یک کاتالوگ را برای نمایش انتخاب کنید، یا لینک آن را کپی کرده و برای مشتری ارسال نمایید</p>
+      <h1>📚 کاتالوگ و فرم‌های فنی</h1>
+      <p>کاتالوگ محصولات را نمایش دهید، لینکش را برای مشتری بفرستید یا PDF آن را دانلود کنید — فرم‌های فنی را با یک کلیک چاپ یا دانلود کنید</p>
     </div>
 
-    <div class="cat-list" id="catList"></div>
+    <div class="tabs" id="tabs">
+      <button type="button" class="tab on" data-tab="cat">📚 کاتالوگ‌ها <span class="n" id="nCat"></span></button>
+      <button type="button" class="tab" data-tab="form">📝 فرم‌های فنی <span class="n" id="nForm"></span></button>
+    </div>
+
+    <div class="search">
+      <span class="ic">🔎</span>
+      <input id="q" type="search" placeholder="جستجو بر اساس نام فایل — مثلاً «کاراسلینگ»، «پشت برگ شکیب»، «سربرگ»، «poshtbarg»" autocomplete="off">
+      <button type="button" class="clr" id="qClr">✕ پاک کردن</button>
+    </div>
+
+    <div class="chips" id="grpChips"></div>
+    <div id="list"></div>
 
     <div class="viewer" id="viewer">
       <div class="viewer-bar">
         <span class="t" id="viewerTitle"></span>
-        <div class="acts">
-          <a href="#" id="viewerOpenNewTab" target="_blank" rel="noopener">🔗 باز کردن در تب جدید</a>
-          <button type="button" id="viewerClose">✕ بستن</button>
-        </div>
+        <div class="acts" id="viewerActs"></div>
       </div>
       <iframe id="viewerFrame" src="about:blank"></iframe>
     </div>
   </div>
 
+  <div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
   <div class="toast" id="toast"></div>
+  <iframe id="printFrame" style="position:fixed;width:0;height:0;border:0;left:-9999px;top:0" title="print"></iframe>
 
 <script>
+  /* ===== کاتالوگ‌ها =====
+     pdf: مسیر فایل PDF کاتالوگ برای دانلود (داخل پوشهٔ public/catalogs). تا وقتی فایل گذاشته نشده، دکمهٔ دانلود راهنما نشان می‌دهد. */
   const CATALOGS = [
-    {
-      title: 'کاتالوگ آنلاین - پنل‌های کابین و طبقه',
-      desc: 'مدل‌های پنل کابین (لمسی / استیل / یک‌متری) و پنل طبقه',
-      url: 'https://heyzine.com/flip-book/995345f6ff.html'
-    },
-    {
-      title: 'کاتالوگ آنلاین - موتورهای جنتلرایز',
-      desc: 'معرفی موتورهای گیرلس جنتلرایز',
-      url: 'https://heyzine.com/flip-book/ccc5fb1397.html'
-    },
-    {
-      title: 'کاتالوگ آنلاین - مشخصات داینا لیفت',
-      desc: 'مشخصات فنی و معرفی محصولات داینا لیفت',
-      url: 'https://heyzine.com/flip-book/842ff79957.html'
-    }
+    { title:'کاتالوگ آنلاین - پنل‌های کابین و طبقه', desc:'مدل‌های پنل کابین (لمسی / استیل / یک‌متری) و پنل طبقه',
+      url:'https://heyzine.com/flip-book/995345f6ff.html', pdf:'catalogs/catalog-panels.pdf', dl:'کاتالوگ پنل‌های کابین و طبقه - بهفراز.pdf' },
+    { title:'کاتالوگ آنلاین - موتورهای جنتلرایز', desc:'معرفی موتورهای گیرلس جنتلرایز',
+      url:'https://heyzine.com/flip-book/ccc5fb1397.html', pdf:'catalogs/catalog-gentlerise.pdf', dl:'کاتالوگ موتورهای جنتلرایز - بهفراز.pdf' },
+    { title:'کاتالوگ آنلاین - مشخصات داینا لیفت', desc:'مشخصات فنی و معرفی محصولات داینا لیفت',
+      url:'https://heyzine.com/flip-book/842ff79957.html', pdf:'catalogs/catalog-dynalift.pdf', dl:'کاتالوگ داینا لیفت - بهفراز.pdf' }
   ];
 
-  const CATALOG_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg">
-    <path d="M8.5 4.2 12 5.8l3.5-1.6"/>
-    <path d="M8.5 4.2 12 6.4l3.5-2.2"/>
-    <rect x="6.5" y="7" width="11" height="13" rx="0.6"/>
-    <path d="M7.6 8.1v1.4M7.6 8.1h1.4"/>
-    <path d="M16.4 8.1v1.4M16.4 8.1h-1.4"/>
-    <path d="M7.6 18.9v-1.4M7.6 18.9h1.4"/>
-    <path d="M16.4 18.9v-1.4M16.4 18.9h-1.4"/>
-    <rect x="10" y="10" width="4" height="2" rx="0.3"/>
-    <path d="M9 14.6h6M9 16.4h6M9 18.2h6"/>
-  </svg>`;
+  /* ===== فرم‌های فنی (پوشهٔ public/forms) ===== */
+  const GROUPS = [
+    { id:'kar',  t:'🏗️ فرم کاراسلینگ' },
+    { id:'pb',   t:'🧾 پشت‌برگ‌ها' },
+    { id:'int',  t:'🏢 فرم‌های داخلی' }
+  ];
+  const FORMS = [
+    { g:'kar', title:'فرم سفارش کاراسلینگ', desc:'ابعاد چاه، ریل، پیت و اورهد — برای ثبت دقیق سفارش کاراسلینگ', file:'forms/karasling-order-form.pdf', land:true, tags:'karasling کاراسلینگ کارا سلینگ چاه ریل' },
+    { g:'pb',  title:'پشت‌برگ شکیب (جک و پاور یونیت)', desc:'جدول ردیابی سفارش / تولید / انبار — جک، پاور، رپچر، متعلقات شکیب', file:'forms/poshtbarg-shakib.pdf', tags:'poshtbarg پشت برگ پشتبرگ shakib شکیب جک پاور' },
+    { g:'pb',  title:'پشت‌برگ ویتور (امارلیفت)', desc:'جدول ردیابی سفارش — جک، پاوریونیت، درخت سیم، برد هووس و درایو', file:'forms/poshtbarg-wittur.pdf', tags:'poshtbarg پشت برگ پشتبرگ wittur ویتور امارلیفت omarlift 110' },
+    { g:'pb',  title:'پشت‌برگ موتور', desc:'جدول ردیابی سفارش — موتور، فلکه، بسته خدمات و قطعات', file:'forms/poshtbarg-motor.pdf', tags:'poshtbarg پشت برگ پشتبرگ motor موتور گیرلس جنتلرایز داینا هوبر' },
+    { g:'int', title:'سربرگ شرکت بهفراز', desc:'سربرگ رسمی A4 با تاریخ، شماره و پیوست', file:'forms/sarbarg-behfaraz.pdf', tags:'sarbarg سربرگ سر برگ letterhead نامه' },
+    { g:'int', title:'فرم درخواست مساعده', desc:'درخواست مساعده کسر از حقوق — با تأیید مدیر', file:'forms/mosaede-request.pdf', word:'forms/mosaede-request.docx', tags:'mosaede مساعده حقوق پرسنل' },
+    { g:'int', title:'برچسب ارسال بار — شکیب جک', desc:'آدرس فرستنده (بهفراز) و گیرنده (شکیب جک — کرج)', file:'forms/label-shakib.pdf', land:true, tags:'label برچسب ارسال پست آدرس shakib شکیب' },
+    { g:'int', title:'برچسب ارسال بار — سنا پنل', desc:'آدرس فرستنده (بهفراز) و گیرنده (سنا پنل — مشهد)', file:'forms/label-sena.pdf', land:true, tags:'label برچسب ارسال پست آدرس sena سنا' },
+    { g:'int', title:'برچسب ارسال بار — سلکوم', desc:'آدرس فرستنده (بهفراز) و گیرنده (آقای کشاورز — تهران)', file:'forms/label-selecom.pdf', word:'forms/label-selecom.docx', land:true, tags:'label برچسب ارسال پست آدرس selecom سلکوم کشاورز' }
+  ];
 
-  const listEl = document.getElementById('catList');
-  const viewerEl = document.getElementById('viewer');
-  const viewerFrame = document.getElementById('viewerFrame');
-  const viewerTitle = document.getElementById('viewerTitle');
-  const viewerOpenNewTab = document.getElementById('viewerOpenNewTab');
-  const toastEl = document.getElementById('toast');
+  const $ = id => document.getElementById(id);
+  let tab = 'cat', grp = '', q = '';
+  try{ const s = JSON.parse(localStorage.getItem('bf_catalog_ui') || 'null'); if(s){ tab = s.tab || 'cat'; grp = s.grp || ''; } }catch(e){}
+  function remember(){ try{ localStorage.setItem('bf_catalog_ui', JSON.stringify({tab, grp})); }catch(e){} }
 
-  function showToast(msg){
-    toastEl.textContent = msg;
-    toastEl.classList.add('show');
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(()=> toastEl.classList.remove('show'), 2200);
+  function showToast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(showToast._t); showToast._t=setTimeout(()=>t.classList.remove('show'),2400); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function norm(s){ return String(s||'').replace(/[‌‍]/g,' ').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[ـ]/g,'').replace(/[-_.]/g,' ').replace(/\s+/g,' ').trim().toLowerCase(); }
+  function tokens(){ return norm(q).split(' ').filter(Boolean); }
+  function match(txt){ const T=tokens(); if(!T.length) return true; const n=norm(txt), nn=n.replace(/\s/g,''); return T.every(t=>n.indexOf(t)>=0 || nn.indexOf(t)>=0); }
+  function hl(s){ let h=esc(s); tokens().forEach(t=>{ if(t.length<2) return; const re=new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'); h=h.replace(re,'<mark>$1</mark>'); }); return h; }
+  function fileName(p){ return String(p||'').split('/').pop(); }
+
+  /* ---- مودال ---- */
+  function modal(html){ $('modal').innerHTML=html; $('modalBg').classList.add('show'); }
+  function closeModal(){ $('modalBg').classList.remove('show'); }
+  $('modalBg').addEventListener('click', e=>{ if(e.target.id==='modalBg' || e.target.closest('[data-close]')) closeModal(); });
+
+  /* ---- وجود فایل ---- */
+  function exists(path){
+    if(location.protocol==='file:') return Promise.resolve(true);
+    return fetch(path,{method:'HEAD',cache:'no-store'}).then(r=>r.ok).catch(()=>false);
+  }
+  function download(path, name){
+    exists(path).then(ok=>{
+      if(!ok){ missing(path, name); return; }
+      const nm=name || fileName(path);
+      function go(href){ const a=document.createElement('a'); a.href=href; a.download=nm; document.body.appendChild(a); a.click(); setTimeout(()=>{ a.remove(); if(href.indexOf('blob:')===0) URL.revokeObjectURL(href); },1500); }
+      if(location.protocol==='file:'){ go(path); }
+      else fetch(path,{cache:'no-store'}).then(r=>r.blob()).then(b=>go(URL.createObjectURL(b))).catch(()=>go(path));
+      showToast('⬇️ دانلود «'+nm+'» شروع شد');
+    });
+  }
+  function missing(path, name, cat){
+    modal('<h3>📄 فایل PDF هنوز اضافه نشده</h3><p>فایل PDF «'+esc(name||fileName(path))+'» روی سرور پیدا نشد.<br>برای فعال شدن دانلود، فایل PDF را با نام <code>'+esc(fileName(path))+'</code> در پوشهٔ <code>public/'+esc(path.split('/').slice(0,-1).join('/'))+'</code> سرور قرار دهید.</p>'+
+      (cat?'<p style="color:#6b7a78">تا آن زمان می‌توانید نسخهٔ آنلاین را باز کنید؛ اگر در کاتالوگ آنلاین دکمهٔ دانلود فعال باشد، از همان‌جا هم قابل دریافت است.</p>':'')+
+      '<div class="acts">'+(cat?'<a class="cat-btn primary" href="'+esc(cat.url)+'" target="_blank" rel="noopener">🔗 باز کردن کاتالوگ آنلاین</a>':'')+'<button type="button" class="cat-btn" data-close="1">بستن</button></div>');
   }
 
-  function copyLink(url, btn){
-    const done = ()=>{
-      showToast('لینک کاتالوگ کپی شد ✅');
-      if(btn){
-        const orig = btn.textContent;
-        btn.textContent = '✅ کپی شد';
-        btn.classList.add('copied');
-        setTimeout(()=>{ btn.textContent = orig; btn.classList.remove('copied'); }, 1600);
-      }
-    };
-    if(navigator.clipboard && navigator.clipboard.writeText){
-      navigator.clipboard.writeText(url).then(done).catch(()=> fallbackCopy(url, done));
-    } else {
-      fallbackCopy(url, done);
-    }
-  }
-  function fallbackCopy(url, done){
-    const ta = document.createElement('textarea');
-    ta.value = url;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.select();
-    try{ document.execCommand('copy'); done(); }catch(e){ showToast('کپی نشد — لینک را دستی انتخاب کنید'); }
-    document.body.removeChild(ta);
-  }
-
-  function openViewer(cat){
-    viewerTitle.textContent = cat.title;
-    viewerFrame.src = cat.url;
-    viewerOpenNewTab.href = cat.url;
-    viewerEl.classList.add('show');
-    viewerEl.scrollIntoView({behavior:'smooth', block:'start'});
-  }
-  function closeViewer(){
-    viewerEl.classList.remove('show');
-    viewerFrame.src = 'about:blank';
-  }
-  document.getElementById('viewerClose').addEventListener('click', closeViewer);
-
-  function render(){
-    listEl.innerHTML = CATALOGS.map((cat, i)=>`
-      <div class="cat-card">
-        <div class="cat-icon" style="background:#fff;"><img src="./catalog-icon.png" alt="کاتالوگ"></div>
-        <div class="cat-body">
-          <h2>${cat.title}</h2>
-          <p>${cat.desc}</p>
-        </div>
-        <div class="cat-actions">
-          <button type="button" class="cat-btn primary" data-act="view" data-i="${i}">🔍 نمایش کاتالوگ</button>
-          <button type="button" class="cat-btn" data-act="copy" data-i="${i}">🔗 کپی لینک</button>
-        </div>
-      </div>
-    `).join('');
-
-    listEl.querySelectorAll('.cat-btn').forEach(btn=>{
-      const cat = CATALOGS[Number(btn.getAttribute('data-i'))];
-      const act = btn.getAttribute('data-act');
-      if(act === 'view'){
-        btn.addEventListener('click', ()=> openViewer(cat));
-      } else {
-        btn.addEventListener('click', ()=> copyLink(cat.url, btn));
-      }
+  /* ---- چاپ ---- */
+  function printFile(path, title){
+    exists(path).then(ok=>{
+      if(!ok){ missing(path, title); return; }
+      const fr=$('printFrame');
+      showToast('🖨️ آماده‌سازی چاپ «'+title+'»…');
+      fr.onload=function(){
+        if(fr.src==='about:blank' || !fr.src) return;
+        setTimeout(()=>{
+          try{ fr.contentWindow.focus(); fr.contentWindow.print(); }
+          catch(e){ window.open(path,'_blank'); showToast('فایل در تب جدید باز شد — از آنجا چاپ کنید (Ctrl+P)'); }
+        }, 600);
+      };
+      fr.src = path + (path.indexOf('?')>=0?'&':'?') + 't=' + Date.now();
     });
   }
 
-  render();
+  /* ---- نمایش در صفحه ---- */
+  function openViewer(title, src, acts){
+    $('viewerTitle').textContent = title;
+    $('viewerFrame').src = src;
+    $('viewerActs').innerHTML = acts + '<button type="button" id="viewerClose">✕ بستن</button>';
+    $('viewer').classList.add('show');
+    $('viewer').scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  function closeViewer(){ $('viewer').classList.remove('show'); $('viewerFrame').src='about:blank'; }
+
+  /* ---- کپی لینک ---- */
+  function copyLink(url, btn){
+    const done=()=>{ showToast('لینک کاتالوگ کپی شد ✅'); if(btn){ const o=btn.innerHTML; btn.innerHTML='✅ کپی شد'; btn.classList.add('copied'); setTimeout(()=>{ btn.innerHTML=o; btn.classList.remove('copied'); },1600); } };
+    if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done).catch(()=>fallbackCopy(url,done)); } else fallbackCopy(url,done);
+  }
+  function fallbackCopy(url, done){ const ta=document.createElement('textarea'); ta.value=url; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); done(); }catch(e){ showToast('کپی نشد — لینک را دستی انتخاب کنید'); } ta.remove(); }
+
+  /* ---- رندر ---- */
+  function catHtml(){
+    const L = CATALOGS.map((c,i)=>({c,i})).filter(x=>match([x.c.title,x.c.desc,fileName(x.c.pdf),x.c.dl].join(' ')));
+    if(!L.length) return '<div class="empty">کاتالوگی با «'+esc(q)+'» پیدا نشد.</div>';
+    return '<div class="cat-list">'+L.map(({c,i})=>`
+      <div class="cat-card">
+        <div class="cat-icon"><img src="./catalog-icon.png" alt="کاتالوگ"></div>
+        <div class="cat-body"><h2>${hl(c.title)}</h2><p>${hl(c.desc)}</p><div class="fn">${hl(fileName(c.pdf))}</div></div>
+        <div class="cat-actions">
+          <button type="button" class="cat-btn primary" data-act="cview" data-i="${i}">🔍 نمایش کاتالوگ</button>
+          <button type="button" class="cat-btn" data-act="cdl" data-i="${i}">⬇️ دانلود PDF</button>
+          <button type="button" class="cat-btn" data-act="ccopy" data-i="${i}">🔗 کپی لینک</button>
+        </div>
+      </div>`).join('')+'</div>';
+  }
+  function formHtml(){
+    const L = FORMS.map((f,i)=>({f,i})).filter(x=>(!grp||x.f.g===grp) && match([x.f.title,x.f.desc,fileName(x.f.file),x.f.tags].join(' ')));
+    if(!L.length) return '<div class="empty">فرمی با این جستجو پیدا نشد.</div>';
+    return GROUPS.filter(g=>!grp||g.id===grp).map(g=>{
+      const G=L.filter(x=>x.f.g===g.id); if(!G.length) return '';
+      return '<div class="grp-t">'+g.t+' <small>('+G.length.toLocaleString('fa-IR')+' فرم)</small></div><div class="cat-list">'+G.map(({f,i})=>{
+        const th=f.file.replace(/^forms\//,'forms/thumbs/').replace(/\.pdf$/,'.png');
+        return `<div class="cat-card">
+          <div class="thumb${f.land?' land':''}" style="background-image:url('${th}')"></div>
+          <div class="cat-body"><h2>${hl(f.title)}</h2><p>${hl(f.desc)}</p><div class="fn">${hl(fileName(f.file))}</div></div>
+          <div class="cat-actions">
+            <button type="button" class="cat-btn primary" data-act="fprint" data-i="${i}">🖨️ چاپ</button>
+            <button type="button" class="cat-btn" data-act="fview" data-i="${i}">🔍 نمایش</button>
+            <button type="button" class="cat-btn" data-act="fdl" data-i="${i}">⬇️ دانلود PDF</button>
+            ${f.word?`<button type="button" class="cat-btn" data-act="fword" data-i="${i}" title="نسخهٔ قابل ویرایش Word">📝 Word</button>`:''}
+          </div>
+        </div>`}).join('')+'</div>';
+    }).join('');
+  }
+  function render(){
+    document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
+    $('nCat').textContent = CATALOGS.length.toLocaleString('fa-IR');
+    $('nForm').textContent = FORMS.length.toLocaleString('fa-IR');
+    $('grpChips').style.display = tab==='form' ? '' : 'none';
+    $('grpChips').innerHTML = [{id:'',t:'همه'}].concat(GROUPS).map(g=>`<button type="button" class="chip${grp===g.id?' on':''}" data-grp="${g.id}">${g.t}</button>`).join('');
+    $('list').innerHTML = tab==='cat' ? catHtml() : formHtml();
+    $('qClr').style.display = q ? 'inline-block' : 'none';
+  }
+
+  $('tabs').addEventListener('click', e=>{ const b=e.target.closest('[data-tab]'); if(!b) return; tab=b.dataset.tab; remember(); closeViewer(); render(); });
+  $('grpChips').addEventListener('click', e=>{ const b=e.target.closest('[data-grp]'); if(!b) return; grp=b.dataset.grp; remember(); render(); });
+  $('q').addEventListener('input', e=>{ q=e.target.value; clearTimeout(render._t); render._t=setTimeout(()=>{
+    /* اگر چیزی فقط در تب دیگر پیدا شد، خودکار به همان تب برود */
+    if(q){ const inCat=CATALOGS.some(c=>match([c.title,c.desc,fileName(c.pdf),c.dl].join(' '))), inForm=FORMS.some(f=>match([f.title,f.desc,fileName(f.file),f.tags].join(' ')));
+      if(tab==='cat'&&!inCat&&inForm){ tab='form'; grp=''; } else if(tab==='form'&&!inForm&&inCat){ tab='cat'; } }
+    render(); },150); });
+  $('qClr').addEventListener('click', ()=>{ q=''; $('q').value=''; render(); $('q').focus(); });
+  $('viewerActs').addEventListener('click', e=>{ if(e.target.id==='viewerClose') closeViewer(); });
+  $('viewerActs').addEventListener('click', e=>{ const b=e.target.closest('[data-vact]'); if(!b) return; const f=FORMS[+b.dataset.i]; if(b.dataset.vact==='print') printFile(f.file,f.title); else download(f.file,f.title+'.pdf'); });
+
+  $('list').addEventListener('click', e=>{
+    const b=e.target.closest('[data-act]'); if(!b) return; const i=+b.dataset.i, act=b.dataset.act;
+    if(act==='cview'){ const c=CATALOGS[i]; openViewer(c.title, c.url, `<a href="${esc(c.url)}" target="_blank" rel="noopener">🔗 باز کردن در تب جدید</a>`); return; }
+    if(act==='ccopy'){ copyLink(CATALOGS[i].url, b); return; }
+    if(act==='cdl'){ const c=CATALOGS[i]; exists(c.pdf).then(ok=>{ if(ok) download(c.pdf, c.dl); else missing(c.pdf, c.dl, c); }); return; }
+    const f=FORMS[i];
+    if(act==='fprint'){ printFile(f.file, f.title); return; }
+    if(act==='fdl'){ download(f.file, f.title+'.pdf'); return; }
+    if(act==='fword'){ download(f.word, f.title+'.docx'); return; }
+    if(act==='fview'){ openViewer(f.title, f.file, `<button type="button" data-vact="print" data-i="${i}">🖨️ چاپ</button><button type="button" data-vact="dl" data-i="${i}">⬇️ دانلود PDF</button><a href="${esc(f.file)}" target="_blank" rel="noopener">🔗 تب جدید</a>`); return; }
+  });
+
+  $('q').value = q; render();
 </script>
 </body>
 </html>

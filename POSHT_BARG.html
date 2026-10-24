@@ -113,7 +113,6 @@
   };
 })();
 </script>
-
 <script>
 /* BF-SERVER-ORDERS: فهرست پیش‌فاکتورها دیگر داخل localStorage مرورگر ذخیره نمی‌شود.
    علت مشکل قبلی: هر مرورگر «همهٔ سفارش‌های همهٔ کاربران» را (با عکس کامل HTML هر فاکتور) در localStorage
@@ -536,7 +535,6 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="بهفراز">
 <meta name="theme-color" content="#0f3d3a">
-
 <title>سامانه فاکتور و قیمت‌گذاری پنل کابین آسانسور | بهفراز گروپ</title>
 <style>
 :root{
@@ -2276,7 +2274,7 @@ function buildTabs(){
     b.className='tab'+(key===currentCat?' active':'');
     b.dataset.cat = key;
     b.innerHTML = `<span class="ic">${TAB_ICONS[CAT_META[key].icon]}</span><span class="txt">${CAT_META[key].title}<small>${CAT_META[key].sub}</small></span>`;
-    b.onclick=()=>{ currentCat=key; buildTabs(); renderCategory(); };
+    b.onclick=()=>{ if(window.bfSteelCarrySwitch && window.bfSteelCarrySwitch(key)) return; currentCat=key; buildTabs(); renderCategory(); };
     wrap.appendChild(b);
   });
 }
@@ -2662,6 +2660,7 @@ function priceBox(container, priceGetter, addLabel, onAdd, opts){
   const bundleMode = !!orderBundle;
   const bundleKey = (opts.editSection==='print') ? 'print' : 'panel';
   if(bundleMode) addBtn.style.display = 'none';   // دکمهٔ جداگانه مخفی؛ فقط با «افزودن سفارش» اجرا می‌شود
+  if(bundleMode) box.classList.add('pb-in-bundle');   // سطر «قیمت تا اینجای محصول = … ریال / واحد» در صفحهٔ اصلی نمایش داده نمی‌شود (جمع در نوار order-bundle-bar است)
   let lastAddedKey = null;
   // ثبت تابع بازگردانی مرحله سفارشی (برای دکمه «ویرایش» در فاکتور) — هر بار این بخش بازسازی شود، آخرین نسخه ثبت می‌شود
   if(opts.setState){
@@ -3618,10 +3617,11 @@ function renderSteel(panel, d, title){
 
   subBlock(panel,'main',title, body=>{
     function pick(k,v){
-      if(k==='width'){sel.color=null;sel.key=null;}
-      if(k==='color'){sel.key=null;}
-      if(k==='width'||k==='color'||k==='key'||k==='thickness') sel.keySub=null;
+      // [BF-CARRY] تعویض عرض / رنگ و جنس لبه: انتخاب‌های بعدی پاک نمی‌شوند؛ فقط اگر در لیست قیمت نباشند حذف و هشدار داده می‌شود
+      const _cv = (k==='width'||k==='color') ? bfCarryBegin(sel,k) : null;
+      if(k==='key' && v!==sel.key) sel.keySub=null;
       sel[k]=v;
+      const _lost = _cv ? bfSteelRevalidate(sel, d.products) : null;
       isWidth30 = (sel.width === 30);
       // با انتخاب عرض پنل، طول/عرض «محاسبه ابعاد پنل» به‌صورت پیش‌فرض از ابعاد خود محصول (2.6 × عرض × 200) پر می‌شود
       if(k==='width' && v!=null){ dims.baseLength=200; dims.baseWidth=v; }
@@ -3633,6 +3633,7 @@ function renderSteel(panel, d, title){
         const fan = (DATA.steel.equipment||[]).find(e=>e.label && e.label.indexOf('برد فن اتومات')!==-1);
         if(fan) equipCtl.setSelection({[fan.label]: {checked:true}});
       }
+      if(_cv) bfCarryEnd(body, _cv, _lost, k==='width'?'عرض پنل':'رنگ و مدل لبه', null);
     }
     // E500: انتخاب نوع کلید (مکانیکی / لمسی)
     function pickKeyType(v){
@@ -3865,11 +3866,12 @@ function renderSteel15(panel){
 
   subBlock(panel,'main',CAT_META.steel15.title, body=>{
     function pick(k,v){
-      if(k==='thickness'){sel.width=null;sel.color=null;sel.key=null;}
-      if(k==='width'){sel.color=null;sel.key=null;}
-      if(k==='color'){sel.key=null;}
-      if(k==='width'||k==='color'||k==='key'||k==='thickness') sel.keySub=null;
+      // [BF-CARRY] تعویض جنس استیل (۱ ↔ ۱.۵) / عرض / رنگ: بقیهٔ انتخاب‌ها حفظ می‌شود و با لیست قیمت جنس جدید دوباره کنترل می‌شود
+      const _cv = (k==='thickness'||k==='width'||k==='color') ? bfCarryBegin(sel,k) : null;
+      if(k==='key' && v!==sel.key) sel.keySub=null;
       sel[k]=v;
+      let _lost = null;
+      if(_cv && sel.thickness){ const _vr = d.variants.find(x=>x.thickness===sel.thickness); if(_vr) _lost = bfSteelRevalidate(sel, _vr.products); }
       // با انتخاب عرض پنل، طول/عرض «محاسبه ابعاد پنل» به‌صورت پیش‌فرض از ابعاد خود محصول (2.6 × عرض × 200) پر می‌شود
       if(k==='width' && v!=null){ dims.baseLength=200; dims.baseWidth=v; }
       rebuild();
@@ -3880,6 +3882,7 @@ function renderSteel15(panel){
         const fan = (DATA.steel.equipment||[]).find(e=>e.label && e.label.indexOf('برد فن اتومات')!==-1);
         if(fan) equipCtl.setSelection({[fan.label]: {checked:true}});
       }
+      if(_cv) bfCarryEnd(body, _cv, _lost, k==='thickness'?'جنس استیل':k==='width'?'عرض پنل':'رنگ', k==='thickness'?sel.thickness:null);
     }
     function rebuild(){
       body.innerHTML='';
@@ -6352,6 +6355,116 @@ function bfXlsxSheet(rows, widths){   // rows: آرایه‌ای از آرایه
   });
   return x+'</sheetData></worksheet>';
 }
+/* ==== شرح کالای خلاصه برای خروجی اکسل حسابداری ====
+   فقط: مدل، ۱ یا ۲ متری، کلید، نمایشگر، تلفن/آیفون، برد فن، روکار/توکار، لوگو، کدینگ و متعلقات — بدون ضخامت شیشه/جنس/رنگ/ابعاد */
+function bfAccShortKey(t){
+  t = String(t||'');
+  const pick = t.match(/انتخاب:\s*([^)]+)/);
+  if(/لمسی/.test(t)) return 'کلید لمسی';
+  if(pick) return 'کلید ' + pick[1].trim();
+  if(/نولان|LG|ال جی/i.test(t)) return /مربع تخت/.test(t) ? 'کلید LG تخت' : 'کلید LG/نولان';
+  const m = t.match(/(\d{3}(?:\s*-\s*\d{3})*)/);
+  if(m) return 'کلید ' + m[1].replace(/\s+/g,'');
+  const plainK = t.replace(/\([^)]*\)/g,'').replace(/[()،]/g,'').replace(/\s+/g,' ').trim();
+  return (/^کلید\s+[^\s+]/.test(plainK) && plainK.indexOf("+")===-1 && plainK.length<=20) ? plainK : '';
+}
+function bfAccShortDisplay(t){
+  t = String(t||'').replace(/\(این نمایشگر[^)]*\)/g,'').replace(/[()]/g,'').trim();
+  if(!t) return '';
+  if(/سنا/.test(t)) return 'نمایشگر سنا';
+  if(/نمراتور ریزشی بزرگ|ریزشی بزرگ/.test(t)) return 'ریزشی بزرگ';
+  if(/ریزشی/.test(t)) return 'ریزشی';
+  if(/لاتیس/.test(t)) return 'لاتیس';
+  if(/سون سگمنت فلت/.test(t)) return 'سون‌سگمنت فلت';
+  if(/سگمنت/.test(t)) return /اوال/.test(t) ? 'سگمنت اوال' : 'سگمنت';
+  if(/LCD|ال سی دی|مانیتور/i.test(t)) return t.replace(/کابین|طبقه|نمایشگر/g,'').replace(/\s+/g,' ').trim();
+  return t.replace(/نمایشگر|کابین|طبقه|معمولی/g,'').replace(/\s+/g,' ').trim();
+}
+function bfAccShortEquip(t){
+  t = String(t||'').replace(/\s+/g,' ').trim();
+  if(t.indexOf(' — ')!==-1) t = t.slice(t.lastIndexOf(' — ')+3).trim();   // «گروه — آیتم» → آیتم
+  t = t.replace(/\s*\(\d+\)\s*$/,'');                                    // «(4)» تعداد — در ستون تعداد هست
+  if(/سیستم ارتباط داخلی|آیفون/.test(t)){
+    const k = bfAccShortKey(t.replace(/.*کلید/,'کلید'));
+    return 'آیفون' + (k ? ' (' + k.replace(/^کلید /,'') + ')' : '');
+  }
+  if(/تلفن/.test(t)) return (/لمسی/.test(t)?'تلفن لمسی':(/کیپد/.test(t)?'تلفن کیپدی':'تلفن')) + (/کدینگ/.test(t)?' + کدینگ':'');
+  if(/کدینگ/.test(t)){ const o=t.match(/(\d+|تک)\s*خروجی/); return 'کدینگ ' + (/کارت/.test(t)&&/رمز/.test(t)?'رمزی/کارتی':(/کارت/.test(t)?'کارتی':(/لمسی/.test(t)?'لمسی':''))) + (o?' '+o[1]+' خروجی':''); }
+  if(/برد فن|کلید فن/.test(t)) return 'برد فن';
+  if(/اضافه عرض/.test(t) && /توکار/.test(t)) return 'اضافه عرض توکار';
+  if(/توکار/.test(t) && /لولایی/.test(t)) return 'توکار لولایی';
+  if(/پیچ مخفی|خزینه/.test(t)) return (/توکار/.test(t)?'توکار':'روکار') + ' پیچ‌مخفی';
+  if(/روش نصب استاندارد|نصب کشویی/.test(t)) return 'روکار (نصب استاندارد)';
+  if(/لوگو/.test(t)) return 'لوگو' + (/نور/.test(t)?' نوردار':'');
+  if(/چاپ اختصاصی/.test(t)) return 'چاپ اختصاصی';
+  if(/نورپردازی راهنمای طبقات/.test(t)) return 'نور راهنمای طبقات';
+  if(/نورپردازی پایین/.test(t)) return 'نور پایین شاسی';
+  if(/نورپردازی خطی/.test(t)) return 'نور خطی';
+  if(/پلکسی/.test(t)) return 'پلکسی ' + (/همسطح/.test(t)?'همسطح':(/میتسوبیشی/.test(t)?'میتسوبیشی':''));
+  if(/کلید لمسی بزرگ/.test(t)) return 'کلید بزرگ' + (/سنا/.test(t)?' سنا':'');
+  if(/فتوفریم/.test(t)){ const i=t.match(/(\d+)\s*اینچ/); return 'فتوفریم' + (i?' '+i[1]+' اینچ':''); }
+  if(/مانیتور/.test(t)){ const i=t.match(/(\d+)\s*اینچ/); return 'مانیتور' + (i?' '+i[1]+' اینچ':''); }
+  if(/قاب پشت/.test(t)) return 'قاب پشت';
+  if(/سوراخ اضافه/.test(t)) return 'سوراخ اضافه شیشه';
+  if(/کارت یا تگ/.test(t)) return 'کارت/تگ';
+  if(/مبدل سریال|ریزشی یا لاتیس/.test(t)) return 'مبدل ریزشی/لاتیس';
+  if(/مبدل سیم ?کارت/.test(t)) return 'مبدل سیم‌کارت';
+  if(/طلق اضافه/.test(t)) return t;
+  // پیش‌فرض: حذف پرانتزها و کلمات اضافه
+  return t.replace(/\([^)]*\)/g,'').replace(/^بابت\s+/,'').replace(/\s+/g,' ').trim().slice(0,45);
+}
+function bfAccShortDesc(it, plain){
+  const raw = plain(it.desc||'');
+  const sec = it.section;
+  if(sec==='extra') return plain(it._name||'') || raw;
+  if(['touch','steel','steel15','oneMeter','floor'].indexOf(sec)===-1) return bfAccShortEquip(raw);
+  if(sec==='floor' && /^(برد )?مبدل|کارت یا تگ/.test(raw.replace(/^.*?—\s*/,''))) return bfAccShortEquip(raw);
+  // بخش اصلی (قبل از اولین « + ») و ضمیمه‌ها
+  // تقسیم روی « + » فقط بیرون از پرانتز (داخل پرانتز مثل «گالوانیزه + شیشه» بخشی از بدنه است)
+  const segs = []; { let depth=0, cur=''; for(let i=0;i<raw.length;i++){ const ch=raw[i];
+    if(ch==='(') depth++; else if(ch===')') depth=Math.max(0,depth-1);
+    if(depth===0 && raw.substr(i,3)===' + '){ segs.push(cur); cur=''; i+=2; continue; }
+    cur+=ch; } segs.push(cur); }
+  const head = segs[0];
+  const parts = [];
+  // مدل
+  let model = '';
+  const mm = raw.match(/\b(TG\d{3}|E\d{2,3}|AK\d{3}|ak\d{3}|[AB]\d{3,4}|K\d{3})\b/);
+  if(mm) model = mm[1].toUpperCase();
+  if(/هیواد/.test(raw)) model = model || 'هیواد';
+  if(sec==='floor' && !model){
+    const fm = head.replace(/^پنل طبقه\s*/,'').replace(/^[—(]\s*/,'').split(/\s*[—،(]\s*/)[0].trim();
+    if(fm && fm.length<=15 && !/کلید|ابعاد|طول/.test(fm)) model = fm;
+  }
+  if(sec==='floor'){
+    parts.push('پنل طبقه' + (model?' '+model:''));
+  } else {
+    const label = sec==='touch' ? 'لمسی' : (sec==='steel15' ? 'استیل ۱.۵' : (sec==='steel' ? 'استیل' : ''));
+    // ۱ یا ۲ متری از روی طول پنل
+    let len = null;
+    const d1 = raw.match(/ابعاد\s*(\d+(?:\.\d+)?)\s*×/); const d2 = raw.match(/طول پنل\s*(\d+(?:\.\d+)?)/);
+    if(d1) len = Number(d1[1]); else if(d2) len = Number(d2[1]);
+    const meter = sec==='oneMeter' ? '1 متری' : (len!=null ? (len<150 ? '1 متری' : '2 متری') : '');
+    parts.push(('پنل کابین ' + label).trim() + (model?' '+model:'') + (meter?' '+meter:''));
+  }
+  // کلید
+  let keyTxt = '';
+  if(sec==='touch') keyTxt = 'کلید لمسی';
+  else {
+    const kre = /کلید[^،—)]*(\([^)]*\))?|(\d{3}-\d{3})\s*کلید[^،—]*|LG[^،—]*(\([^)]*\))*(\([^)]*\))?|نولان[^،—]*|ال جی[^،—]*/g;
+    let km; while(!keyTxt && (km = kre.exec(head))) keyTxt = bfAccShortKey(km[0]);
+  }
+  if(keyTxt) parts.push(keyTxt);
+  // نمایشگر
+  const dm = raw.match(/نمایشگر\s*\((.*?)\)(?:\s*\)|\s*\+|$)/) || raw.match(/نمایشگر:\s*([^+—]+)/);
+  if(dm){ const dt = bfAccShortDisplay(dm[1]); if(dt) parts.push(dt); }
+  // ضمیمه‌های داخل همان ردیف (مثل «+ چاپ و لوگو — …»)
+  segs.slice(1).forEach(p=>{
+    if(!/لوگو|چاپ|کدینگ|تلفن|آیفون|ارتباط داخلی|برد فن|کلید فن|نورپردازی|توکار|روکار|پیچ مخفی|فتوفریم|مانیتور|پلکسی|قاب پشت/.test(p)) return;
+    const s = bfAccShortEquip(p); if(s && parts.indexOf(s)===-1) parts.push(s);
+  });
+  return parts.join(' - ');
+}
 /* [BF-ACC2] کپی یک‌کلیکی برای حسابداری: «شرح کالا (خلاصه)» + «تعداد» — مستقیم در اکسل یا نرم‌افزار حسابداری Paste می‌شود (دو ستون) */
 function bfAccRows(o){
   const tmp = document.createElement('div');
@@ -6388,13 +6501,14 @@ function bfExportOrderExcel(id){
     return it.section==='floor' ? 'پنل طبقه' : 'پنل کابین';
   };
   const H = t => ({v:t, s:1});
-  const head = ['شماره پیش‌فاکتور','تاریخ','نام مشتری','نام پروژه','شماره تماس','ردیف','بخش','شرح کالا / مشخصات','تعداد','قیمت واحد (ریال)','قیمت کل (ریال)'].map((h,i)=>H(h));
+  /* [BF-ACC2] به درخواست حسابداری: فقط «شرح کالا (خلاصه)» و «تعداد» */
+  const head = ['شرح کالا (خلاصه)','تعداد'].map((h,i)=>H(h));
   const rows=[head];
   let raw=0;
   (o.invoice||[]).forEach((it,i)=>{
     const qty=Number(it.qty)||0, unit=Number(it.unitPrice)||0, lt=qty*unit; raw+=lt;
-    const desc = it.section==='extra' ? plain((it._name||'') + (it._spec ? ' — '+it._spec : '')) : plain(it.desc);
-    rows.push([o.preInvoiceNo||'', o.dateStr||'', o.customerName||'', o.customerProject||'', o.customerPhone||'', {v:i+1,s:4}, sectionLabel(it), desc, {v:qty,s:4}, unit, lt]);
+    let desc; try{ desc = bfAccShortDesc(it, plain) || plain(it.desc); }catch(e){ desc = it.section==='extra' ? plain(it._name||'') : plain(it.desc); }
+    rows.push([desc, {v:qty,s:4}]);
   });
   const disc = raw*(Number(o.discountPercent)||0)/100, inc = raw*(Number(o.increasePercent)||0)/100;
   const adj1=(Number(o.manualAdjSign)||-1)*(Number(o.manualAdjAmount)||0), adj2=(Number(o.manualAdj2Sign)||-1)*(Number(o.manualAdj2Amount)||0);
@@ -6409,13 +6523,12 @@ function bfExportOrderExcel(id){
     ['تعدیل دستی ۱ (ریال)', adj1], ['تعدیل دستی ۲ (ریال)', adj2],
     [{v:'مبلغ نهایی (ریال)',s:3}, {v:final,s:5}]];
   const files=[
-    {name:'[Content_Types].xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
+    {name:'[Content_Types].xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
     {name:'_rels/.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'},
-    {name:'xl/workbook.xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="ردیف‌های سفارش" sheetId="1" r:id="rId1"/><sheet name="خلاصه سفارش" sheetId="2" r:id="rId2"/></sheets></workbook>'},
-    {name:'xl/_rels/workbook.xml.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'},
+    {name:'xl/workbook.xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="حسابداری" sheetId="1" r:id="rId1"/></sheets></workbook>'},
+    {name:'xl/_rels/workbook.xml.rels', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'},
     {name:'xl/styles.xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Tahoma"/></font><font><b/><sz val="11"/><name val="Tahoma"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FFD9EAD3"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="6"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center"/></xf><xf numFmtId="3" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="3" fontId="1" fillId="0" borderId="0" xfId="0" applyNumberFormat="1" applyFont="1"/></cellXfs></styleSheet>'},
-    {name:'xl/worksheets/sheet1.xml', data:bfXlsxSheet(rows,[20,22,22,22,16,6,16,80,8,18,18])},
-    {name:'xl/worksheets/sheet2.xml', data:bfXlsxSheet(sum,[28,60])}
+    {name:'xl/worksheets/sheet1.xml', data:bfXlsxSheet(rows,[60,10])}
   ];
   const blob = bfXlsxZip(files);
   const safe = s => String(s||'').replace(/[\\\/:*?"<>|]+/g,' ').replace(/\s+/g,' ').trim();
@@ -9377,5 +9490,159 @@ function bfAutoSeqInit(cfg){
 bfAutoSeqInit({product:'panel',seqEl:function(){return document.getElementById('preInvoiceDay')},maxLen:4,
   buttons:'#saveOrderBtn,#printBackBtn,#printInvoiceBtn,#addToFactorPlusBtn,[data-cmp-act="print"]'});
 </script>
+<style id="bf-carry-css">
+/* [BF-CARRY] سطر «قیمت تا اینجای محصول» در صفحهٔ اصلی حذف شد — جمع سفارش فقط در نوار order-bundle-bar */
+.price-box.pb-in-bundle{display:none!important}
+/* پنل‌های کابین (لمسی / استیل ۰.۵ / استیل ۱-۱.۵ / یک‌متری): کادر price-box (از جمله «برای مشاهده قیمت، همه گزینه‌ها را انتخاب کنید») اصلاً نمایش داده نمی‌شود — فقط نمایش؛ محاسبه دست‌نخورده */
+.cat-panel[data-cat="touch"] .price-box,.cat-panel[data-cat="steel"] .price-box,.cat-panel[data-cat="steel15"] .price-box,.cat-panel[data-cat="oneMeter"] .price-box{display:none!important}
+.bf-carry-note{position:relative;margin:0 0 12px;padding:12px 16px 12px 40px;border-radius:14px;border:1.5px solid #9fd3c7;background:linear-gradient(180deg,#f2fbf8,#fff);font-size:13px;line-height:2;color:#1d3b36;box-shadow:0 4px 14px -8px rgba(15,110,107,.35);animation:bfCarryIn .25s ease-out}
+.bf-carry-note.warn{border-color:#e9b44c;background:linear-gradient(180deg,#fff8e8,#fff)}
+.bf-carry-note.bad{border-color:#e5776e;background:linear-gradient(180deg,#fdf0ee,#fff)}
+.bf-carry-note b{font-weight:800}
+.bf-carry-note .cn-h{font-weight:900;font-size:14px;margin-bottom:2px}
+.bf-carry-note .cn-l{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
+.bf-carry-note .cn-l span{background:#fff;border:1px solid #d7e3e0;border-radius:999px;padding:0 10px;font-size:12px;font-weight:700}
+.bf-carry-note .cn-l span.lost{border-color:#e5a29c;color:#a3231c;background:#fdf0ee;text-decoration:line-through}
+.bf-carry-note .cn-p{font-variant-numeric:tabular-nums;font-weight:800}
+.bf-carry-note .cn-p .up{color:#b3261e}.bf-carry-note .cn-p .dn{color:#1b7a43}
+.bf-carry-note .cn-w{color:#8a5a00;font-weight:700}
+.bf-carry-note .cn-x{position:absolute;top:8px;left:10px;border:0;background:none;font-size:16px;cursor:pointer;color:#7a8a8e}
+@keyframes bfCarryIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+</style>
+<script>
+/* =====================================================================
+   [BF-CARRY] حفظ انتخاب‌ها هنگام تعویض جنس استیل — بدون تغییر در فرمول‌ها
+   قیمت همیشه زنده از لیست قیمت «همان جنس انتخاب‌شده» خوانده می‌شود (همان priceGetter قبلی)؛
+   این بخش فقط انتخاب‌های سازگار را نگه می‌دارد، ناسازگارها را حذف می‌کند و به کاربر هشدار می‌دهد.
+   ===================================================================== */
+(function(){
+  var fmtR = function(n){ try{ return fmt(Math.round(n)); }catch(e){ return String(Math.round(n)); } };
+  function panelPrice(){ try{ var p=orderBundle&&orderBundle.parts&&orderBundle.parts.panel; if(!p) return null; var r=p.pending(); if(!r||!r.count) return null; var q=Math.max(1,(orderBundle.qty||1)); return r.total/q; }catch(e){ return null; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]}); }
+  function nk(s){ return String(s||'').replace(/[\s()\-–_/]/g,'').toLowerCase(); }
+
+  /* لحظهٔ قبل از تغییر */
+  window.bfCarryBegin = function(sel, k){
+    /* پیام فقط وقتی لازم است که «تعویض» باشد (نه اولین انتخاب) و بعد از آن چیزی انتخاب شده باشد */
+    var changing = k ? (sel[k]!=null && sel[k]!=='') : true;
+    var downstream = (k==='thickness') ? (sel.width!=null||sel.color||sel.key) : (k==='width') ? (sel.color||sel.key) : (sel.key||sel.display);
+    return { had: !!(changing && downstream), price: panelPrice(),
+             added: !!(orderBundle && orderBundle.hidePrice), thickness: sel.thickness||null };
+  };
+  /* کنترل انتخاب‌ها با لیست قیمت جدید؛ هرچه نباشد حذف می‌شود */
+  window.bfSteelRevalidate = function(sel, products){
+    var lost=[]; products = products||[];
+    if(sel.width!=null && !products.some(function(p){return p.width===sel.width})){ lost.push('عرض '+sel.width); sel.width=null; }
+    if(sel.width!=null && sel.color && !products.some(function(p){return p.width===sel.width && p.color===sel.color})){ lost.push(sel.color); sel.color=null; }
+    if(sel.width!=null && sel.color && sel.key && sel.key!==STEEL_TOUCH_KEY && !products.some(function(p){return p.width===sel.width && p.color===sel.color && p.key===sel.key})){ lost.push(sel.key); sel.key=null; sel.keySub=null; }
+    return lost;
+  };
+  /* نمایش پیام بالای بخش */
+  function showNote(anchor, cls, html){
+    var panel = anchor && anchor.closest ? anchor.closest('.cat-panel') : document.querySelector('#configArea .cat-panel');
+    if(!panel) return;
+    var old = panel.querySelector(':scope > .bf-carry-note'); if(old) old.remove();
+    var n = document.createElement('div'); n.className = 'bf-carry-note '+(cls||'');
+    n.innerHTML = '<button type="button" class="cn-x" title="بستن">✕</button>'+html;
+    n.querySelector('.cn-x').onclick = function(){ n.remove(); };
+    panel.insertBefore(n, panel.firstChild);
+  }
+  function priceLine(before, after){
+    if(before!=null && after!=null){
+      var dlt = after-before;
+      if(Math.abs(dlt) < 1) return '<div class="cn-p">💰 قیمت پنل: <b>'+fmtR(after)+'</b> ریال <small>(بدون تغییر)</small></div>';
+      return '<div class="cn-p">💰 قیمت پنل: '+fmtR(before)+' ← <b>'+fmtR(after)+'</b> ریال <span class="'+(dlt>0?'up':'dn')+'">('+(dlt>0?'+':'−')+fmtR(Math.abs(dlt))+')</span> — طبق لیست قیمت جنس جدید</div>';
+    }
+    if(after!=null) return '<div class="cn-p">💰 قیمت پنل طبق لیست قیمت جدید: <b>'+fmtR(after)+'</b> ریال</div>';
+    return '<div class="cn-w">⏳ قیمت هنوز اعلام نمی‌شود — گزینه‌های حذف‌شده / انتخاب‌نشده را کامل کنید.</div>';
+  }
+  function warnLines(c, after, thk){
+    var w=[];
+    if(thk && /1\/5/.test(thk)) w.push('⚠ قیمت‌های <b>استیل ۱.۵</b> در آخرین به‌روزرسانی نرخ‌ها تغییر نکرده'+(c.price!=null&&after!=null&&after<c.price?' — و الان <b>ارزان‌تر از استیل ۱</b> حساب شده است':'')+'؛ قبل از اعلام قیمت به مشتری با مدیر فروش هماهنگ کنید.');
+    if(c.added) w.push('⚠ این پنل قبلاً با «افزودن سفارش» در فاکتور ثبت شده؛ ردیف قبلی فاکتور عوض نمی‌شود و افزودن دوباره ردیف <b>جدید</b> می‌سازد — ردیف قبلی را حذف یا ویرایش کنید.');
+    return w;
+  }
+  window.bfCarryEnd = function(body, c, lost, what, thk){
+    if(!c || !c.had) return;   // اولین انتخاب — پیامی لازم نیست
+    setTimeout(function(){
+      var after = panelPrice(); lost = lost||[];
+      var w = warnLines(c, after, thk);
+      var cls = lost.length ? 'bad' : (w.length ? 'warn' : '');
+      var h = '<div class="cn-h">🔁 «'+esc(what)+'» عوض شد — '+(lost.length?'بقیهٔ انتخاب‌ها حفظ شد، به‌جز موارد زیر:':'همهٔ انتخاب‌های شما حفظ شد ✅')+'</div>';
+      if(lost.length) h += '<div class="cn-l">'+lost.map(function(x){return '<span class="lost">'+esc(x)+'</span>'}).join('')+'</div><div class="cn-w">این موارد در لیست قیمتِ انتخاب جدید وجود ندارد؛ دوباره انتخاب کنید.</div>';
+      h += priceLine(c.price, after);
+      if(w.length) h += '<div class="cn-w">'+w.join('<br>')+'</div>';
+      showNote(body, cls, h);
+    }, 0);
+  };
+
+  /* ---------- جابه‌جایی بین «استیل ۰.۵» و «استیل ۱ / ۱.۵» با حفظ انتخاب‌ها ---------- */
+  function mapSel(from, to, st){
+    var s = JSON.parse(JSON.stringify(st.sel||{})), dims = JSON.parse(JSON.stringify(st.dims||{})), lost=[], notes=[], thk=null;
+    var target = to==='steel' ? (DATA.steel.products||[]) : null;
+    if(to==='steel15'){
+      var v1 = DATA.steel15.variants.find(function(v){return /استیل 1 -/.test(v.thickness)}) || DATA.steel15.variants[0];
+      thk = s.thickness = v1.thickness; target = v1.products;
+      notes.push('جنس «'+esc(v1.thickness.replace('جنس محصول : ',''))+'» انتخاب شد؛ اگر ۱.۵ می‌خواهید، از «ضخامت استیل» عوضش کنید (بقیهٔ انتخاب‌ها می‌ماند).');
+      if(s.color){ var parts = String(s.color).split(' - '); if(/بگیر/.test(parts[1]||'')) notes.push('⚠ استیل ۱ / ۱.۵ فقط حالت «<b>نگیر</b>» دارد؛ رنگ «'+esc(s.color)+'» به «'+esc(parts[0])+'» (نگیر) تبدیل شد.'); s.color = parts[0]; }
+      if(s.keyType) delete s.keyType;
+    } else {
+      delete s.thickness;
+      if(s.color && s.color.indexOf(' - ')<0) s.color = s.color+' - استیل نگیر';
+    }
+    var ws = Array.from(new Set(target.map(function(p){return p.width})));
+    if(s.width!=null && ws.indexOf(s.width)<0){
+      var near = ws.filter(function(w){return Math.abs(w-s.width)<=1}).sort(function(a,b){return Math.abs(a-s.width)-Math.abs(b-s.width)})[0];
+      if(near!=null){ notes.push('عرض '+esc(s.width)+' ← '+esc(near)+' (نزدیک‌ترین عرض موجود در لیست قیمت)'); if(dims.baseWidth===s.width) dims.baseWidth = near; s.width = near; }
+    }
+    if(s.key && s.key!==STEEL_TOUCH_KEY && s.width!=null && s.color){
+      var ks = target.filter(function(p){return p.width===s.width && p.color===s.color}).map(function(p){return p.key});
+      if(ks.indexOf(s.key)<0){ var m = ks.find(function(k){return nk(k)===nk(s.key)}); if(m) s.key = m; }
+    }
+    lost = lost.concat(bfSteelRevalidate(s, target));
+    if(s.display && s.display.label){
+      var opts = (DATA[to].displayOptions||[]), dm = opts.find(function(o){return o.label===s.display.label});
+      if(dm) s.display = dm; else { lost.push('نمایشگر: '+s.display.label); s.display = null; }
+    }
+    return {state:{sel:s, dims:dims, model:st.model}, lost:lost, notes:notes, thk:thk};
+  }
+  window.bfSteelCarrySwitch = function(to){
+    var from = currentCat;
+    if(from===to || ['steel','steel15'].indexOf(from)<0 || ['steel','steel15'].indexOf(to)<0) return false;
+    var snap = null; try{ snap = window.__bfCmp && window.__bfCmp.snapNow(); }catch(e){ snap = null; }
+    var st = snap && snap.sections && snap.sections[from+'|main'];
+    var sl = st && st.sel || {};
+    if(!st || !(sl.width!=null || sl.color || sl.key || sl.display)) return false;   // چیزی انتخاب نشده → رفتار عادی
+    var model = getCatModel(from);
+    if(model && MODEL_SETS[to].models[model] && MODEL_SETS[to].models[model].only && MODEL_SETS[to].models[model].only!==to){
+      currentCat = to; buildTabs(); renderCategory();
+      showNote(null, 'bad', '<div class="cn-h">⛔ مدل <b>'+esc(model)+'</b> در «'+esc(CAT_META[to].title)+'» وجود ندارد</div><div class="cn-w">انتخاب‌های قبلی منتقل نشد؛ یکی از مدل‌های بالا را انتخاب کنید.</div>');
+      return true;
+    }
+    var before = (snap.parts||[]).filter(function(p){return p.k==='panel'})[0], beforeP = before && before.count ? before.total/Math.max(1,snap.qty||1) : null;
+    var wasAdded = !!(orderBundle && orderBundle.hidePrice);
+    var M = mapSel(from, to, st);
+    if(model) setCatModel(to, model);
+    currentCat = to; buildTabs(); renderCategory();
+    try{ var fn = editRestoreRegistry[to+'|main']; if(fn) fn(M.state); }catch(e){ console.warn('[bf-carry]', e); }
+    var b = orderBundle, eqMoved = 0;
+    if(b){ Object.keys(snap.eq||{}).forEach(function(k){ var p=b.parts[k]; if(p && p.load){ try{ p.load(JSON.parse(JSON.stringify(snap.eq[k]))); if(/"checked":true|"qty":[1-9]/.test(JSON.stringify(snap.eq[k]))) eqMoved++; }catch(e){} } });
+      b.qty = Math.max(1, snap.qty||1); if(b.qtyEl) b.qtyEl.value = b.qty; b.hidePrice = false; try{ bundleRefresh(); }catch(e){} }
+    setTimeout(function(){
+      var after = panelPrice(), w = warnLines({price:beforeP, added:wasAdded}, after, M.thk);
+      var cls = M.lost.length ? 'bad' : ((w.length||M.notes.some(function(x){return x.indexOf('⚠')===0})) ? 'warn' : '');
+      var h = '<div class="cn-h">🔁 از «'+esc(CAT_META[from].title)+'» به «'+esc(CAT_META[to].title)+'» آمدید — انتخاب‌ها'+(model?' (مدل <b>'+esc(model)+'</b>)':'')+' منتقل شد'+(M.lost.length?'، به‌جز:':' ✅')+'</div>';
+      if(M.lost.length) h += '<div class="cn-l">'+M.lost.map(function(x){return '<span class="lost">'+esc(x)+'</span>'}).join('')+'</div>';
+      if(M.notes.length) h += '<div>'+M.notes.join('<br>')+'</div>';
+      if(eqMoved) h += '<div>🧩 تجهیزات انتخاب‌شده هم منتقل شد (هر موردی که در این بخش نیست، خودکار کنار گذاشته می‌شود).</div>';
+      h += priceLine(beforeP, after);
+      if(w.length) h += '<div class="cn-w">'+w.join('<br>')+'</div>';
+      showNote(null, cls, h);
+    }, 0);
+    return true;
+  };
+})();
+</script>
+
 </body>
 </html>

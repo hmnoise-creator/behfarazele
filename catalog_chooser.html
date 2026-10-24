@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>کاتالوگ و فرم‌های فنی | بهفراز گروپ</title>
+<!-- [BF-ICON] آیکون بهفراز برای «افزودن به صفحهٔ اصلی» در آیفون / اندروید -->
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="بهفراز">
+<meta name="theme-color" content="#0f3d3a">
 <style>
   :root{
     --teal:#0f3d3a;
@@ -78,6 +84,29 @@
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#0f3d3a;color:#fff;padding:10px 18px;border-radius:10px;font-size:.82rem;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:70;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   @media (max-width:560px){body{padding:12px}.cat-actions{width:100%}.cat-btn{flex:1;justify-content:center}}
+</style>
+<style id="bfMobileFix">
+/* [BF-MOBILE] نمایش درست روی آیفون / موبایل: هیچ بخشی از صفحه از عرض گوشی بیرون نزند و نیازی به کشیدن صفحه به کنار نباشد.
+   فقط روی صفحهٔ نمایش (screen) اعمال می‌شود؛ روی چاپ و PDF پیش‌فاکتور هیچ اثری ندارد. */
+@media screen and (max-width:820px){
+  html,body{max-width:100%;overflow-x:hidden}
+  body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  img,svg,canvas,video,iframe{max-width:100%}
+  .bf-mscroll{display:block;max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .order-actions-print-row{flex-wrap:wrap}
+  .order-actions-print-row .btn{min-width:0 !important;flex:1 1 140px}
+  .actions,.btn-row,.order-actions-top{flex-wrap:wrap}
+  pre,code{white-space:pre-wrap;word-break:break-word}
+  .calc-mode-toggle{flex-wrap:wrap}.calc-mode-toggle .mode-tab{flex:1 1 44%;min-width:0}
+  .head .tag{white-space:normal}
+  .cust-grid>*,.grid>*{min-width:0}
+  .inv-footer-print-row,.print-row{flex-wrap:wrap}
+  .inv-footer-print-row .print-btn,.print-row .print-btn{min-width:0 !important;flex:1 1 140px}
+}
+@media screen and (max-width:560px){
+  .cust-grid,.cust-grid.compact-cust{grid-template-columns:minmax(0,1fr) !important}
+}
+@media print{.bf-mscroll{overflow:visible !important;max-width:none !important;display:block}}
 </style>
 </head>
 <body>

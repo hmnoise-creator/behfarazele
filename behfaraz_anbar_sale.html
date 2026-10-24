@@ -4657,6 +4657,9 @@ try{finDB();renderSheet()}catch(e){console.error(e)}
       if(x.st===423){online=false;show();chip.textContent='🔒 رمز انبار لازم است — کلیک کنید';chip.onclick=function(){window.bfWhRelock&&window.bfWhRelock()};if(!document.getElementById('bfWhGate')){window.bfWhRelock&&window.bfWhRelock()}return}
       if(!x.d||!x.d.ok)throw new Error(x.d&&x.d.error||'err');
       online=true;canWrite=!!x.d.canWrite;var first=!started;started=true;if(!canWrite&&dirty)setDirty(false);
+      /* [BF-WH-RESET] سرور انبار پاک‌سازی شده: دادهٔ قدیمی این مرورگر هم پاک و صفحه از نو بارگذاری می‌شود */
+      if(x.d.data&&x.d.data.resetId){var RK='behfaraz_anbar_reset_id',lr='';try{lr=localStorage.getItem(RK)||''}catch(e){}
+        if(lr!==x.d.data.resetId){try{localStorage.setItem(RK,x.d.data.resetId);localStorage.removeItem(LS_KEY);localStorage.removeItem(BASE_KEY);localStorage.setItem(DIRTY_KEY,'0')}catch(e){}dirty=false;canWrite=false;try{save=function(){}}catch(e){}location.reload();return}}
       if(x.d.same){if(dirty&&canWrite)push();show();return}
       if(!x.d.data){ /* سرور هنوز خالی است: دادهٔ این سیستم اولین نسخهٔ سرور می‌شود */
         if(canWrite&&(DB.units.length||DB.lots.length||DB.receipts.length||DB.exits.length||(DB.cap&&DB.cap.items.length))){setDirty(true);push()}

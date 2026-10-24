@@ -1530,6 +1530,7 @@ function bfMoltenMetal(host, user){
             try{ localStorage.setItem('bf_last_login_v1', nameEl.value.trim()); }catch(e){}
             ov.remove(); __bfGatePromise = null;
             bfOnLoggedIn(o);
+            try{ if(data.attIn && window.bfAttNote) window.bfAttNote('✅ ورود شما به شرکت ثبت شد — ساعت ' + new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'})); }catch(e){}
             resolve(o);
             return;
           }
@@ -4534,6 +4535,25 @@ bfAutoSeqInit({product:'factorplus',seqEl:function(){return null},buttons:null})
   }
   window.fpRender=fpRender=function(){var r=orig.apply(this,arguments);try{lockInputs();autoNo()}catch(e){}return r};
   setTimeout(function(){try{lockInputs();autoNo()}catch(e){}},4500);
+})();
+</script>
+<script id="bfAttAuto">
+/* [ATT-AUTO] حضور خودکار: هر ۱ دقیقه به سرور خبر می‌دهد که سامانه باز است.
+   اگر مرورگر بسته یا سیستم خاموش شود، سرور بعد از ۱۰ دقیقه بی‌خبری، خروج را با زمان آخرین حضور ثبت می‌کند.
+   اگر بعد از خروج خودکار دوباره پشت سیستم بیاید (حرکت ماوس / کیبورد)، ورود جدید خودکار ثبت می‌شود. */
+(function(){
+  if(location.protocol==='file:')return;
+  var EV=['mousemove','mousedown','keydown','touchstart','wheel','scroll'],last=Date.now();
+  function mark(){last=Date.now()}
+  EV.forEach(function(e){document.addEventListener(e,mark,{passive:true,capture:true})});
+  function hookFrames(){[].forEach.call(document.querySelectorAll('iframe'),function(f){try{var d=f.contentDocument;if(d&&!d.__bfAtt){d.__bfAtt=1;EV.forEach(function(e){d.addEventListener(e,mark,{passive:true,capture:true})})}}catch(e){}})}
+  function tok(){try{var o=JSON.parse(sessionStorage.getItem('bf_operator_session_v1')||'null');return o&&o.token||''}catch(e){return ''}}
+  window.bfAttNote=function(msg){try{var t=document.getElementById('bfAttToast');if(!t){t=document.createElement('div');t.id='bfAttToast';t.style.cssText='position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:2147483100;background:#0f3d3a;color:#fff;padding:10px 18px;border-radius:12px;font:700 13px/1.8 Vazirmatn,Tahoma,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.25);direction:rtl';document.body.appendChild(t)}t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(function(){t.style.display='none'},5000)}catch(e){}};
+  function ping(){hookFrames();var t=tok();if(!t)return;
+    fetch('/api/attendance/ping',{method:'POST',headers:{'Content-Type':'application/json','x-operator-token':t},body:JSON.stringify({active:Date.now()-last<3*60000}),cache:'no-store',keepalive:true})
+      .then(function(r){return r.json()}).then(function(d){if(d&&d.autoIn)window.bfAttNote('✅ خوش برگشتید — ورود شما دوباره خودکار ثبت شد')}).catch(function(){});}
+  setTimeout(ping,4000);setInterval(ping,60000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){mark();ping()}});
 })();
 </script>
 </body>

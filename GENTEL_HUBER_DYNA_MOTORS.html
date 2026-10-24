@@ -1174,6 +1174,10 @@
     <div class="ph-body">
       <div class="ph-group ph-dyna">
         <div class="ph-group-title">موتور داینا لیفت (Dyna Lift)</div>
+        <button type="button" class="ph-item" id="bfPhM0802Dyna" data-brand="dyna" data-set="m0802">
+          <span class="ph-radio"></span>
+          <span class="ph-txt"><b>تغییر قیمت مورخ 1405/08/02</b><small>دیسکی سرعت ۱ متر — ۱۰ نفره: از ۴٬۷۸۰٬۴۵۰٬۰۰۰ به ۵٬۱۵۰٬۰۰۰٬۰۰۰ ریال · ۱۳ نفره: از ۵٬۰۴۵٬۱۰۰٬۰۰۰ به ۵٬۳۰۰٬۰۰۰٬۰۰۰ ریال — بقیهٔ مدل‌ها مثل 1405/07/12</small></span>
+        </button>
         <button type="button" class="ph-item" id="bfPhManualDyna" data-brand="dyna" data-set="manual">
           <span class="ph-radio"></span>
           <span class="ph-txt"><b>افزایش قیمت مورخ 1405/07/12</b><small>قیمت دستی (از فایل قیمت جدید داینا لیفت) — بدون تغییر در درخت سیم/پک</small></span>
@@ -1835,9 +1839,9 @@ const DYNA_PRICE_MAP_0712 = {
   [dynaKey('disk','2:1',450,1)]: 4110450000,
   [dynaKey('disk','2:1',630,1)]: 4663200000,
   [dynaKey('disk','2:1',630,1.6)]: 4750300000,
-  [dynaKey('disk','2:1',800,1)]: 5150000000, // 1405/08/02 — ۱۰ نفره دیسکی 1m/s (قبلی 4,780,450,000)
+  [dynaKey('disk','2:1',800,1)]: 4780450000,
   [dynaKey('disk','2:1',800,1.6)]: 4867550000,
-  [dynaKey('disk','2:1',1000,1)]: 5300000000, // 1405/08/02 — ۱۳ نفره دیسکی 1m/s (قبلی 5,045,100,000)
+  [dynaKey('disk','2:1',1000,1)]: 5045100000,
   [dynaKey('disk','2:1',1000,1.6)]: 5272900000,
   [dynaKey('disk','2:1',1250,1)]: 8378350000,
   [dynaKey('disk','2:1',1250,1.6)]: 8378350000,
@@ -1857,6 +1861,11 @@ const DYNA_PRICE_MAP_0712 = {
   [dynaKey('drum','2:1',1600,1)]: 10743450000,
   [dynaKey('drum','2:1',1600,1.6)]: 10743450000,
 };
+/* قیمت‌های داینا لیفت — «تغییر قیمت مورخ 1405/08/02»: همان نرخ‌های 1405/07/12 + دو مدل دیسکی سرعت ۱ متر */
+const DYNA_PRICE_MAP_0802 = Object.assign({}, DYNA_PRICE_MAP_0712, {
+  [dynaKey('disk','2:1',800,1)]: 5150000000,   // ۱۰ نفره دیسکی 1m/s (قبلی 4,780,450,000)
+  [dynaKey('disk','2:1',1000,1)]: 5300000000,  // ۱۳ نفره دیسکی 1m/s (قبلی 5,045,100,000)
+});
 // اصلاح مشخصات فنی مخصوص داینا لیفت (فقط داینا؛ جنتلرایز دست‌نخورده می‌ماند):
 // دیسکی — سیستم 1:1 — ظرفیت 630kg (8 نفر): Power = 4.1kw ، Current = 18A
 const DYNA_SPEC_OVERRIDES = {
@@ -3349,12 +3358,12 @@ capacityDynaEl.addEventListener('change', () => {
    ============================================================ */
 const BF_PH_MULT_NEW = 1.10;
 const BF_PH = {
-  dyna:       { mult: BF_PH_MULT_NEW, set:'manual', refs: [], cls:'ph-dyna',   label:'داینا' },
+  dyna:       { mult: BF_PH_MULT_NEW, set:'m0802', refs: [], cls:'ph-dyna',   label:'داینا' },
   gentelrise: { mult: BF_PH_MULT_NEW, set:'new', refs: [], cls:'ph-gentel', label:'جنتلرایز' },
   huber:      { mult: BF_PH_MULT_NEW, set:'new', refs: [], cls:'ph-huber',  label:'هوبر' }
 };
 Object.keys(DATA_DYNA).forEach(t=>Object.keys(DATA_DYNA[t]).forEach(ra=>DATA_DYNA[t][ra].forEach(r=>{
-  if(typeof r.motorPrice === 'number') BF_PH.dyna.refs.push({o:r, v:r.motorPrice, m:DYNA_PRICE_MAP_0712[dynaKey(t,ra,r.kg,r.speed)]});
+  if(typeof r.motorPrice === 'number') BF_PH.dyna.refs.push({o:r, v:r.motorPrice, m:DYNA_PRICE_MAP_0712[dynaKey(t,ra,r.kg,r.speed)], m2:DYNA_PRICE_MAP_0802[dynaKey(t,ra,r.kg,r.speed)]});
 })));
 Object.keys(DATA).forEach(t=>Object.keys(DATA[t]).forEach(ra=>DATA[t][ra].forEach(r=>{
   if(typeof r.motorPrice === 'number') BF_PH.gentelrise.refs.push({o:r, v:r.motorPrice});
@@ -3370,7 +3379,7 @@ function bfUpdatePriceHistoryUI(){
   const ac = document.getElementById('bfPhActive');
   if(ac) ac.innerHTML = Object.keys(BF_PH).map(b=>{
     const c = BF_PH[b];
-    return '<span class="ph-chip '+c.cls+'">'+c.label+': '+(c.set==='manual' ? '1405/07/12' : (c.mult!==1 ? '+۱۰٪' : '1405/07/08'))+'</span>';
+    return '<span class="ph-chip '+c.cls+'">'+c.label+': '+(c.set==='m0802' ? '1405/08/02' : c.set==='manual' ? '1405/07/12' : (c.mult!==1 ? '+۱۰٪' : '1405/07/08'))+'</span>';
   }).join('');
 }
 function bfRefreshShownMotorPrice(brand){
@@ -3404,12 +3413,12 @@ function bfApplyPriceSet(brand, which){
   const c = BF_PH[brand]; if(!c) return;
   c.set = which;
   c.mult = (which === 'old') ? 1 : BF_PH_MULT_NEW;
-  c.refs.forEach(x=>{ x.o.motorPrice = (which==='manual' && typeof x.m==='number') ? x.m : Math.round(x.v * c.mult); });
+  c.refs.forEach(x=>{ x.o.motorPrice = (which==='m0802' && typeof x.m2==='number') ? x.m2 : (which==='manual' && typeof x.m==='number') ? x.m : Math.round(x.v * c.mult); });
   bfUpdatePriceHistoryUI();
   bfRefreshShownMotorPrice(brand);
 }
 // حالت پیش‌فرض هنگام باز شدن فرم: قیمت‌های جدید (۱۰٪ افزایش) برای هر سه برند
-Object.keys(BF_PH).forEach(b=>{ BF_PH[b].refs.forEach(x=>{ x.o.motorPrice = (BF_PH[b].set==='manual' && typeof x.m==='number') ? x.m : Math.round(x.v * BF_PH[b].mult); }); });
+Object.keys(BF_PH).forEach(b=>{ BF_PH[b].refs.forEach(x=>{ x.o.motorPrice = (BF_PH[b].set==='m0802' && typeof x.m2==='number') ? x.m2 : (BF_PH[b].set==='manual' && typeof x.m==='number') ? x.m : Math.round(x.v * BF_PH[b].mult); }); });
 document.querySelectorAll('#bfPriceHistory .ph-item').forEach(b=>{
   b.addEventListener('click', ()=> bfApplyPriceSet(b.dataset.brand, b.dataset.set));
 });
@@ -3420,9 +3429,9 @@ bfUpdatePriceHistoryUI();
    تاریخ واردشده در چاپ پیش‌فاکتور (و پشت برگ) درج می‌شود.
    «نرخ جاری» هر برند = همان حالت پیش‌فاکتورِ پیش‌فرض؛ هر نرخ دیگری «قدیمی» حساب می‌شود.
    ============================================================ */
-const BF_PH_CURRENT = { dyna:'manual', gentelrise:'new', huber:'new' };
+const BF_PH_CURRENT = { dyna:'m0802', gentelrise:'new', huber:'new' };
 let bfOldPriceDateDraft = '';
-function bfPhSetLabel(set){ return set==='old' ? 'نرخ 1405/07/08' : (set==='manual' ? 'نرخ 1405/07/12' : 'نرخ +۱۰٪'); }
+function bfPhSetLabel(set){ return set==='old' ? 'نرخ 1405/07/08' : set==='m0802' ? 'نرخ 1405/08/02' : (set==='manual' ? 'نرخ 1405/07/12' : 'نرخ +۱۰٪'); }
 function bfHasOldPriceItems(){ return orderItems.some(it=>it && it.priceIsOld); }
 function bfNormPriceDate(v){
   let t = String(v||'').trim()
@@ -4611,6 +4620,7 @@ function mcMoney(v){ return (v==null || v==='') ? '<span class="mc-call">تما�
 function mcTxt(v){ return (v===null || v===undefined || v==='') ? '—' : '<span class="mc-n">'+dispDec(v)+'</span>'; }
 function mcPriceNote(brand){
   const c = BF_PH[brand];
+  if(c && c.set==='m0802') return 'قیمت‌های داینا لیفت مورخ 1405/08/02 — قیمت نهایی بدون ارزش افزوده است.';
   if(c && c.set==='manual') return 'قیمت‌های داینا لیفت مورخ 1405/07/12 — قیمت نهایی بدون ارزش افزوده است.';
   if(brand==='huber') return 'صدور فاکتور رسمی با نرخ‌های ذیل امکان‌پذیر می‌باشد';
   if(brand==='gentelrise') return 'قیمتهای اعلام شده به صورت غیر رسمی بوده و در صورت درخواست فاکتور رسمی،۱۰درصد به مبالغ فوق اضافه خواهد شد';

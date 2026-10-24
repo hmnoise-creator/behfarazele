@@ -6352,6 +6352,31 @@ function bfXlsxSheet(rows, widths){   // rows: آرایه‌ای از آرایه
   });
   return x+'</sheetData></worksheet>';
 }
+/* [BF-ACC2] کپی یک‌کلیکی برای حسابداری: «شرح کالا (خلاصه)» + «تعداد» — مستقیم در اکسل یا نرم‌افزار حسابداری Paste می‌شود (دو ستون) */
+function bfAccRows(o){
+  const tmp = document.createElement('div');
+  const plain = h => { tmp.innerHTML = String(h==null?'':h); return (tmp.textContent||'').replace(/\s+/g,' ').trim(); };
+  return (o.invoice||[]).map(it=>{ let d; try{ d = bfAccShortDesc(it, plain) || plain(it.desc); }catch(e){ d = it.section==='extra' ? plain(it._name||'') : plain(it.desc); } return [d, Number(it.qty)||0]; });
+}
+function bfCopyAccounting(id, btn){
+  const o = (loadSavedOrders()||[]).find(x=>x.id===id);
+  if(!o){ alert('سفارش پیدا نشد.'); return; }
+  const R = bfAccRows(o);
+  if(!R.length){ if(typeof bfToast==='function') bfToast('ردیفی برای کپی نیست','info'); return; }
+  const tsv = R.map(r=>String(r[0]).replace(/[\t\r\n]+/g,' ')+'\t'+r[1]).join('\r\n');
+  const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const html = '<table dir="rtl">'+R.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+r[1]+'</td></tr>').join('')+'</table>';
+  const done = ()=>{ if(typeof bfToast==='function') bfToast('📋 '+R.length+' ردیف «شرح کالا + تعداد» کپی شد — در اکسل یا نرم‌افزار حسابداری Paste (Ctrl+V) کنید','info');
+    if(btn){ const t=btn.innerHTML; btn.innerHTML='✅ کپی شد'; setTimeout(()=>{ btn.innerHTML=t; },1800); } };
+  const fallback = ()=>{ const ta=document.createElement('textarea'); ta.value=tsv; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); done(); }catch(e){ alert('کپی خودکار انجام نشد؛ متن را دستی کپی کنید:\n\n'+tsv); } ta.remove(); };
+  try{
+    if(navigator.clipboard && window.ClipboardItem && window.isSecureContext){
+      navigator.clipboard.write([new ClipboardItem({'text/plain':new Blob([tsv],{type:'text/plain'}),'text/html':new Blob([html],{type:'text/html'})})]).then(done).catch(fallback);
+    } else if(navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(tsv).then(done).catch(fallback); }
+    else fallback();
+  }catch(e){ fallback(); }
+}
 function bfExportOrderExcel(id){
   const o = (loadSavedOrders()||[]).find(x=>x.id===id);
   if(!o){ alert('سفارش پیدا نشد.'); return; }
@@ -6442,7 +6467,8 @@ function renderSavedOrders(){
         <button class="small-btn" style="background:#1565c0;color:#fff;border-color:#1565c0;" onclick="bfUpdateSavedOrder('${o.id}')" title="یک سفارش جدید (ذخیره‌نشده) با همان مشخصات و محصولات، اما با نرخ‌های فعالِ «تاریخچه قیمت» ساخته می‌شود؛ سفارش قبلی تغییر نمی‌کند">🔄 به‌روزرسانی</button>
         <button class="print-btn" onclick="printSavedOrder('${o.id}')">🖨 چاپ / PDF</button>
         <button class="print-btn" style="background:#555;" onclick="printSavedOrderBack('${o.id}')">🖨 چاپ پشت برگ</button>
-        <button class="small-btn" style="background:#1e8e3e;color:#fff;border-color:#1e8e3e;" onclick="bfExportOrderExcel('${o.id}')" title="فایل Excel با مشخصات کامل این سفارش به‌صورت ردیفی (مناسب کپی در نرم‌افزار حسابداری)">📗 خروجی اکسل (حسابداری)</button>
+        <button class="small-btn" style="background:#1e8e3e;color:#fff;border-color:#1e8e3e;" onclick="bfExportOrderExcel('${o.id}')" title="فایل Excel برای حسابداری: فقط «شرح کالا (خلاصه)» و «تعداد»">📗 خروجی اکسل (حسابداری)</button>
+        <button class="small-btn" style="background:#fff;color:#1e8e3e;border-color:#1e8e3e;" onclick="bfCopyAccounting('${o.id}', this)" title="با یک کلیک «شرح کالا (خلاصه)» و «تعداد» همهٔ ردیف‌ها کپی می‌شود تا در اکسل / نرم‌افزار حسابداری Paste شود">📋 کپی برای حسابداری</button>
         <button class="small-btn" style="background:#c0392b;color:#fff;border-color:#c0392b;" onclick="deleteSavedOrder('${o.id}')">🗑 حذف</button>`}
       </div>
     </div>`;

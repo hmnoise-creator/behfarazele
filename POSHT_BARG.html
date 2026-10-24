@@ -6471,13 +6471,17 @@ function bfAccRows(o){
   const plain = h => { tmp.innerHTML = String(h==null?'':h); return (tmp.textContent||'').replace(/\s+/g,' ').trim(); };
   return (o.invoice||[]).map(it=>{ let d; try{ d = bfAccShortDesc(it, plain) || plain(it.desc); }catch(e){ d = it.section==='extra' ? plain(it._name||'') : plain(it.desc); } return [d, Number(it.qty)||0]; });
 }
+/* [BF-ACC4] پنل لابی = پنل طبقهٔ سری‌های A1000 · A3000 · B1000 · B3000 — کپی جدا */
+function bfIsLobby(it){ if(!it || it.section!=='floor') return false; const t=String(it.desc||'').replace(/<[^>]*>/g,' '); return /(^|[^0-9A-Za-z])[AB][13]000(?![0-9])/i.test(t); }
+function bfHasLobby(o){ return (o && o.invoice || []).some(bfIsLobby); }
 function bfCopyAccounting(id, btn, part){
   const o = (loadSavedOrders()||[]).find(x=>x.id===id);
   if(!o){ alert('سفارش پیدا نشد.'); return; }
   /* [BF-ACC3] کپی جدا: کابین / طبقه — فقط «شرح کالا (خلاصه)» بدون تعداد */
-  const inv = (o.invoice||[]).filter(it=> part==='floor' ? it.section==='floor' : (part==='cab' ? it.section!=='floor' : true));
-  const lbl = part==='floor' ? 'طبقه' : (part==='cab' ? 'کابین' : '');
-  const R = bfAccRows(Object.assign({}, o, {invoice:inv})).map(r=>[r[0]]);
+  const inv = (o.invoice||[]).filter(it=> part==='lobby' ? bfIsLobby(it) : part==='floor' ? (it.section==='floor' && !bfIsLobby(it)) : (part==='cab' ? it.section!=='floor' : true));
+  const lbl = part==='lobby' ? 'پنل لابی' : part==='floor' ? 'طبقه' : (part==='cab' ? 'کابین' : '');
+  let R = bfAccRows(Object.assign({}, o, {invoice:inv})).map(r=>[r[0]]);
+  if(part==='lobby') R = R.map(r=>[String(r[0]).replace(/^پنل طبقه/, 'پنل لابی')]);
   if(!R.length){ if(typeof bfToast==='function') bfToast('ردیفی برای کپی '+lbl+' نیست','info'); else alert('ردیفی برای کپی '+lbl+' نیست'); return; }
   const tsv = R.map(r=>String(r[0]).replace(/[\t\r\n]+/g,' ')).join('\r\n');
   const esc = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -6585,6 +6589,7 @@ function renderSavedOrders(){
         <button class="print-btn" style="background:#555;" onclick="printSavedOrderBack('${o.id}')">🖨 چاپ پشت برگ</button>
         <button class="small-btn" style="background:#fff;color:#1e8e3e;border-color:#1e8e3e;" onclick="bfCopyAccounting('${o.id}', this, 'cab')" title="کپی «شرح کالا (خلاصه)» ردیف‌های کابین (به‌همراه تجهیزات و محصولات تکمیلی) برای Paste در حسابداری">📋 کپی کابین</button>
         <button class="small-btn" style="background:#fff;color:#1a5fb4;border-color:#1a5fb4;" onclick="bfCopyAccounting('${o.id}', this, 'floor')" title="کپی «شرح کالا (خلاصه)» ردیف‌های پنل طبقه برای Paste در حسابداری">📋 کپی طبقه</button>
+        ${bfHasLobby(o) ? `<button class="small-btn" style="background:#fff;color:#8a4b00;border-color:#c77d14;" onclick="bfCopyAccounting('${o.id}', this, 'lobby')" title="کپی «شرح کالا (خلاصه)» پنل‌های لابی (A1000 · A3000 · B1000 · B3000) برای Paste در حسابداری">📋 کپی پنل لابی</button>` : ''}
         <button class="small-btn" style="background:#c0392b;color:#fff;border-color:#c0392b;" onclick="deleteSavedOrder('${o.id}')">🗑 حذف</button>`}
       </div>
     </div>`;

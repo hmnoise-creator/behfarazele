@@ -1443,6 +1443,12 @@ bfAutoSeqInit({product:'elevator',seqEl:function(){return document.getElementByI
   // پیش از هر کلیک (مثلاً دکمهٔ چاپ) عنوان از روی فرم تازه می‌شود؛ کد چاپ سفارش ذخیره‌شده بعداً عنوان خودش را می‌گذارد
   document.addEventListener('click', function(){ try{ window.bfPdfLive(); }catch(e){} }, true);
   window.addEventListener('afterprint', function(){ setTimeout(function(){ try{ window.bfPdfLive(); }catch(e){} }, 0); });
+  // تور ایمنی: اگر مسیر چاپی عنوان را تنظیم نکرده بود (هنوز عنوان پیش‌فرض سیستم بود)، لحظهٔ چاپ نام مشتری/پروژه گذاشته می‌شود
+  var _print = window.print;
+  window.print = function(){
+    try{ if(document.title === ORIG){ var n = window.bfPdfName(val('cName'), val('cProject')); if(n) document.title = n; } }catch(e){}
+    return _print.apply(window, arguments);
+  };
   try{ window.bfPdfLive(); }catch(e){}
 })();
 </script>

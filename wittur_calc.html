@@ -2874,7 +2874,7 @@ let accHoseInclude = false;
 let witExtraOpen = false; // آیا پنل بسته‌شونده «اقلام تکمیلی» (روغن، شلنگ) باز است — برای جمع‌وجورتر شدن صفحه محاسبه سریع/فنی
 function accHoseFindRow(){ return hoseFindRow(accHoseProduct, accHoseSize); }
 function accHoseCost(){
-  if(!accHoseInclude) return 0;
+  // بدون تیک تأیید: با انتخاب محصول + سایز + متراژ، شلنگ مستقیم در پیش‌فاکتور اعمال می‌شود
   const row = accHoseFindRow();
   const m = Math.max(0, Number(accHoseMeters)||0);
   if(!row || m<=0) return 0;
@@ -2910,16 +2910,12 @@ function renderAccHoseBox(){
       <input type="text" inputmode="decimal" class="numlt" id="accHoseMetersInput" placeholder="مثلاً 4" value="${accHoseMeters!=null?accHoseMeters:''}" ${row?'':'disabled'}>
       <span class="unit">متر</span>
     </div>
-    <label class="acc-hose-include-row">
-      <input type="checkbox" id="accHoseIncludeCb" ${accHoseInclude?'checked':''}>
-      <span>افزودن هزینه شلنگ به پیش‌فاکتور</span>
-    </label>
-    ${ (accHoseInclude && cost>0) ? `<div class="hose-cost-badge">هزینه شلنگ در پیش‌فاکتور: <b class="numlt">${fmt(cost)}</b> ریال</div>` : `<div class="hose-cost-badge">برای درج در فاکتور، محصول، سایز و متراژ شلنگ را انتخاب کنید.</div>` }
+    ${ (cost>0) ? `<div class="hose-cost-badge">هزینه شلنگ در پیش‌فاکتور: <b class="numlt">${fmt(cost)}</b> ریال</div>` : `<div class="hose-cost-badge">برای درج در فاکتور، محصول، سایز و متراژ شلنگ را انتخاب کنید.</div>` }
   </div>`;
 }
 function accHoseInvoiceRow(){
   const cost = accHoseCost();
-  if(!accHoseInclude || cost<=0) return '';
+  if(cost<=0) return '';
   const row = accHoseFindRow();
   if(!row) return '';
   return `<tr id="accHoseItemRow"><td>شلنگ — ${row.product}</td><td>سایز <span class="numlt">${row.size}</span>" · ${row.fitting} · قیمت هر متر <span class="numlt">${fmt(row.price)}</span> ریال × <span class="numlt">${accHoseMeters}</span> متر</td><td class="num numlt">×1</td><td class="num" id="accHoseItemCost">${fmt(cost)}</td></tr>`;
@@ -8925,6 +8921,12 @@ window.bfFpRepriceImpl = function(snap){
   // پیش از هر کلیک (مثلاً دکمهٔ چاپ) عنوان از روی فرم تازه می‌شود؛ کد چاپ سفارش ذخیره‌شده بعداً عنوان خودش را می‌گذارد
   document.addEventListener('click', function(){ try{ window.bfPdfLive(); }catch(e){} }, true);
   window.addEventListener('afterprint', function(){ setTimeout(function(){ try{ window.bfPdfLive(); }catch(e){} }, 0); });
+  // تور ایمنی: اگر مسیر چاپی عنوان را تنظیم نکرده بود (هنوز عنوان پیش‌فرض سیستم بود)، لحظهٔ چاپ نام مشتری/پروژه گذاشته می‌شود
+  var _print = window.print;
+  window.print = function(){
+    try{ if(document.title === ORIG){ var n = window.bfPdfName((clean(val('custCompany')) || val('custName')), val('custProject')); if(n) document.title = n; } }catch(e){}
+    return _print.apply(window, arguments);
+  };
   try{ window.bfPdfLive(); }catch(e){}
 })();
 </script>

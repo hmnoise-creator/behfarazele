@@ -3224,6 +3224,12 @@ $('fileRestore').addEventListener('change',function(e){
   rd.onload=function(){
     try{
       var d=JSON.parse(rd.result);if(!d||!Array.isArray(d.units)||!Array.isArray(d.exits)||!Array.isArray(d.receipts))throw 0;
+      /* [WH-IMPORT] روی سرور: یک بار بارگذاری توسط ادمین ← همهٔ کاربران همان را می‌بینند */
+      if(typeof window.bfWhImportToServer==='function' && window.bfWhServerMode && window.bfWhServerMode()){
+        if(!window.bfWhCanWrite()){alert('دسترسی شما به انبار «فقط مشاهده» است؛ دادهٔ انبار خودکار از سرور نمایش داده می‌شود و نیازی به بارگذاری پشتیبان ندارید.');e.target.value='';return}
+        if(!confirm('فایل پشتیبان «'+f.name+'» ('+d.units.length+' سریال‌دار، '+d.receipts.length+' رسید ورود، '+d.exits.length+' حواله)\nروی «سرور» بارگذاری می‌شود و دادهٔ فعلی انبار برای «همهٔ کاربران» با آن جایگزین می‌شود.\n(نسخهٔ فعلی سرور در پشتیبان‌ها و تاریخچه می‌ماند.)\n\nادامه می‌دهید؟')){e.target.value='';return}
+        window.bfWhImportToServer(d,f.name);e.target.value='';return;
+      }
       if(!confirm('اطلاعات فعلی کاملاً با فایل پشتیبان جایگزین می‌شود ('+d.units.length+' سریال‌دار، '+d.exits.length+' حواله). ادامه می‌دهید؟'))return;
       var b=freshDB();for(var k in b){if(d[k]===undefined)d[k]=b[k]}DB=d;
       addLog('بازیابی پشتیبان',f.name);save();refreshDatalists();init();toast('✓ بازیابی انجام شد');
@@ -3852,9 +3858,6 @@ var BF_WH_RO=(function(){var o=bfWhOperator();if(!o)return location.protocol!=='
       if(x.st===401){online=false;show();chip.textContent='🔒 برای اتصال به سرور از صفحهٔ اصلی وارد شوید';return}
       if(!x.d||!x.d.ok)throw new Error(x.d&&x.d.error||'err');
       online=true;canWrite=!!x.d.canWrite;var first=!started;started=true;if(!canWrite&&dirty)setDirty(false);
-      /* [BF-WH-RESET] سرور انبار پاک‌سازی شده: دادهٔ قدیمی این مرورگر هم پاک و صفحه از نو بارگذاری می‌شود */
-      if(x.d.data&&x.d.data.resetId){var RK='behfaraz_anbar_reset_id',lr='';try{lr=localStorage.getItem(RK)||''}catch(e){}
-        if(lr!==x.d.data.resetId){try{localStorage.setItem(RK,x.d.data.resetId);localStorage.removeItem(LS_KEY);localStorage.removeItem(BASE_KEY);localStorage.setItem(DIRTY_KEY,'0')}catch(e){}dirty=false;canWrite=false;try{save=function(){}}catch(e){}location.reload();return}}
       if(x.d.same){if(dirty&&canWrite)push();show();return}
       if(!x.d.data){ /* سرور هنوز خالی است: دادهٔ این سیستم اولین نسخهٔ سرور می‌شود */
         if(canWrite&&(DB.units.length||DB.lots.length||DB.receipts.length||DB.exits.length||(DB.cap&&DB.cap.items.length))){setDirty(true);push()}
@@ -3892,6 +3895,38 @@ var BF_WH_RO=(function(){var o=bfWhOperator();if(!o)return location.protocol!=='
   window.addEventListener('focus',function(){pull(false)});
   window.addEventListener('beforeunload',function(){if(dirty&&canWrite){try{fetch('/api/warehouse',{method:'PUT',headers:hdr(),body:JSON.stringify({baseRev:rev,data:DB}),keepalive:true})}catch(e){}}});
   window.bfWhSyncNow=function(){return pull(true)};
+  /* [WH-IMPORT] */
+  window.bfWhServerMode=function(){return online===true};
+  window.bfWhCanWrite=function(){return !!canWrite};
+  window.bfWhImportToServer=function(d,fileName){
+    var b0=freshDB();for(var k in b0){if(d[k]===undefined)d[k]=b0[k]}
+    var u=DB.settings&&DB.settings.user;
+    busy=true;chip.textContent='⏳ در حال بارگذاری پشتیبان روی سرور…';
+    fetch('/api/warehouse/import',{method:'POST',headers:hdr(),body:JSON.stringify({data:d,fileName:fileName||''})}).then(function(r){return r.json().then(function(x){return {st:r.status,d:x}})}).then(function(x){
+      busy=false;
+      if(!x.d||!x.d.ok){alert((x.d&&x.d.error)||'بارگذاری روی سرور انجام نشد');show();return}
+      online=true;setBase(x.d.rev,x.d.data);setDirty(false);
+      DB=normalize(clone(x.d.data));if(u)DB.settings.user=u;try{__lsSave()}catch(e){}
+      try{refreshDatalists()}catch(e){}try{init()}catch(e){}render();show();
+      toast('✓ پشتیبان روی سرور بارگذاری شد — همهٔ کاربران همین را می‌بینند');
+      try{addLog('بارگذاری پشتیبان روی سرور',fileName||'')}catch(e){}
+    }).catch(function(){busy=false;online=false;show();alert('ارتباط با سرور برقرار نشد؛ بارگذاری انجام نشد. دوباره امتحان کنید.')});
+  };
+  /* دکمهٔ بازیابی و متن کارت پشتیبان بر اساس حالت سرور */
+  function bkUI(){
+    try{
+      var inp=document.getElementById('fileRestore'),lbl=inp&&inp.parentNode,card=lbl&&lbl.closest('.card');
+      if(!lbl||!card)return;
+      var h=card.querySelector('h2 small'),note=card.querySelector('.note');
+      if(online===true){
+        if(h)h.textContent='داده‌های انبار روی سرور ذخیره و بین همهٔ کاربران مشترک است';
+        if(note)note.textContent=canWrite?'فایل پشتیبانی که مسئول انبار می‌فرستد را با «بارگذاری پشتیبان روی سرور» یک بار وارد کنید؛ دادهٔ سرور با آن جایگزین می‌شود و بقیهٔ کاربران بدون نیاز به بارگذاری، همان را می‌بینند. نسخهٔ قبلی سرور حفظ می‌شود.':'دادهٔ انبار خودکار از سرور نمایش داده می‌شود و نیازی به بارگذاری فایل پشتیبان نیست.';
+        lbl.style.display=canWrite?'':'none';
+        if(canWrite&&lbl.firstChild&&lbl.firstChild.nodeType===3)lbl.firstChild.textContent='⬆️ بارگذاری پشتیبان روی سرور (برای همه)';
+      }
+    }catch(e){}
+  }
+  var _show=show;show=function(){_show();bkUI()};
   pull(true);
 })();
 </script>

@@ -121,7 +121,6 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="بهفراز">
 <meta name="theme-color" content="#0f3d3a">
-
 <title>بهفراز گروپ | انتخاب نوع سفارش</title>
 <style>
   :root{
@@ -363,6 +362,82 @@
   .fp-totals-card .fp-breakdown{ margin:0; padding:10px 16px; border-top:none; }
   .fp-totals-card .fp-factor-total{ margin:0; padding:13px 16px; background:linear-gradient(135deg,var(--teal),var(--teal2)); color:#fff; border-top:none; font-size:.98rem; }
 
+
+  /* ===== [FPX] فاکتور پلاس — نمایش کارت محصول (هم‌سبک قالب چاپ) ===== */
+  .fp-factor{ border:1.5px solid #d5dde9; }
+  .fp-factor-head{ background:linear-gradient(135deg,#0f3d3a,#134a45) !important; border-bottom:3px solid #f2b705 !important; }
+  .fp-factor-head .fp-factor-name{ color:#fff; }
+  .fp-factor-head .fp-fh-sub{ color:#c9d6ea; }
+  .fp-factor-head .fp-chip.total{ background:#f2b705; color:#0f3d3a; }
+  .fp-factor-head .fp-chip.inv{ background:transparent; color:#fff; border-color:rgba(255,255,255,.5); }
+  .fp-factor-head .fp-factor-toggle{ background:rgba(255,255,255,.12); color:#fff; }
+  .fp-factor-head:hover .fp-factor-toggle{ color:#f2b705; }
+  .fpc-list{ display:flex; flex-direction:column; gap:14px; }
+  .fpc{ border:1px solid #d5dde9; border-radius:16px; overflow:hidden; background:#fff; box-shadow:0 2px 8px rgba(15,61,58,.05); }
+  .fpc-head{ display:flex; align-items:center; gap:10px; background:#0f3d3a; color:#fff; padding:10px 14px; }
+  .fpc-title{ flex:1; font-weight:800; font-size:.92rem; }
+  .fpc-title small{ display:block; font-size:.72rem; font-weight:600; color:#c9d6ea; }
+  .fpc-src{ font-size:.7rem; font-weight:800; padding:3px 10px; border-radius:20px; background:color-mix(in srgb, var(--c) 30%, transparent); border:1px solid var(--c); color:#fff; white-space:nowrap; }
+  .fpc-head .fp-item-del{ background:rgba(255,255,255,.1); color:#ffb4ab; border-color:rgba(255,255,255,.25); }
+  .fpc-body{ padding:12px 14px; }
+  .fpc-body .fpx-specs{ grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); }
+  .fpc-more{ margin-top:10px; border:1px dashed #cdd6e3; border-radius:12px; padding:6px 10px; background:#fafbfd; }
+  .fpc-more summary{ cursor:pointer; font-size:.78rem; font-weight:800; color:#0f3d3a; }
+  .fpc-more[open] summary{ margin-bottom:6px; }
+  .fpc-ctl{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); background:#f4f6fa; border-top:1px solid #e3e8f0; }
+  @media(max-width:760px){ .fpc-ctl{ grid-template-columns:1fr 1fr; } }
+  .fpc-ctl .c{ padding:9px 14px; border-left:1px solid #e3e8f0; display:flex; flex-direction:column; justify-content:center; gap:4px; }
+  .fpc-ctl .c label{ font-size:.68rem; color:#7a889c; font-weight:700; }
+  .fpc-ctl .c b{ font-size:.92rem; font-weight:900; color:#16233a; font-variant-numeric:tabular-nums; }
+  .fpc-ctl .c.fin{ background:#0f3d3a; border-left:0; }
+  .fpc-ctl .c.fin label{ color:#f8d66a; }
+  .fpc-ctl .c.fin b{ color:#fff; font-size:1rem; }
+  .fpc-ctl .c.fin s{ color:#ff9e93; font-size:.72rem; }
+  .fpc-ctl .fp-qty, .fpc-ctl .fp-item-discount-box{ align-self:flex-start; }
+  .fpc-meta{ font-size:.66rem; color:#8a97a8; padding:4px 14px 6px; background:#f4f6fa; }
+  .fpc-ptable{ overflow-x:auto; border:1px solid #e3e8f0; border-radius:12px; }
+  .fpc-ptable table{ width:100%; min-width:640px; border-collapse:collapse; font-size:.8rem; }
+  .fpc-ptable th{ background:#eef2f8; color:#0f3d3a; font-weight:800; padding:8px; font-size:.74rem; }
+  .fpc-ptable td{ padding:8px; border-top:1px solid #edf0f5; text-align:center; }
+  .fpc-ptable td.d{ text-align:right; }
+  .fpc-ptable td.n{ font-weight:700; white-space:nowrap; }
+  .fpc-ptable td.fin{ color:#0f3d3a; font-weight:900; }
+  .fpc-ptable td s{ display:block; color:#c0392b; font-size:.66rem; }
+  .fpc .fpx-sch img{ max-height:320px; }
+  .fp-wrap .fp-bar{ background:linear-gradient(135deg,#0f3d3a,#134a45); border-bottom:3px solid #f2b705; }
+  .fp-totals-card{ border-color:#d5dde9; }
+  .fp-totals-card .fp-factor-total{ background:linear-gradient(135deg,#0f3d3a,#134a45) !important; }
+  .fp-totals-card .fp-factor-total span:last-child{ color:#f2b705; }
+  .fp-wrap .fp-btn.primary{ background:#0f3d3a; border-color:#0f3d3a; color:#fff; }
+  .fp-wrap .fp-btn.primary:hover{ background:#f2b705; border-color:#f2b705; color:#0f3d3a; }
+  .fp-wrap .fp-adjust-box{ background:#f4f6fa; border-color:#dfe5ee; }
+  .fp-wrap .fp-meta-box{ background:#f4f6fa; border-color:#dfe5ee; }
+  .fp-wrap .fp-meta-box.inv{ border-color:#0f3d3a; }
+  .fp-wrap .fp-meta-box input{ color:#0f3d3a; }
+
+  /* [FP-UPD] دکمهٔ به‌روزرسانی، برچسب و پنجرهٔ گزارش */
+  .fp-upd-btn{ font-family:inherit; font-size:.8rem; font-weight:800; padding:7px 14px; border-radius:20px; cursor:pointer; background:#f2b705; color:#0f3d3a; border:1.5px solid #f2b705; white-space:nowrap; transition:transform .1s, box-shadow .15s; }
+  .fp-upd-btn:hover{ transform:translateY(-1px); box-shadow:0 4px 12px rgba(242,183,5,.4); }
+  .fp-repriced{ margin-top:5px; display:inline-block; font-size:.72rem; font-weight:700; color:#0f3d3a; background:#f8e7a8; border-radius:8px; padding:3px 10px; }
+  #fpUpdModal{ position:fixed; inset:0; z-index:9999; background:rgba(8,24,22,.55); display:flex; align-items:center; justify-content:center; padding:16px; }
+  #fpUpdModal .fpu-box{ background:#fff; border-radius:18px; width:min(760px,100%); max-height:88vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 50px rgba(0,0,0,.3); }
+  #fpUpdModal .fpu-head{ background:linear-gradient(135deg,#0f3d3a,#134a45); color:#fff; font-weight:900; padding:14px 18px; border-bottom:3px solid #f2b705; }
+  #fpUpdModal .fpu-body{ padding:16px 18px; overflow:auto; font-size:.84rem; color:#1a2b29; line-height:1.8; }
+  #fpUpdModal .fpu-foot{ padding:12px 18px; border-top:1px solid #e3ecea; text-align:left; }
+  #fpUpdModal .fpu-foot button{ font-family:inherit; font-weight:800; font-size:.9rem; background:#0f3d3a; color:#fff; border:0; border-radius:12px; padding:10px 24px; cursor:pointer; }
+  #fpUpdModal .fpu-prog{ height:10px; background:#e7efee; border-radius:6px; overflow:hidden; }
+  #fpUpdModal .fpu-prog>div{ height:100%; background:linear-gradient(90deg,#0f3d3a,#f2b705); transition:width .3s; }
+  #fpUpdModal .fpu-table{ width:100%; border-collapse:collapse; font-size:.8rem; }
+  #fpUpdModal .fpu-table th{ background:#eef5f4; color:#0f3d3a; padding:7px; text-align:right; }
+  #fpUpdModal .fpu-table td{ padding:7px; border-top:1px solid #edf2f1; }
+  #fpUpdModal .fpu-table td.n{ white-space:nowrap; font-variant-numeric:tabular-nums; }
+  #fpUpdModal .fpu-note td{ border-top:0; padding-top:0; font-size:.72rem; color:#6b7a78; }
+  #fpUpdModal .fpu-total{ margin-top:12px; padding:10px 14px; background:#0f3d3a; color:#fff; border-radius:12px; }
+  #fpUpdModal .fpu-total b{ color:#f2b705; }
+  /* دکمه‌های بزرگ «چاپ فاکتور ترکیبی» و «حذف کل فاکتور» (هم‌اندازهٔ دکمه‌های محصولات) */
+  .fp-wrap .fp-factor-actions{ gap:14px !important; }
+  .fp-wrap .fp-factor-actions .fp-btn{ font-size:1.02rem; font-weight:900; padding:16px 30px; border-radius:16px; min-width:230px; justify-content:center; box-shadow:0 4px 14px rgba(15,61,58,.15); }
+  .fp-wrap .fp-factor-actions .fp-btn:hover{ transform:translateY(-2px); }
   /* قالب چاپ فاکتور ترکیبی */
   .fp-print-only{ display:none; }
   @media print{
@@ -3690,6 +3765,29 @@ function bfMoltenMetal(host, user){
     return l ? '['+l+'] ' : '';
   }
 
+  // [FP-UPD] ساخت ردیف‌های فاکتور پلاس از پیام یک ابزار (هم برای «افزودن» و هم برای «به‌روزرسانی قیمت»)
+  function fpRowsFromPayload(d, discountPct, addId){
+    const rowsIn = Array.isArray(d.items) && d.items.length
+      ? d.items
+      : [{ description: d.description || '', total: Number(d.total) || 0,
+           title: d.title, subtitle: d.subtitle, specs: d.specs, lines: d.lines, specTable: d.specTable, schematic: d.schematic, note: d.note }];
+    return rowsIn.map(row=>({
+        id: 'fpi_' + Date.now() + '_' + Math.round(Math.random()*99999),
+        sourceType: d.sourceType || '', sourceLabel: fpCleanLabel(d.sourceLabel), sourceIcon: d.sourceIcon || '📦',
+        description: fpCleanDesc(row.description || d.description || '', row), qty: Math.max(1, Number(row.qty != null ? row.qty : (d.qty || 1)) || 1),
+        section: row.section || '', kind: row.kind || '',
+        addId: addId || '', official: (typeof d.official === 'boolean') ? d.official : null,
+        title: String(row.title || '').trim(), subtitle: String(row.subtitle || '').trim(),
+        specs: Array.isArray(row.specs) ? row.specs.filter(Boolean).slice(0, 40) : [],
+        lines: Array.isArray(row.lines) ? row.lines.filter(Boolean).slice(0, 40) : [],
+        specTable: (row.specTable && typeof row.specTable === 'object') ? row.specTable : null,
+        schematic: (row.schematic && row.schematic.src) ? { src: String(row.schematic.src), title: String(row.schematic.title || '') } : null,
+        note: String(row.note || '').trim(),
+        total: Number(row.total) || 0, discount: discountPct,
+        unit: (Number(row.total) || 0) / Math.max(1, Number(row.qty != null ? row.qty : (d.qty || 1)) || 1),
+        addedAt: Date.now(), addedStr: new Date().toLocaleDateString('fa-IR') + ' ' + new Date().toLocaleTimeString('fa-IR')
+    }));
+  }
   function fpHandleIncoming(d){
     const companyName = (d.companyName || '').trim();
     if(!companyName) return;
@@ -3721,26 +3819,129 @@ function bfMoltenMetal(host, user){
     // شرح کالا باید عیناً همان چیزی باشد که در خود پیش‌فاکتور مبدا نوشته شده (نه خلاصهٔ ساخته‌شده جدا).
     // اگر ابزار مبدا چند ردیف کالای مجزا دارد (مثلاً پنل: شاسی کابین + شاسی طبقه)، آن‌ها را با d.items
     // به‌صورت چند ردیف جدا می‌فرستد تا در فاکتور پلاس هم جدا از هم دیده شوند و با هم ادغام/خلاصه نشوند.
-    const rowsIn = Array.isArray(d.items) && d.items.length
-      ? d.items
-      : [{ description: d.description || '', total: Number(d.total) || 0 }];
-    rowsIn.forEach(row=>{
-      factor.items.push({
-        id: 'fpi_' + Date.now() + '_' + Math.round(Math.random()*99999),
-        sourceType: d.sourceType || '', sourceLabel: fpCleanLabel(d.sourceLabel), sourceIcon: d.sourceIcon || '📦',
-        description: fpCleanDesc(row.description || d.description || '', row), qty: Math.max(1, Number(row.qty != null ? row.qty : (d.qty || 1)) || 1),
-        section: row.section || '', kind: row.kind || '',
-        total: Number(row.total) || 0, discount: initDiscount,
-        unit: (Number(row.total) || 0) / Math.max(1, Number(row.qty != null ? row.qty : (d.qty || 1)) || 1),
-        addedAt: Date.now(), addedStr: new Date().toLocaleDateString('fa-IR') + ' ' + new Date().toLocaleTimeString('fa-IR')
-      });
-    });
+    const addId = 'fpa_' + Date.now() + '_' + Math.round(Math.random()*9999);
+    if(d.snap){ factor.snaps = factor.snaps || {}; factor.snaps[addId] = { sourceType: d.sourceType || '', snap: d.snap }; }
+    fpRowsFromPayload(d, initDiscount, addId).forEach(it=> factor.items.push(it));
     factor.updatedAt = Date.now();
     fpSave(list);
     fpSyncToServer(factor);
     if(document.getElementById('fpWrap').classList.contains('show')) fpRender();
   }
 
+  /* ===================== [FP-UPD] به‌روزرسانی قیمت فاکتور پلاس =====================
+     برای هر گروه اقلام (هر بار «افزودن» از یک ابزار)، همان ابزار در یک قاب پنهان باز می‌شود و سفارش را با قیمت‌های
+     فعال خودش بازسازی می‌کند؛ از نتیجه یک فاکتور پلاس «جدید» ساخته می‌شود و فاکتور قبلی دست‌نخورده می‌ماند.
+     در قالب چاپ هیچ اشاره‌ای به «به‌روزرسانی» نمی‌شود؛ فقط روی صفحه گزارش و برچسب نمایش داده می‌شود. */
+  const FP_TOOL_SRC = { motor:'./GENTEL_HUBER_DYNA_MOTORS.html', shakib:'./shakib_jack_calculator.html', wittur:'./wittur_calc.html', panel:'./POSHT_BARG.html' };
+  const __fpUpd = { frames:{}, pending:{} };
+  window.addEventListener('message', e=>{
+    const d = e.data; if(!d) return;
+    if(d.__bfFpRepriceReady){
+      Object.keys(__fpUpd.frames).forEach(k=>{ const f = __fpUpd.frames[k]; if(f.el.contentWindow === e.source){ f.ready = true; f.waiters.splice(0).forEach(fn=>fn()); } });
+    }
+    if(d.__bfFpRepriced && __fpUpd.pending[d.reqId]){ const fn = __fpUpd.pending[d.reqId]; delete __fpUpd.pending[d.reqId]; fn(d); }
+  });
+  function fpUpdFrame(type){
+    let f = __fpUpd.frames[type];
+    if(!f){
+      const el = document.createElement('iframe');
+      el.style.cssText = 'position:fixed;left:-12000px;top:0;width:1280px;height:900px;opacity:0;pointer-events:none;border:0;';
+      el.setAttribute('aria-hidden','true'); el.setAttribute('tabindex','-1');
+      el.src = FP_TOOL_SRC[type];
+      document.body.appendChild(el);
+      f = __fpUpd.frames[type] = { el, ready:false, waiters:[] };
+    }
+    return new Promise((res, rej)=>{
+      if(f.ready) return res(f);
+      f.waiters.push(()=>res(f));
+      setTimeout(()=> rej(new Error('ابزار مربوط بارگذاری نشد (زمان انتظار تمام شد)')), 45000);
+    });
+  }
+  function fpUpdAsk(type, snap){
+    return fpUpdFrame(type).then(f=> new Promise((res, rej)=>{
+      const reqId = 'r' + Date.now() + '_' + Math.round(Math.random()*99999);
+      __fpUpd.pending[reqId] = res;
+      f.el.contentWindow.postMessage({ __bfFpReprice:true, reqId, snap }, '*');
+      setTimeout(()=>{ if(__fpUpd.pending[reqId]){ delete __fpUpd.pending[reqId]; rej(new Error('پاسخی از ابزار دریافت نشد')); } }, 25000);
+    }));
+  }
+  function fpUpdCleanup(){ Object.keys(__fpUpd.frames).forEach(k=>{ try{ __fpUpd.frames[k].el.remove(); }catch(e){} }); __fpUpd.frames = {}; }
+  function fpUpdModal(title, bodyHtml, closable){
+    let m = document.getElementById('fpUpdModal');
+    if(!m){ m = document.createElement('div'); m.id = 'fpUpdModal'; document.body.appendChild(m); }
+    m.innerHTML = `<div class="fpu-box"><div class="fpu-head">${title}</div><div class="fpu-body">${bodyHtml}</div>${closable ? '<div class="fpu-foot"><button type="button" onclick="document.getElementById(\'fpUpdModal\').remove()">متوجه شدم</button></div>' : ''}</div>`;
+  }
+  function fpCloneRow(it){ return Object.assign(JSON.parse(JSON.stringify(it)), { id:'fpi_' + Date.now() + '_' + Math.round(Math.random()*99999) }); }
+  async function fpUpdatePrices(factorId){
+    const f = fpLoad().find(x=>x.id===factorId); if(!f) return;
+    if(!confirm('قیمت همهٔ اقلام این فاکتور از روی ابزار هر محصول، با قیمت‌های فعال، دوباره محاسبه می‌شود و یک فاکتور پلاس «جدید» ساخته می‌شود.\nفاکتور فعلی دست‌نخورده باقی می‌ماند. ادامه می‌دهید؟')) return;
+    const order = [], groups = {};
+    (f.items||[]).forEach(it=>{ const k = it.addId || ('legacy_' + it.id); if(!groups[k]){ groups[k] = []; order.push(k); } groups[k].push(it); });
+    const fa = n => toFaDigits(Math.round(n||0).toLocaleString('en-US'));
+    const report = [], newItems = [], newSnaps = {};
+    let i = 0;
+    for(const k of order){
+      i++;
+      fpUpdModal('🔄 در حال به‌روزرسانی قیمت‌ها…', `<div class="fpu-prog"><div style="width:${Math.round(i/order.length*100)}%"></div></div><div style="text-align:center;margin-top:8px;">${toFaDigits(i)} از ${toFaDigits(order.length)} — لطفاً صبر کنید</div>`);
+      const old = groups[k];
+      const oldSum = old.reduce((s,it)=> s + fpNetAmount(it.total, it.discount), 0);
+      const name = fpxTitleOf(old[0], fpDescParts(old[0])) + (old.length>1 ? ' (' + toFaDigits(old.length) + ' ردیف)' : '');
+      const src = f.snaps && f.snaps[k];
+      const keep = (status, notes)=>{
+        const ad = src ? k : '';
+        old.forEach(it=> newItems.push(Object.assign(fpCloneRow(it), { addId: ad })));
+        if(src) newSnaps[k] = src;
+        report.push({ name, status, oldSum, newSum: oldSum, notes });
+      };
+      if(!src){ keep('skip', ['این قلم قبل از فعال شدن «به‌روزرسانی» اضافه شده و اطلاعات لازم را ندارد — بدون تغییر ماند. برای به‌روزرسانی، یک بار از ابزار مبدا دوباره اضافه کنید.']); continue; }
+      if(!FP_TOOL_SRC[src.sourceType]){ keep('skip', ['قیمت این محصول دستی است (جدول قیمت ندارد) — بدون تغییر ماند.']); continue; }
+      try{
+        const res = await fpUpdAsk(src.sourceType, src.snap);
+        if(res && res.ok && res.payload){
+          const p = res.payload;
+          const addId = 'fpa_' + Date.now() + '_' + Math.round(Math.random()*9999);
+          let disc = Number(p.discount); if(!isFinite(disc) || disc<0) disc = 0; if(disc>100) disc = 100;
+          const rows = fpRowsFromPayload(p, disc, addId);
+          if(rows.length === old.length){
+            rows.forEach((r,ix)=>{
+              r.discount = Number(old[ix].discount)||0;
+              const oq = fpQty(old[ix]); if(oq !== r.qty){ r.qty = oq; r.total = r.unit * oq; }
+              const have = new Set((r.specs||[]).map(x=> x && x.k).filter(Boolean));
+              (old[ix].specs||[]).forEach(x=>{ if(x && x.k && !have.has(x.k)){ r.specs.push(x); have.add(x.k); } });
+            });
+          }
+          if(p.snap) newSnaps[addId] = { sourceType: p.sourceType || src.sourceType, snap: p.snap };
+          rows.forEach(r=> newItems.push(r));
+          const newSum = rows.reduce((s,it)=> s + fpNetAmount(it.total, it.discount), 0);
+          report.push({ name, status:'ok', oldSum, newSum, notes: (res.notes||[]).filter(Boolean) });
+        } else {
+          keep(res && res.keep ? 'skip' : 'fail', (res && res.notes && res.notes.length) ? res.notes : ['به‌روزرسانی خودکار ممکن نشد — با قیمت قبلی ماند.']);
+        }
+      }catch(err){ keep('fail', [String(err && err.message || err) + ' — با قیمت قبلی ماند.']); }
+    }
+    fpUpdCleanup();
+    const now = Date.now();
+    const t0 = fpFactorTotals(f);
+    const nf = Object.assign(JSON.parse(JSON.stringify(f)), {
+      id: 'fp_' + now + '_' + Math.round(Math.random()*9999), items: newItems, snaps: newSnaps,
+      invoiceNo: '', createdAt: now, updatedAt: now
+    });
+    nf.repricedFrom = { id: f.id, invoiceNo: f.invoiceNo || '', at: new Date().toLocaleDateString('fa-IR') + ' ' + new Date().toLocaleTimeString('fa-IR'),
+      oldTotal: t0.grandTotal, newTotal: fpFactorTotals(nf).grandTotal };
+    const list2 = fpLoad(); list2.unshift(nf); fpSave(list2); fpSyncToServer(nf);
+    window.__fpExpanded[nf.id] = true; fpRender();
+    const ST = { ok:['✓ به‌روز شد','#0f6e56'], skip:['— بدون تغییر','#8a6d00'], fail:['⚠ ناموفق','#c0392b'] };
+    const rowsH = report.map(r=>{
+      const d = r.newSum - r.oldSum;
+      return `<tr><td>${fpEsc(r.name)}</td><td class="n">${fa(r.oldSum)}</td><td class="n">${fa(r.newSum)}</td><td class="n" style="color:${d>0.5?'#c0392b':(d<-0.5?'#0f6e56':'#666')};">${Math.abs(d)>0.5 ? (d>0?'+':'−') + fa(Math.abs(d)) : '—'}</td><td style="color:${ST[r.status][1]};font-weight:800;white-space:nowrap;">${ST[r.status][0]}</td></tr>`
+        + (r.notes.length ? `<tr class="fpu-note"><td colspan="5">${r.notes.map(n=>'• '+fpEsc(n)).join('<br>')}</td></tr>` : '');
+    }).join('');
+    const dT = nf.repricedFrom.newTotal - nf.repricedFrom.oldTotal;
+    fpUpdModal('✅ فاکتور پلاس جدید با قیمت‌های به‌روز ساخته شد', `
+      <div style="margin-bottom:10px;">فاکتور قبلی ${f.invoiceNo ? '(شمارهٔ ' + fpEsc(f.invoiceNo) + ') ' : ''}دست‌نخورده ماند؛ نسخهٔ جدید بالای لیست باز شده است. (در پیش‌فاکتور چاپی اشاره‌ای به به‌روزرسانی نمی‌شود.)</div>
+      <table class="fpu-table"><thead><tr><th>محصول</th><th>مبلغ قبلی</th><th>مبلغ جدید</th><th>تغییر</th><th>وضعیت</th></tr></thead><tbody>${rowsH}</tbody></table>
+      <div class="fpu-total">جمع کل فاکتور: <b>${fa(nf.repricedFrom.oldTotal)}</b> ← <b>${fa(nf.repricedFrom.newTotal)}</b> ریال ${Math.abs(dT)>0.5 ? '(' + (dT>0?'+':'−') + fa(Math.abs(dT)) + ')' : '(بدون تغییر)'}</div>`, true);
+  }
   /* ==== ذخیرهٔ «فاکتور پلاس» روی سرور مرکزی — دقیقاً مثل پیش‌فاکتورهای بقیهٔ ابزارها ====
      هر فاکتور پلاس هم یک رکورد در همان جدول orders سرور است (category: «فاکتور پلاس»)؛ این‌طوری
      مثل بقیهٔ پیش‌فاکتورها روی سرور می‌نشیند، با DELETE به سطل‌بازیافت می‌رود (قابل بازگشت) و در
@@ -3886,47 +4087,76 @@ function bfMoltenMetal(host, user){
       const t = fpFactorTotals(f);
       const expanded = !!window.__fpExpanded[f.id];
       let idx = 0;
-      const buildRow = it=>{
-        idx++;
-        const isPanel = fpIsPanelRow(it);
-        const color = isPanel ? (it.section==='cabin' ? '#12626b' : '#6fbf8b') : (FP_SOURCE_COLORS[it.sourceType] || '#134a45');
-        const net = fpNetAmount(it.total, it.discount);
-        const hasDiscount = Number(it.discount) > 0;
-        const qty = fpQty(it), unit = fpUnit(it);
-        const label = fpCleanLabel(it.sourceLabel);
-        const lines = fpDescParts(it).map(l=>`<div>${l}</div>`).join('');
-        return `<tr>
-          <td class="idx">${toFaDigits(idx)}</td>
-          <td class="desc">
-            ${label ? `<span class="fp-src" style="background:${color};">${it.sourceIcon||'📦'} ${label}</span>` : ''}
-            <div class="fp-lines">${lines}</div>
-            <div class="fp-item-meta">${it.addedStr||''}</div>
-          </td>
-          <td>
+      const qtyCtl = it=> `
             <div class="fp-qty">
               <button type="button" title="کم کردن" onclick="fpStepQty('${f.id}','${it.id}',-1)">−</button>
-              <input type="text" inputmode="numeric" value="${toFaDigits(qty)}" onchange="fpSetQty('${f.id}','${it.id}', this.value)">
+              <input type="text" inputmode="numeric" value="${toFaDigits(fpQty(it))}" onchange="fpSetQty('${f.id}','${it.id}', this.value)">
               <button type="button" title="اضافه کردن" onclick="fpStepQty('${f.id}','${it.id}',1)">+</button>
-            </div>
-          </td>
-          <td class="num">${fa(unit)}</td>
-          <td>
+            </div>`;
+      const discCtl = it=> `
             <div class="fp-item-discount-box" title="تخفیف این ردیف — قابل ویرایش">
               <input type="text" inputmode="numeric" placeholder="۰" value="${it.discount?toFaDigits(Math.round(it.discount*100)/100):''}" onchange="fpSetItemDiscount('${f.id}','${it.id}', this.value)">
               <span class="pct-sign">٪</span>
-            </div>
-          </td>
-          <td class="strong">${hasDiscount ? `<small>${fa(it.total)}</small>` : ''}${fa(hasDiscount?net:it.total)}</td>
-          <td><button class="fp-item-del" title="حذف این ردیف" onclick="fpDeleteItem('${f.id}','${it.id}')">✕</button></td>
-        </tr>`;
+            </div>`;
+      const delBtn = it=> `<button class="fp-item-del" title="حذف این ردیف" onclick="fpDeleteItem('${f.id}','${it.id}')">✕</button>`;
+      // کارت هر محصول (غیر پنل)
+      const buildCard = it=>{
+        idx++;
+        const color = FP_SOURCE_COLORS[it.sourceType] || '#134a45';
+        const net = fpNetAmount(it.total, it.discount);
+        const hasDiscount = Number(it.discount) > 0;
+        const label = fpxSrcName(it);
+        const parts = fpDescParts(it);
+        const title = fpxTitleOf(it, parts);
+        const hasStructured = (it.specs && it.specs.length) || (it.lines && it.lines.length) || it.specTable;
+        const rest = (fpxClean(it.title) || title !== fpxClean(parts[0])) ? parts : parts.slice(1);
+        const descList = (!hasStructured && rest.length) ? `<ul class="fpx-desc">${rest.map(p=>`<li>${fpEsc(fpxClean(p))}</li>`).join('')}</ul>` : '';
+        const motorTbl = fpxMotorTableHtml(it.specTable);
+        const sch = (it.schematic && it.schematic.src) ? `<div class="fpx-sch"><div class="t">${fpEsc(it.schematic.title||'شماتیک ابعادی')}</div><img src="${fpEsc(it.schematic.src)}" alt="" loading="lazy"></div>` : '';
+        const extra = (it.lines && it.lines.length) || motorTbl || sch;
+        return `<div class="fpc">
+          <div class="fpc-head">
+            <div class="fpx-idx">${toFaDigits(idx)}</div>
+            <div class="fpc-title">${fpEsc(title)}${it.subtitle ? `<small>${fpEsc(fpxClean(it.subtitle))}</small>` : ''}</div>
+            ${fpxOfficialHtml(it.official)}
+            ${label ? `<span class="fpc-src" style="--c:${color};">${it.sourceIcon||'📦'} ${fpEsc(label)}</span>` : ''}
+            ${delBtn(it)}
+          </div>
+          <div class="fpc-body">
+            ${fpxSpecsHtml(it.specs)}${descList}
+            ${extra ? `<details class="fpc-more"><summary>جزئیات بیشتر — ریز اقلام${(motorTbl||sch) ? '، جدول فنی و شماتیک' : ''}</summary>
+              ${fpxLinesHtml(it.lines)}
+              ${(motorTbl||sch) ? `<div class="fpx-motor">${motorTbl}${sch}</div>` : ''}
+            </details>` : ''}
+            ${it.note ? `<div class="fpx-note">${fpEsc(fpxClean(it.note))}</div>` : ''}
+          </div>
+          <div class="fpc-ctl">
+            <div class="c"><label>تعداد</label>${qtyCtl(it)}</div>
+            <div class="c"><label>قیمت واحد (ریال)</label><b>${fa(fpUnit(it))}</b></div>
+            <div class="c"><label>تخفیف</label>${discCtl(it)}</div>
+            <div class="c fin"><label>مبلغ نهایی (ریال)</label>${hasDiscount ? `<s>${fa(it.total)}</s>` : ''}<b>${fa(hasDiscount?net:it.total)}</b></div>
+          </div>
+          <div class="fpc-meta">${it.addedStr ? 'افزوده‌شده: ' + fpEsc(it.addedStr) : ''}</div>
+        </div>`;
       };
-      const secRow = (sec,title)=> `<tr class="fp-sec ${sec}"><td colspan="7">${title}</td></tr>`;
-      const panelGroup = (sec, title)=>{
+      // پنل‌ها: یک کارت برای هر بخش (کابین / طبقه) با ردیف‌های قابل ویرایش
+      const panelCard = (sec, title)=>{
         const l = f.items.filter(it=> fpIsPanelRow(it) && it.section===sec);
-        return l.length ? secRow(sec,title) + l.map(buildRow).join('') : '';
+        if(!l.length) return '';
+        idx++;
+        const rows = l.map(it=>{
+          const net = fpNetAmount(it.total, it.discount), hasD = Number(it.discount)>0;
+          return `<tr><td class="d">${it.description||'—'}</td><td>${qtyCtl(it)}</td><td class="n">${fa(fpUnit(it))}</td><td>${discCtl(it)}</td><td class="n fin">${hasD?`<s>${fa(it.total)}</s>`:''}${fa(hasD?net:it.total)}</td><td>${delBtn(it)}</td></tr>`;
+        }).join('');
+        const sum = l.reduce((s,it)=> s + fpNetAmount(it.total, it.discount), 0);
+        return `<div class="fpc">
+          <div class="fpc-head"><div class="fpx-idx">${toFaDigits(idx)}</div><div class="fpc-title">${title}<small>${toFaDigits(l.length)} ردیف</small></div>${fpxOfficialHtml(l[0].official)}<span class="fpc-src" style="--c:${sec==='cabin'?'#12626b':'#3f9a63'};">🎛️ پنل آسانسور</span></div>
+          <div class="fpc-body"><div class="fpc-ptable"><table><thead><tr><th>نوع سفارش / مشخصات</th><th>تعداد</th><th>قیمت واحد</th><th>تخفیف</th><th>مبلغ (ریال)</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>
+          <div class="fpc-ctl"><div class="c fin" style="grid-column:1/-1;"><label>جمع ${title} (ریال)</label><b>${fa(sum)}</b></div></div>
+        </div>`;
       };
-      const rowsHtml = f.items.filter(it=>!fpIsPanelRow(it)).map(buildRow).join('')
-        + panelGroup('cabin','پنل‌های کابین') + panelGroup('floor','پنل‌های طبقه');
+      const cardsHtml = f.items.filter(it=>!fpIsPanelRow(it)).map(buildCard).join('')
+        + panelCard('cabin','پنل‌های کابین') + panelCard('floor','پنل‌های طبقه');
       const projTxt = f.projects && f.projects.length ? f.projects.join(' / ') : '—';
       const markupRow = t.markupPct>0 ? `<div class="fp-breakdown-row pos"><span class="lbl">📈 افزایش قیمت (${toFaDigits(t.markupPct)}٪)</span><span class="val">+ ${fa(t.markupAmount)} ریال</span></div>` : '';
       const manualRow = t.manualAmount>0 ? `<div class="fp-breakdown-row ${t.manualSign>0?'pos':'neg'}"><span class="lbl">⚖️ تعدیل دستی</span><span class="val">${t.manualSign>0?'+ ':'− '}${fa(t.manualAmount)} ریال</span></div>` : '';
@@ -3936,11 +4166,13 @@ function bfMoltenMetal(host, user){
           <div>
             <div class="fp-factor-name">🏢 ${f.companyDisplay}</div>
             <div class="fp-fh-sub">${toFaDigits(f.items.length)} قلم سفارش · پروژه: ${projTxt}</div>
+            ${f.repricedFrom ? `<div class="fp-repriced">🔄 به‌روزشده با قیمت‌های جدید — ${fpEsc(f.repricedFrom.at)}${f.repricedFrom.invoiceNo ? ' · از فاکتور ' + fpEsc(f.repricedFrom.invoiceNo) : ''} · مبلغ قبلی ${fa(f.repricedFrom.oldTotal)} ← جدید ${fa(f.repricedFrom.newTotal)} ریال</div>` : ''}
           </div>
           <div class="fp-fh-badges">
             ${invChip}
             <span class="fp-chip total">${fa(t.grandTotal)} ریال</span>
             <span class="fp-factor-toggle">${expanded ? '▲ بستن' : '▼ مشاهده و ویرایش'}</span>
+            <button type="button" class="fp-upd-btn" title="قیمت‌ها از روی ابزار هر محصول به‌روز شود و یک فاکتور جدید ساخته شود (فاکتور فعلی حفظ می‌شود)" onclick="event.stopPropagation();fpUpdatePrices('${f.id}')">🔄 به‌روزرسانی قیمت</button>
           </div>
         </div>
         <div class="fp-body-collapse${expanded ? ' show' : ''}">
@@ -3953,14 +4185,7 @@ function bfMoltenMetal(host, user){
             <div class="fp-meta-box"><label>پروژه(ها)</label><div class="v">${projTxt}</div></div>
           </div>
 
-          <div class="fp-table-wrap" onclick="event.stopPropagation()">
-            <table class="fp-table">
-              <thead><tr>
-                <th>#</th><th>شرح کالا / مشخصات فنی</th><th>تعداد</th><th>قیمت واحد (ریال)</th><th>تخفیف</th><th>مبلغ (ریال)</th><th></th>
-              </tr></thead>
-              <tbody>${rowsHtml}</tbody>
-            </table>
-          </div>
+          <div class="fpc-list" onclick="event.stopPropagation()">${cardsHtml}</div>
 
           <div class="fp-bottom" onclick="event.stopPropagation()">
             <div>
@@ -4008,6 +4233,7 @@ function bfMoltenMetal(host, user){
         </div>
       </div>`;
     }).join('');
+    if(!document.getElementById('fpxScreenCss')){ const st = document.createElement('style'); st.id = 'fpxScreenCss'; st.textContent = FPX_CSS.split('@media print{')[0]; document.head.appendChild(st); }
     body.innerHTML = '<div class="fp-inner">' + html + '</div>';
   }
 
@@ -4109,141 +4335,321 @@ function bfMoltenMetal(host, user){
     if(!ks.length) return 'پیش فاکتور';
     return 'پیش فاکتور ( ' + ks.map(k=>N[k]).join(' + ') + ' )';
   }
+  /* ===================== [FPX] قالب چاپ مدرن فاکتور پلاس (A4، چندصفحه‌ای) =====================
+     هر محصول در یک «کارت جدول» مخصوص خودش: سربرگ ردیف (شماره + نام محصول + منبع)، روبه‌روی آن مشخصات کامل
+     (همان مواردی که در پیش‌فاکتور اصلی آن ابزار آمده: سرعت، ظرفیت، طول، سایز و ...)، ریز اقلام، برای موتورها
+     جدول مشخصات فنی گروه‌بندی‌شده + شماتیک ابعادی، و در پایین کارت نوار قیمت همان محصول.
+     ردیف‌های قدیمی (بدون مشخصات ساخت‌یافته) از روی همان شرح ارسالی نمایش داده می‌شوند. */
+  /* [FPX] برچسب منبع = فقط نام برند (نه «جک و پاوریونیت …»)؛ سرفصل محصول = همان کالایی که واقعاً سفارش شده */
+  const FPX_SRC_NAMES = { motor:'موتور گیرلس', shakib:'شکیب', wittur:'ویتور (امارلیفت)', panel:'پنل آسانسور', elevator:'محصولات آسانسور' };
+  // وضعیت رسمی/غیررسمی (۱۰٪ ارزش افزوده) هر محصول — با قرمز در سرفصل؛ برای ردیف‌های قدیمی (نامشخص) چیزی نوشته نمی‌شود
+  function fpxOfficialHtml(v){
+    if(v===true) return '<span class="fpx-off">رسمی — با ۱۰٪ ارزش افزوده</span>';
+    if(v===false) return '<span class="fpx-off">غیر رسمی — بدون ارزش افزوده</span>';
+    return '';
+  }
+  function fpxSrcName(it){ return FPX_SRC_NAMES[it && it.sourceType] || fpCleanLabel(it && it.sourceLabel); }
+  function fpxTitleOf(it, parts){
+    let t = fpxClean(it.title);
+    // ردیف‌های ثبت‌شدهٔ قبلی: اگر سرفصل «جک و پاوریونیت» است ولی در شرح فقط جک (یا فقط پاوریونیت) آمده
+    if(!t || /جک\s*و\s*پاور\s*یونیت|جک\s*و\s*پاوریونیت/.test(t)){
+      const d = parts.join(' | ');
+      const hasJ = /(^|\|\s*)جک/.test(d), hasP = /(^|\|\s*)پاور\s*یونیت|(^|\|\s*)پاوریونیت/.test(d);
+      if(hasJ && !hasP) return 'جک (تکی)';
+      if(hasP && !hasJ) return 'پاوریونیت (تکی)';
+    }
+    return t || fpxClean(parts[0]) || 'محصول';
+  }
+  const FPX_CSS = `
+  .fpx{background:#fff;font-family:'Vazirmatn','Tahoma',sans-serif;direction:rtl;color:#10302d;font-size:11.5px;line-height:1.65;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .fpx *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .fpx-num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate;display:inline-block;}
+  .fpx-head{position:relative;display:flex;justify-content:space-between;align-items:center;gap:14px;background:#0f3d3a;color:#fff;border-radius:14px;padding:14px 20px;overflow:hidden;}
+  .fpx-banner{position:relative;z-index:1;font-size:16px;font-weight:900;line-height:1.5;}
+  .fpx-banner::after{content:"";display:block;width:54px;height:4px;background:#f2b705;border-radius:2px;margin-top:6px;}
+  .fpx-head::before{content:"";position:absolute;left:-40px;top:-30px;width:190px;height:150%;background:linear-gradient(135deg,#134a45 0%,#0f3d3a 70%);transform:skewX(-22deg);}
+  .fpx-head::after{content:"";position:absolute;left:150px;bottom:0;width:70px;height:7px;background:#f2b705;transform:skewX(-30deg);}
+  .fpx-brand,.fpx-doc{position:relative;z-index:1;}
+  .fpx-logo{font-size:26px;font-weight:900;letter-spacing:-.5px;line-height:1.2;}
+  .fpx-logo b{color:#f2b705;}
+  .fpx-tag{font-size:11px;font-weight:600;color:#c9d6ea;margin-top:2px;}
+  .fpx-web{font-size:10px;color:#f2b705;margin-top:6px;direction:ltr;text-align:right;}
+  .fpx-doc{text-align:left;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;}
+  .fpx-doc .bf-doc-title{font-size:17px;font-weight:900;color:#fff;text-align:left !important;margin:0;padding:0;border:0;}
+  .fpx-doc .fpx-bar{width:46px;height:4px;background:#f2b705;border-radius:2px;margin:6px 0 8px;}
+  .fpx-meta{display:grid;grid-template-columns:auto auto;gap:2px 12px;font-size:11px;color:#dfe7f3;}
+  .fpx-meta span:nth-child(odd){color:#9fb3cf;}
+  .fpx-cards{display:grid;grid-template-columns:1fr;gap:10px;margin:12px 0 4px;}
+  .fpx-cards .fpx-kv{grid-template-columns:auto 1fr auto 1fr auto 1fr;}
+  .fpx-card{border:1px solid #dfe5ee;border-radius:12px;padding:10px 14px;background:#fff;}
+  .fpx-card h4{margin:0 0 6px;font-size:12px;font-weight:900;color:#0f3d3a;display:flex;align-items:center;gap:6px;}
+  .fpx-card h4::before{content:"";width:4px;height:14px;background:#f2b705;border-radius:2px;}
+  .fpx-kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:11px;}
+  .fpx-kv span{color:#6b7a90;}
+  .fpx-kv b{font-weight:800;color:#10302d;}
+  .fpx-sec-title{display:flex;align-items:center;gap:8px;margin:14px 0 8px;font-size:13px;font-weight:900;color:#0f3d3a;}
+  .fpx-sec-title::after{content:"";flex:1;height:1px;background:#dfe5ee;}
+  .fpx-block{border:1px solid #d5dde9;border-radius:14px;overflow:hidden;margin-bottom:12px;background:#fff;}
+  .fpx-block.small{break-inside:avoid;page-break-inside:avoid;}
+  .fpx-bhead{break-after:avoid;page-break-after:avoid;}
+  .fpx-specs,.fpx-mgrid,.fpx-price,.fpx-lines tr{break-inside:avoid;page-break-inside:avoid;}
+  .fpx-bhead{display:flex;align-items:center;gap:10px;background:#0f3d3a;color:#fff;padding:8px 12px;}
+  .fpx-idx{flex:0 0 auto;width:26px;height:26px;border-radius:8px;background:#f2b705;color:#0f3d3a;font-weight:900;display:flex;align-items:center;justify-content:center;font-size:12px;}
+  .fpx-btitle{flex:1;font-size:12.5px;font-weight:800;}
+  .fpx-off{flex:0 0 auto;font-size:10px;font-weight:900;padding:2px 10px;border-radius:20px;background:#fff;color:#d21f1f;border:1.5px solid #d21f1f;white-space:nowrap;}
+  .fpx-src{flex:0 0 auto;font-size:9.5px;font-weight:700;padding:2px 9px;border-radius:20px;background:rgba(255,255,255,.12);color:#f8d66a;border:1px solid rgba(242,183,5,.45);}
+  .fpx-bbody{display:block;}
+  .fpx-toprow{display:table;width:100%;table-layout:fixed;}
+  .fpx-toprow>.fpx-bside{display:table-cell;width:150px;vertical-align:top;}
+  .fpx-toprow>.fpx-bmain{display:table-cell;vertical-align:top;}
+  .fpx-bsub{font-size:10px;font-weight:600;color:#c9d6ea;margin-top:1px;}
+  .fpx-bqty{flex:0 0 auto;font-size:10px;font-weight:800;padding:2px 9px;border-radius:20px;background:#f2b705;color:#0f3d3a;}
+  .fpx-btop{break-inside:avoid;page-break-inside:avoid;}
+  .fpx-bside{background:#f4f6fa;border-left:1px solid #e3e8f0;padding:10px 12px;font-size:10.5px;color:#4a5a72;}
+  .fpx-bside .fpx-big{font-size:12px;font-weight:900;color:#0f3d3a;margin-bottom:4px;line-height:1.5;}
+  .fpx-bside .fpx-qty{margin-top:8px;display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #dfe5ee;border-radius:8px;padding:3px 9px;font-weight:800;color:#0f3d3a;}
+  .fpx-bmain{padding:10px 12px;}
+  .fpx-specs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;}
+  .fpx-spec{border:1px solid #e6ebf2;border-radius:9px;padding:5px 9px;background:#fbfcfe;min-height:38px;}
+  .fpx-spec .k{font-size:9.5px;color:#7a889c;font-weight:600;}
+  .fpx-spec .v{font-size:11.5px;font-weight:800;color:#10302d;word-break:break-word;}
+  .fpx-spec.wide{grid-column:1 / -1;}
+  .fpx-desc{margin:0;padding-inline-start:16px;}
+  .fpx-desc li{margin:2px 0;font-weight:600;}
+  .fpx-desc li::marker{color:#f2b705;}
+  .fpx-lines{width:100%;border-collapse:separate;border-spacing:0;margin-top:8px;font-size:10.5px;border:1px solid #e3e8f0;border-radius:9px;overflow:hidden;}
+  .fpx-lines th{background:#eef2f8;color:#0f3d3a;font-weight:800;padding:5px 8px;text-align:right;}
+  .fpx-lines td{padding:5px 8px;border-top:1px solid #edf0f5;}
+  .fpx-lines td.n,.fpx-lines th.n{text-align:center;white-space:nowrap;}
+  .fpx-lines td.a,.fpx-lines th.a{text-align:left;white-space:nowrap;}
+  .fpx-motor{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px;}
+  .fpx-motor.has-sch{grid-template-columns:1fr;}
+  .fpx-mgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;align-content:start;}
+  
+  .fpx-mg{border-radius:9px;overflow:hidden;border:1px solid #e3e8f0;}
+  .fpx-mg .h{font-size:9.5px;font-weight:900;color:#fff;padding:3px 8px;}
+  .fpx-mg table{width:100%;border-collapse:collapse;font-size:10px;}
+  .fpx-mg td{padding:3px 8px;border-top:1px solid #f0f2f6;}
+  .fpx-mg td:first-child{color:#6b7a90;white-space:nowrap;}
+  .fpx-mg td:last-child{font-weight:800;text-align:left;direction:ltr;unicode-bidi:isolate;}
+  .fpx-sch{border:1px solid #e3e8f0;border-radius:10px;padding:6px;background:#fff;text-align:center;}
+  .fpx-sch .t{font-size:9.5px;font-weight:800;color:#0f3d3a;margin-bottom:4px;}
+  .fpx-sch img{max-width:100%;max-height:260px;object-fit:contain;}
+  .fpx-sch{break-inside:avoid;page-break-inside:avoid;}
+  .fpx-note{margin-top:7px;font-size:9.5px;color:#5a6a80;background:#fff8e1;border:1px dashed #f2cf5b;border-radius:8px;padding:4px 9px;}
+  .fpx-price{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));background:#f4f6fa;border-top:1px solid #e3e8f0;}
+  .fpx-price>div{padding:6px 10px;border-left:1px solid #e3e8f0;}
+  .fpx-price>div:last-child{border-left:0;background:#0f3d3a;color:#fff;}
+  .fpx-price .k{font-size:9px;color:#7a889c;font-weight:700;}
+  .fpx-price>div:last-child .k{color:#f8d66a;}
+  .fpx-price .v{font-size:12px;font-weight:900;}
+  .fpx-bottom{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px;break-inside:avoid;page-break-inside:avoid;}
+  .fpx-totals{border:1px solid #d5dde9;border-radius:12px;overflow:hidden;}
+  .fpx-totals .r{display:flex;justify-content:space-between;padding:7px 14px;border-bottom:1px solid #edf0f5;font-size:11.5px;}
+  .fpx-totals .r span{color:#5a6a80;font-weight:600;}
+  .fpx-totals .r b{font-weight:900;}
+  .fpx-totals .r.neg b{color:#b8305f;}
+  .fpx-totals .g{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:#0f3d3a;color:#fff;}
+  .fpx-totals .g span{font-weight:800;font-size:12px;}
+  .fpx-totals .g b{font-size:16px;font-weight:900;color:#f2b705;}
+  .fpx-words{font-size:9.5px;color:#7a889c;padding:5px 14px;}
+  .fpx-side{display:flex;flex-direction:column;gap:8px;}
+  .fpx-validity{border:1.5px solid #d21f1f;color:#d21f1f;background:#fff4f3;border-radius:10px;text-align:center;font-weight:900;padding:6px;font-size:11px;}
+  .fpx-terms{margin-top:12px;font-size:8.8px;line-height:1.75;color:#3d4b60;border:1px solid #e3e8f0;border-radius:12px;padding:8px 14px;background:#fbfcfe;break-inside:avoid;page-break-inside:avoid;}
+  .fpx-terms h5{margin:0 0 3px;font-size:10.5px;color:#0f3d3a;}
+  .fpx-terms li{margin:1px 0;}
+  .fpx-foot{margin-top:12px;display:flex;justify-content:space-between;align-items:center;background:#0f3d3a;color:#fff;border-radius:12px;padding:10px 18px;break-inside:avoid;page-break-inside:avoid;}
+  .fpx-foot b{font-size:13px;}
+  .fpx-foot span{font-size:10px;color:#f2b705;direction:ltr;}
+  @media print{ .fp-print-only.fpx-mode{padding:0 !important;background:#fff;} html,body{background:#fff !important;} }
+  `;
+  const FPX_MOTOR_GROUPS = [
+    { t:'شناسه موتور', c:'#334e7a', f:[['model','نوع موتور'],['ratio','سیم‌بکسل‌بندی']] },
+    { t:'مشخصات الکتریکی', c:'#0f7a6b', f:[['speed','سرعت'],['power','قدرت'],['current','جریان'],['poles','تعداد قطب']] },
+    { t:'ظرفیت و بار', c:'#b07a00', f:[['person','نفر'],['capacity','ظرفیت'],['staticLoad','استاتیک لود']] },
+    { t:'فلکه و سیم‌بکسل', c:'#7a3fb0', f:[['sheave','سایز فلکه'],['ropes','مشخصات فلکه'],['pitch','گام'],['groove','نوع شیار']] },
+    { t:'زاویه و انکودر', c:'#b8305f', f:[['beta','زاویه بتا β'],['gamma','زاویه گاما γ'],['encoder','نوع انکودر']] }
+  ];
+  function fpxClean(v){ return String(v==null?'':v).replace(/<[^>]+>/g,' ').replace(/&nbsp;/g,' ').replace(/\s+/g,' ').trim(); }
+  function fpxMotorTableHtml(t){
+    if(!t || typeof t!=='object') return '';
+    const groups = FPX_MOTOR_GROUPS.map(g=>{
+      const rows = g.f.map(([key,label])=>{ const v = fpxClean(t[key]); return (v && v!=='—' && v!=='-') ? `<tr><td>${label}</td><td>${fpEsc(v)}</td></tr>` : ''; }).join('');
+      return rows ? `<div class="fpx-mg"><div class="h" style="background:${g.c};">${g.t}</div><table>${rows}</table></div>` : '';
+    }).join('');
+    return groups ? `<div class="fpx-mgrid">${groups}</div>` : '';
+  }
+  function fpxSpecsHtml(specs){
+    const list = (specs||[]).map(s=> (s && typeof s==='object') ? { k: fpxClean(s.k), v: fpxClean(s.v) } : { k:'', v: fpxClean(s) })
+      .filter(s=> s.v && s.v!=='—')
+      .map(s=>{ // «سرعت 1m/s» ← برچسب + مقدار
+        if(s.k) return s;
+        const m = /^([^\d۰-۹]{2,40}?)\s+([\d۰-۹Ø×*].*)$/.exec(s.v);
+        return (m && s.v.length <= 60) ? { k: m[1], v: m[2] } : s;
+      });
+    if(!list.length) return '';
+    return `<div class="fpx-specs">${list.map(s=> `<div class="fpx-spec${s.v.length>42 ? ' wide' : ''}">${s.k ? `<div class="k">${fpEsc(s.k)}</div>` : ''}<div class="v">${fpEsc(s.v)}</div></div>`).join('')}</div>`;
+  }
+  function fpxLinesHtml(lines){
+    const list = (lines||[]).filter(l=> l && fpxClean(l.name));
+    if(!list.length) return '';
+    return `<table class="fpx-lines"><thead><tr><th>ریز اقلام</th><th>مشخصات</th><th class="n">تعداد</th><th class="a">مبلغ (ریال)</th></tr></thead><tbody>${
+      list.map(l=> `<tr><td>${fpEsc(fpxClean(l.name))}</td><td>${fpEsc(fpxClean(l.spec))||'—'}</td><td class="n">${fpEsc(toFaDigits(fpxClean(l.qty)))||'—'}</td><td class="a">${fpEsc(toFaDigits(fpxClean(l.amount)))||'—'}</td></tr>`).join('')
+    }</tbody></table>`;
+  }
   function fpPrintFactor(factorId){
     const f = fpLoad().find(x=>x.id===factorId);
     if(!f) return;
     const t = fpFactorTotals(f);
-    // تعدیل دستی هرگز نباید به‌صورت ردیف/متن جداگانه در قالب چاپ ظاهر شود؛ مبلغ آن هم‌زمان
-    // به قیمت افزوده می‌شود اما به‌جای درج در یک ردیف مستقل، به‌نسبتِ سهمِ هر قلم از جمع خالص،
-    // بین همهٔ ردیف‌های فاکتور تقسیم می‌شود تا کل مبلغ فقط روی یک جنس متمرکز نشود.
+    // تعدیل دستی به‌صورت ردیف جدا چاپ نمی‌شود؛ به‌نسبت سهم هر قلم بین ردیف‌ها پخش و در قیمت همان ردیف لحاظ می‌شود
     const itemsNetForSplit = f.items.reduce((s,it)=> s + fpNetAmount(it.total, it.discount), 0);
+    const faN = n => toFaDigits(Math.round(n||0).toLocaleString('en-US'));
     const calc = f.items.map(it=>{
-      const discountPct = Number(it.discount)||0;
+      const discountPct = Math.min(100, Math.max(0, Number(it.discount)||0));
       const net = fpNetAmount(it.total, discountPct);
       const manualShare = t.manualValue ? (itemsNetForSplit>0 ? (net/itemsNetForSplit)*t.manualValue : t.manualValue/f.items.length) : 0;
-      return { it, discountPct, net, printedFinal: Math.max(0, net + manualShare) };
+      const printedFinal = Math.max(0, net + manualShare);
+      const d = discountPct/100;
+      const gross = d < 1 ? printedFinal/(1-d) : (Number(it.total)||0);
+      const qty = fpQty(it);
+      return { it, discountPct, printedFinal, gross, qty, unit: qty>0 ? gross/qty : gross, discAmt: Math.max(0, gross - printedFinal) };
     });
-    const mainCalc = calc.filter(c=> !fpIsPanelRow(c.it));
-    const panelCalc = calc.filter(c=> fpIsPanelRow(c.it));
 
-    // ---- ردیف‌های غیر پنل (موتور / جک‌وپاور / ...): شرح عیناً مطابق فاکتور اصلی + تعداد و قیمت واحد ----
-    const thM = 'padding:8px 6px;border:1px solid #ccc;font-size:.8rem;';
-    const tdM = 'padding:7px 8px;border:1px solid #ccc;vertical-align:middle;';
-    const faN = n => toFaDigits(Math.round(n||0).toLocaleString('en-US'));
-    const rows = mainCalc.map((c,i)=>{
-      const it = c.it;
-      const descLines = (fpLabelPrefix(it) + (fpCleanDesc(it.description, it)||'—')).split(/\s*\|\s*/).filter(Boolean)
-        .map(l=>`<div style="padding:1px 0;">${l}</div>`).join('');
-      return `<tr>
-        <td style="${tdM}text-align:center;">${toFaDigits(i+1)}</td>
-        <td style="${tdM}text-align:right;">${descLines}</td>
-        <td style="${tdM}text-align:center;">${toFaDigits(fpQty(it))}</td>
-        <td style="${tdM}text-align:center;">${faN(fpUnit(it))}</td>
-        <td style="${tdM}text-align:center;">${faN(it.total)}</td>
-        <td style="${tdM}text-align:center;">${c.discountPct ? toFaDigits(Math.round(c.discountPct*100)/100) + '٪' : '—'}</td>
-        <td style="${tdM}text-align:center;font-weight:800;">${faN(c.printedFinal)}</td>
-      </tr>`;
-    }).join('');
-    const mainTableHtml = mainCalc.length ? `
-        <table style="width:100%;border-collapse:collapse;font-size:.85rem;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-          <thead><tr style="background:#0f3d3a;color:#fff;">
-            <th style="${thM}">ردیف</th>
-            <th style="${thM}">شرح کالا / مشخصات فنی</th>
-            <th style="${thM}">تعداد</th>
-            <th style="${thM}">قیمت واحد (ریال)</th>
-            <th style="${thM}">مبلغ (ریال)</th>
-            <th style="${thM}">تخفیف٪</th>
-            <th style="${thM}">مبلغ نهایی (ریال)</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>` : '';
-
-    // ---- ردیف‌های پنل: عیناً قالب چاپ «پیش‌فاکتور مشتری» POSHT_BARG (پنل‌های کابین / پنل‌های طبقه) ----
-    const fmtN = n => Math.round(n||0).toLocaleString('en-US');
-    let cabinTotalP = 0, floorTotalP = 0, commTotalP = 0, panelDiscount = 0;
-    let hasCabinMain = false, hasFloorMain = false, hasComm = false;
-    const tdS = 'padding:6px 7px;border:1px solid #ccc;text-align:right;';
-    const panelGroupHtml = (sec, title, headBg, rowBg)=>{
-      const list = panelCalc.filter(c=> c.it.section===sec);
-      if(!list.length) return '';
-      const body = list.map((c,i)=>{
-        const d = c.discountPct/100;
-        const gross = d < 1 ? c.printedFinal/(1-d) : (Number(c.it.total)||0);   // مبلغ قبل از تخفیف (شامل سهم تعدیل دستی)
-        const qty = fpQty(c.it);
-        const unit = qty>0 ? gross/qty : gross;
-        if(c.it.kind==='comm'){ commTotalP += gross; hasComm = true; }
-        else if(sec==='cabin'){ cabinTotalP += gross; hasCabinMain = true; }
-        else { floorTotalP += gross; hasFloorMain = true; }
-        panelDiscount += Math.max(0, gross - c.printedFinal);
-        return `<tr style="background:${rowBg};"><td style="${tdS}">${i+1}</td><td style="${tdS}">${c.it.description||'—'}</td><td style="${tdS}">${qty}</td><td style="${tdS}">${fmtN(unit)}</td><td style="${tdS}">${fmtN(gross)}</td></tr>`;
-      }).join('');
+    // گروه‌بندی: ردیف‌های پنلِ پشت‌سرهم با بخش یکسان (کابین/طبقه) در یک کارت؛ بقیه هر کدام کارت جدا
+    const groups = [];
+    calc.forEach(c=>{
+      if(fpIsPanelRow(c.it)){
+        const last = groups[groups.length-1];
+        if(last && last.panel && last.section===c.it.section) last.rows.push(c);
+        else groups.push({ panel:true, section:c.it.section, rows:[c] });
+      } else groups.push({ panel:false, rows:[c] });
+    });
+    const priceBar = (qtyTxt, unit, gross, discPct, discAmt, fin)=> `
+      <div class="fpx-price">
+        <div><div class="k">تعداد</div><div class="v">${qtyTxt}</div></div>
+        <div><div class="k">قیمت واحد (ریال)</div><div class="v">${unit!=null ? faN(unit) : '—'}</div></div>
+        <div><div class="k">مبلغ کل (ریال)</div><div class="v">${faN(gross)}</div></div>
+        <div><div class="k">تخفیف${discPct ? ' (' + toFaDigits(Math.round(discPct*100)/100) + '٪)' : ''}</div><div class="v">${discAmt>0.5 ? '−' + faN(discAmt) : '—'}</div></div>
+        <div><div class="k">مبلغ نهایی (ریال)</div><div class="v">${faN(fin)}</div></div>
+      </div>`;
+    let idx = 0;
+    const blocksHtml = groups.map(g=>{
+      idx++;
+      const idxHtml = `<div class="fpx-idx">${toFaDigits(idx)}</div>`;
+      if(g.panel){
+        const title = g.section==='cabin' ? 'پنل‌های کابین' : 'پنل‌های طبقه';
+        const rows = g.rows.map(c=> `<tr><td>${c.it.description||'—'}</td><td class="n">${toFaDigits(c.qty)}</td><td class="a">${faN(c.unit)}</td><td class="a">${faN(c.gross)}</td></tr>`).join('');
+        const gross = g.rows.reduce((s,c)=>s+c.gross,0), fin = g.rows.reduce((s,c)=>s+c.printedFinal,0);
+        const pct = gross>0 ? (gross-fin)/gross*100 : 0;
+        const qtySum = g.rows.reduce((s,c)=>s+c.qty,0);
+        return `
+        <div class="fpx-block${g.rows.length<=8 ? ' small' : ''}">
+          <div class="fpx-bhead">${idxHtml}<div class="fpx-btitle">${title}</div>${fpxOfficialHtml(g.rows[0].it.official)}<div class="fpx-src">پنل آسانسور</div></div>
+          <div class="fpx-bmain">
+            <table class="fpx-lines" style="margin-top:0;"><thead><tr><th>نوع سفارش / مشخصات</th><th class="n">تعداد</th><th class="a">قیمت واحد (ریال)</th><th class="a">قیمت کل (ریال)</th></tr></thead><tbody>${rows}</tbody></table>
+          </div>
+          ${priceBar(toFaDigits(qtySum), null, gross, pct>0.005 ? pct : 0, gross-fin, fin)}
+        </div>`;
+      }
+      const c = g.rows[0], it = c.it;
+      const parts = fpDescParts(it);
+      const title = fpxTitleOf(it, parts);
+      const hasStructured = (Array.isArray(it.specs) && it.specs.length) || (Array.isArray(it.lines) && it.lines.length) || it.specTable;
+      const restParts = (fpxClean(it.title) || title !== fpxClean(parts[0])) ? parts : parts.slice(1);
+      const descList = (!hasStructured && restParts.length) ? `<ul class="fpx-desc">${restParts.map(p=>`<li>${fpEsc(fpxClean(p))}</li>`).join('')}</ul>` : '';
+      const motorTbl = fpxMotorTableHtml(it.specTable);
+      const sch = (it.schematic && it.schematic.src) ? `<div class="fpx-sch"><div class="t">${fpEsc(it.schematic.title || 'شماتیک ابعادی')}</div><img src="${fpEsc(it.schematic.src)}" alt=""></div>` : '';
+      const motorHtml = (motorTbl || sch) ? `<div class="fpx-motor${(motorTbl && sch) ? ' has-sch' : ''}">${motorTbl}${sch}</div>` : '';
+      const srcLabel = fpxSrcName(it);
       return `
-        <table style="width:100%;border-collapse:collapse;font-size:11.5px;margin-top:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-          <thead>
-            <tr><th colspan="5" style="background:${headBg};color:#fff;text-align:center;padding:6px 7px;border:1px solid #ccc;">${title}</th></tr>
-            <tr style="background:#eee;"><th style="${tdS}">#</th><th style="${tdS}">نوع سفارش</th><th style="${tdS}">تعداد</th><th style="${tdS}">قیمت واحد (ریال)</th><th style="${tdS}">قیمت کل (ریال)</th></tr>
-          </thead>
-          <tbody>${body}</tbody>
-        </table>`;
-    };
-    const cabinTableHtml = panelGroupHtml('cabin', 'پنل‌های کابین', '#12626b', '#e6f4f4');
-    const floorTableHtml = panelGroupHtml('floor', 'پنل‌های طبقه', '#6fbf8b', '#eef9f2');
-    const totRow = (label, val, color)=> `<tr><th style="text-align:right;background:#f7f7f7;font-weight:700;width:64%;padding:7px 10px;border:1px solid #ccc;color:${color};">${label}</th><td style="text-align:left;font-weight:800;padding:7px 10px;border:1px solid #ccc;color:${color};">${val}</td></tr>`;
-    const panelTotalsHtml = panelCalc.length ? `
-        <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><tbody>
-          ${hasCabinMain ? totRow('جمع پنل‌های کابین', fmtN(cabinTotalP)+' ریال', '#12626b') : ''}
-          ${hasFloorMain ? totRow('جمع پنل‌های طبقه', fmtN(floorTotalP)+' ریال', '#0f6e6b') : ''}
-          ${hasComm ? totRow('جمع تجهیزات ارتباطی', fmtN(commTotalP)+' ریال', '#a06a00') : ''}
-          ${panelDiscount > 0.5 ? totRow('تخفیف', fmtN(panelDiscount)+' ریال', '#b8305f') : ''}
-        </tbody></table>` : '';
+      <div class="fpx-block${motorHtml ? '' : ' small'}">
+        <div class="fpx-btop">
+          <div class="fpx-bhead">${idxHtml}<div class="fpx-btitle">${fpEsc(title)}</div>${fpxOfficialHtml(it.official)}${srcLabel ? `<div class="fpx-src">${fpEsc(srcLabel)}</div>` : ''}</div>
+          <div class="fpx-toprow">
+            <div class="fpx-bside">
+              <div class="fpx-big">${fpEsc(title)}</div>
+              ${it.subtitle ? `<div>${fpEsc(fpxClean(it.subtitle))}</div>` : ''}
+              <div class="fpx-qty">تعداد: ${toFaDigits(c.qty)}</div>
+            </div>
+            <div class="fpx-bmain">${fpxSpecsHtml(it.specs)}${descList || ((!it.specs || !it.specs.length) ? '<div style="color:#8a97a8;">—</div>' : '')}</div>
+          </div>
+        </div>
+        ${(it.lines && it.lines.length) || motorHtml || it.note ? `<div class="fpx-bmain" style="padding-top:0;">
+          ${fpxLinesHtml(it.lines)}
+          ${motorHtml}
+          ${it.note ? `<div class="fpx-note">${fpEsc(fpxClean(it.note))}</div>` : ''}
+        </div>` : ''}
+        ${priceBar(toFaDigits(c.qty), c.unit, c.gross, c.discountPct, c.discAmt, c.printedFinal)}
+      </div>`;
+    }).join('');
 
+    const grossSum = calc.reduce((s,c)=>s+c.gross,0);
+    const discSum = calc.reduce((s,c)=>s+c.discAmt,0);
     const projTxt = f.projects && f.projects.length ? f.projects.join(' / ') : '—';
     const now = new Date();
-    const descHtml = f.description
-      ? `<div style="margin-top:16px;font-size:.85rem;"><b>توضیحات:</b><div style="margin-top:4px;white-space:pre-wrap;border:1px solid #ccc;border-radius:8px;padding:8px;">${f.description}</div></div>`
-      : '';
-    const printedRowsSum = itemsNetForSplit + (t.manualValue||0);
-    const summaryRows = `
-        <tr><td colspan="4" style="text-align:left;padding:6px 8px;border:none;">جمع ردیف‌ها (پس از تخفیف هر سفارش)</td><td class="num" style="padding:6px 8px;border:none;">${toFaDigits(Math.round(printedRowsSum).toLocaleString('en-US'))} ریال</td></tr>
-        ${t.markupPct>0 ? `<tr><td colspan="4" style="text-align:left;padding:6px 8px;border:none;">درصد افزایش قیمت اعمال‌شده (${toFaDigits(t.markupPct)}٪)</td><td class="num" style="padding:6px 8px;border:none;">+ ${toFaDigits(Math.round(t.markupAmount).toLocaleString('en-US'))} ریال</td></tr>` : ''}
-    `;
+    const types = Array.from(new Set((f.items||[]).map(it=>it&&it.sourceType).filter(Boolean)));
+    const descHtml = f.description ? `<div class="fpx-card"><h4>توضیحات</h4><div style="white-space:pre-wrap;font-size:10.5px;">${fpEsc(f.description)}</div></div>` : '';
     const printHtml = `
-      <div style="font-family:'Vazirmatn','Tahoma',sans-serif;direction:rtl;">
-        <div class="bf-print-banner" style="text-align:center;font-weight:800;font-size:12px;color:#111;margin-bottom:8px;">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
-        <div class="bf-doc-title" data-bf-fixed="1" style="text-align:center;font-weight:800;font-size:17px;color:#111;padding-bottom:10px;margin-bottom:10px;border-bottom:3px solid #111;">${bfDocTitleFor(Array.from(new Set((f.items||[]).map(it=>it&&it.sourceType).filter(Boolean))))}</div>
-        <div style="text-align:center;font-size:.85rem;color:#555;margin-bottom:18px;">تاریخ: ${now.toLocaleDateString('fa-IR')} ${now.toLocaleTimeString('fa-IR')}</div>
-        <div style="margin-bottom:14px;font-size:.95rem;">${f.invoiceNo ? `<b>شماره پیش‌فاکتور:</b> ${fpEsc(f.invoiceNo)} &nbsp;|&nbsp; ` : ''}<b>مشتری/شرکت:</b> ${f.companyDisplay} &nbsp;|&nbsp; <b>پروژه(ها):</b> ${projTxt}</div>
-        ${mainTableHtml}
-        ${cabinTableHtml}
-        ${floorTableHtml}
-        ${panelTotalsHtml}
-        <table style="width:100%;border-collapse:collapse;font-size:.85rem;margin-top:6px;">
-          <tbody>${summaryRows}</tbody>
-        </table>
-        <div style="text-align:left;margin-top:10px;font-weight:800;font-size:1.05rem;color:#0f3d3a;border-top:2px solid #0f3d3a;padding-top:8px;">
-          جمع کل فاکتور: ${toFaDigits(Math.round(t.grandTotal).toLocaleString('en-US'))} ریال
+      <style>${FPX_CSS}</style>
+      <div class="fpx">
+        <div class="fpx-head">
+          <div class="fpx-banner">مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس</div>
+          <div class="fpx-doc">
+            <div class="fpx-meta">
+              ${f.invoiceNo ? `<span>شماره پیش‌فاکتور</span><b class="fpx-num">${fpEsc(toFaDigits(f.invoiceNo))}</b>` : ''}
+              <span>تاریخ صدور</span><b>${now.toLocaleDateString('fa-IR')}</b>
+              <span>ساعت</span><b>${now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'})}</b>
+            </div>
+          </div>
         </div>
-        ${descHtml}
-        <div style="margin-top:18px;padding-top:10px;border-top:1px dashed #999;font-size:.62rem;line-height:1.7;color:#333;text-align:justify;">
-          <div>لطفا پیش از تایید نهایی سفارش، نسبت به بررسی دقیق ابعاد و مشخصات کالای درج شده در فاکتور اقدام نمایید تا از هرگونه مغایرت با مشخصات پروژه جلوگیری شود</div>
-          <div>کالای سفارشی تحت هیچ شرایطی قابل کنسل شدن یا استرداد نمیباشد.</div>
-          <div>در صورت عدم تسویه کامل حساب طبق شرایط پرداخت، شرکت از تحویل کالا خودداری خواهد نمود.</div>
-          <div>درصورت افزایش قیمت محصول، به میزان مانده حساب فاکتور، مابه التفاوت به عهده خریدار محترم میباشد.</div>
-          <div>درصورت توافق و پرداخت چک، تحویل کالا منوط به وصول آن میباشد.</div>
-          <div>درصورت انصراف خریدار از سفارش، پس از ثبت و تایید نهایی سفارش (شامل کالاهای روئین) بابت هزینه های ثابت و وقفه در روند فروش مبلغی معادل ۱٪ از کل فاکتور از خریدار محترم دریافت میشود.</div>
-          <div>کالا پس از خروج از انبار به هیچ عنوان قابل مرجوع نمیباشد.</div>
-          <div style="text-align:center;margin-top:6px;">از حسن اعتماد شما سپاسگزاریم ، رضایت شما افتخار ماست.</div>
+        <div class="fpx-cards">
+          <div class="fpx-card"><h4>مشخصات خریدار</h4>
+            <div class="fpx-kv"><span>مشتری / شرکت:</span><b>${fpEsc(f.companyDisplay||'—')}</b><span>پروژه(ها):</span><b>${fpEsc(projTxt)}</b><span>تعداد اقلام:</span><b>${toFaDigits(groups.length)} محصول</b></div>
+          </div>
         </div>
+        <div class="fpx-sec-title">اقلام و مشخصات فنی سفارش</div>
+        ${blocksHtml}
+        <div class="fpx-bottom">
+          <div class="fpx-side">
+            <div class="fpx-validity">اعتبار پیش‌فاکتور، روز جاری می‌باشد</div>
+            ${descHtml}
+          </div>
+          <div class="fpx-totals">
+            <div class="r"><span>جمع کل اقلام (ریال)</span><b>${faN(grossSum)}</b></div>
+            ${discSum>0.5 ? `<div class="r neg"><span>جمع تخفیف (ریال)</span><b>−${faN(discSum)}</b></div>` : ''}
+            ${t.markupPct>0 ? `<div class="r"><span>افزایش قیمت (${toFaDigits(t.markupPct)}٪)</span><b>+${faN(t.markupAmount)}</b></div>` : ''}
+            <div class="g"><span>جمع کل فاکتور (ریال)</span><b>${faN(t.grandTotal)}</b></div>
+          </div>
+        </div>
+        <div class="fpx-terms"><h5>شرایط و ضوابط</h5><ul style="margin:0;padding-inline-start:16px;">
+          <li>لطفا پیش از تایید نهایی سفارش، نسبت به بررسی دقیق ابعاد و مشخصات کالای درج شده در فاکتور اقدام نمایید تا از هرگونه مغایرت با مشخصات پروژه جلوگیری شود.</li>
+          <li>کالای سفارشی تحت هیچ شرایطی قابل کنسل شدن یا استرداد نمی‌باشد.</li>
+          <li>در صورت عدم تسویه کامل حساب طبق شرایط پرداخت، شرکت از تحویل کالا خودداری خواهد نمود.</li>
+          <li>درصورت افزایش قیمت محصول، به میزان مانده حساب فاکتور، مابه‌التفاوت به عهده خریدار محترم می‌باشد.</li>
+          <li>درصورت توافق و پرداخت چک، تحویل کالا منوط به وصول آن می‌باشد.</li>
+          <li>درصورت انصراف خریدار از سفارش، پس از ثبت و تایید نهایی سفارش (شامل کالاهای روئین) بابت هزینه‌های ثابت و وقفه در روند فروش مبلغی معادل ۱٪ از کل فاکتور از خریدار محترم دریافت می‌شود.</li>
+          <li>کالا پس از خروج از انبار به هیچ عنوان قابل مرجوع نمی‌باشد.</li>
+        </ul></div>
+        <div class="fpx-foot" style="justify-content:center;"><b>از حسن اعتماد شما سپاسگزاریم؛ رضایت شما افتخار ماست.</b></div>
       </div>`;
     let holder = document.getElementById('fpPrintHolder');
     if(!holder){
       holder = document.createElement('div');
       holder.id = 'fpPrintHolder';
-      holder.className = 'fp-print-only';
       document.body.appendChild(holder);
     }
+    holder.className = 'fp-print-only fpx-mode';
     holder.innerHTML = printHtml;
-    setTimeout(()=> window.print(), 60);
+    // صبر برای لود شدن تصاویر شماتیک (حداکثر ۴ ثانیه)
+    (function(h){
+      const pend = [].slice.call(h.querySelectorAll('img')).filter(i=> !i.complete);
+      let fired = false;
+      const go = ()=>{ if(fired) return; fired = true; setTimeout(()=>{ window.print(); setTimeout(()=>{ try{ h.className = 'fp-print-only'; }catch(e){} }, 500); }, 60); };
+      if(!pend.length){ go(); return; }
+      let left = pend.length;
+      pend.forEach(i=>{ const one = ()=>{ if(--left <= 0) go(); }; i.addEventListener('load', one); i.addEventListener('error', one); });
+      setTimeout(go, 4000);
+    })(holder);
   }
 </script>
 

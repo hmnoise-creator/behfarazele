@@ -386,6 +386,7 @@
   if(window.bfDraft) return;
   var PREFIX = 'bf_draft_v1|', SESSION_KEY = 'bf_operator_session_v1', MAX_AGE = 7 * 24 * 3600 * 1000;
   var A = null, baseSig = null, ready = false, timer = null, busy = false;
+  var BF_DRAFT_ENABLED = false;   // ⏸ پرسش «پیش‌فاکتور نیمه‌کاره داشتید» فعلاً غیرفعال است (برای فعال‌سازی دوباره: true)
 
   function opName(){ try{ var o = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); return (o && o.name) || ''; }catch(e){ return ''; } }
   function key(){ return PREFIX + A.product + '|' + (opName() || '_'); }
@@ -470,6 +471,7 @@
     /* adapter = { product, label, capture(): {state, customer, summary, editing}, restore(state), sigOmit:[...] } */
     init: function(adapter){
       if(A) return; A = adapter;
+      if(!BF_DRAFT_ENABLED) return;   // نه پیش‌نویس ذخیره می‌شود و نه پرسشی نمایش داده می‌شود
       ['input', 'change', 'click', 'keyup'].forEach(function(ev){ document.addEventListener(ev, schedule, true); });
       window.addEventListener('pagehide', persist);
       window.addEventListener('beforeunload', persist);
@@ -536,7 +538,6 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="بهفراز">
 <meta name="theme-color" content="#0f3d3a">
-
 <title>Gentelrise | انتخاب موتور و پیش‌فاکتور</title>
 <style>
   /* ============================================================
@@ -1121,6 +1122,29 @@
 })();
 </script>
 
+<style>
+  /* [ADJ-SPLIT] */
+  .adj-split{ display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:16px 0 10px; }
+  @media(max-width:700px){ .adj-split{ grid-template-columns:1fr; } }
+  .adj-box{ border-radius:14px; padding:12px 14px; border:2px solid; }
+  .adj-disc{ background:#eaf8f0; border-color:#16a36a; }
+  .adj-mark{ background:#fdeeee; border-color:#d93636; }
+  .adj-head{ font-weight:900; font-size:.95rem; }
+  .adj-disc .adj-head{ color:#0f7a4f; } .adj-mark .adj-head{ color:#b42323; }
+  .adj-sub{ font-size:.72rem; color:#555; margin:3px 0 10px; line-height:1.7; }
+  .adj-field{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .adj-field label{ font-weight:800; font-size:.85rem; }
+  .adj-inp{ display:inline-flex; align-items:center; gap:4px; background:#fff; border-radius:10px; padding:2px 8px; border:2px solid; }
+  .adj-disc .adj-inp{ border-color:#16a36a; } .adj-mark .adj-inp{ border-color:#d93636; }
+  .adj-inp input{ width:70px; border:0; outline:0; font-size:1.05rem; font-weight:900; text-align:center; background:transparent; font-family:inherit; }
+  .adj-disc .adj-inp input, .adj-disc .adj-inp b{ color:#0f7a4f; } .adj-mark .adj-inp input, .adj-mark .adj-inp b{ color:#b42323; }
+  .adj-amt{ display:flex; justify-content:space-between; margin-top:8px; font-size:.82rem; font-weight:800; color:#0f7a4f; }
+  .adj-saved{ margin-top:8px; font-size:.75rem; font-weight:800; color:#7a1a1a; background:#fff; border:1.5px dashed #d93636; border-radius:9px; padding:6px 9px; line-height:1.8; }
+  .adj-effect{ margin:0 0 12px; padding:9px 14px; border-radius:12px; font-size:.82rem; font-weight:800; line-height:1.9; background:#fff7e0; border:1.5px solid #e0a800; color:#5a4300; }
+  .adj-effect.ok{ background:#f2f6f5; border-color:#c9d8d5; color:#33504c; }
+  @media print{ .adj-split, .adj-effect{ display:none !important; } }
+</style>
+<style id="bfNoOpPrint">@media print{ #bfOperatorBadge{ display:none !important; } }</style>
 <style id="bfMobileFix">
 /* [BF-MOBILE] نمایش درست روی آیفون / موبایل: هیچ بخشی از صفحه از عرض گوشی بیرون نزند و نیازی به کشیدن صفحه به کنار نباشد.
    فقط روی صفحهٔ نمایش (screen) اعمال می‌شود؛ روی چاپ و PDF پیش‌فاکتور هیچ اثری ندارد. */
@@ -1174,6 +1198,14 @@
     <div class="ph-body">
       <div class="ph-group ph-dyna">
         <div class="ph-group-title">موتور داینا لیفت (Dyna Lift)</div>
+        <button type="button" class="ph-item" id="bfPhM0804Dyna" data-brand="dyna" data-set="m0804">
+          <span class="ph-radio"></span>
+          <span class="ph-txt"><b>تغییر قیمت مورخ 1405/08/04</b><small>۶ نفره بشکه‌ای (450kg): ۵٬۴۰۰٬۰۰۰٬۰۰۰ ریال (۵۴۰ میلیون تومان) — بقیهٔ مدل‌ها همان نرخ 1405/08/03</small></span>
+        </button>
+        <button type="button" class="ph-item" id="bfPhM0803Dyna" data-brand="dyna" data-set="m0803">
+          <span class="ph-radio"></span>
+          <span class="ph-txt"><b>تغییر قیمت مورخ 1405/08/03</b><small>لیست جدید داینا لیفت (اکسل) — همهٔ مدل‌های بشکه‌ای و دیسکی ۱:۲ و ۱:۱ · ۷٫۴۶٪ افزایش روی نرخ 1405/07/12 (دیسکی ۱۰ نفره سرعت ۱: −۰٫۲۵٪ · ۱۳ نفره سرعت ۱: +۲٫۲۹٪ نسبت به 1405/08/02)</small></span>
+        </button>
         <button type="button" class="ph-item" id="bfPhM0802Dyna" data-brand="dyna" data-set="m0802">
           <span class="ph-radio"></span>
           <span class="ph-txt"><b>تغییر قیمت مورخ 1405/08/02</b><small>دیسکی سرعت ۱ متر — ۱۰ نفره: از ۴٬۷۸۰٬۴۵۰٬۰۰۰ به ۵٬۱۵۰٬۰۰۰٬۰۰۰ ریال · ۱۳ نفره: از ۵٬۰۴۵٬۱۰۰٬۰۰۰ به ۵٬۳۰۰٬۰۰۰٬۰۰۰ ریال — بقیهٔ مدل‌ها مثل 1405/07/12</small></span>
@@ -1193,6 +1225,10 @@
       </div>
       <div class="ph-group ph-gentel">
         <div class="ph-group-title">موتور جنتلرایز (Gentelrise)</div>
+        <button type="button" class="ph-item" id="bfPhM0804Gentel" data-brand="gentelrise" data-set="m0804">
+          <span class="ph-radio"></span>
+          <span class="ph-txt"><b>تغییر قیمت مورخ 1405/08/04</b><small>۶ نفره بشکه‌ای (450kg، سرعت ۱ و ۱٫۶): ۵٬۶۰۰٬۰۰۰٬۰۰۰ ریال (۵۶۰ میلیون تومان) — بقیهٔ مدل‌ها همان نرخ «+۱۰٪»</small></span>
+        </button>
         <button type="button" class="ph-item" id="bfPhNewGentel" data-brand="gentelrise" data-set="new">
           <span class="ph-radio"></span>
           <span class="ph-txt"><b>قیمت‌های جدید (۱۰٪ افزایش موتورهای جنتلرایز)</b><small>۱۰٪ فقط روی قیمت موتور — بدون تغییر در پک خدماتی (درخت سیم) — مبنا: نرخ‌های مورخ 1405/07/08</small></span>
@@ -1266,7 +1302,6 @@
   <!-- ===================== GENTELRISE SECTION ===================== -->
   <div id="gentelriseSection" class="hidden">
 
-  <div style="font-size:11.5px; color:var(--warn); background:rgba(201,151,58,0.08); border:1px dashed var(--warn); border-radius:8px; padding:6px 12px; margin-bottom:14px; text-align:center; font-weight:700;">⚠ قیمت موتورهای جنتلرایز به تاریخ ۱۴۰۵/۰۶/۱۹ با افزایش ۱۰ درصدی به‌روزرسانی شده است</div>
 
   <!-- Motor selection -->
   <div class="card">
@@ -1556,21 +1591,30 @@
       </tbody>
     </table>
 
-    <div class="totals">
-      <div class="row">
-        <span>درصد افزایش قیمت</span>
-        <input id="markupPct" type="number" min="0" value="0" style="width:80px; padding:4px 8px;">
+    <!-- [ADJ-SPLIT] تخفیف (سبز، راست) و افزایش قیمت (قرمز، چپ) کاملاً جدا از هم -->
+    <div class="adj-split">
+      <div class="adj-box adj-disc">
+        <div class="adj-head">🟢 تخفیف به مشتری</div>
+        <div class="adj-sub">در پیش‌فاکتور مشتری دیده می‌شود و از مبلغ کم می‌شود</div>
+        <div class="adj-field"><label for="discountPct">درصد تخفیف</label><span class="adj-inp"><input id="discountPct" type="number" min="0" max="100" value="0"><b>٪</b></span></div>
+        <div class="adj-amt"><span>مبلغ تخفیف</span><span class="num" id="totDiscount">0</span></div>
       </div>
+      <div class="adj-box adj-mark">
+        <div class="adj-head">🔴 افزایش قیمت (داخلی)</div>
+        <div class="adj-sub">در پیش‌فاکتور مشتری نوشته نمی‌شود؛ بی‌صدا داخل «قیمت واحد» می‌رود — فقط در پشت برگ</div>
+        <div class="adj-field"><label for="markupPct">درصد افزایش</label><span class="adj-inp"><input id="markupPct" type="number" min="0" value="0"><b>٪</b></span></div>
+        <div class="adj-saved" id="adjSavedMarkup" style="display:none;"></div>
+      </div>
+    </div>
+    <div class="adj-effect" id="adjEffect" style="display:none;"></div>
+
+    <div class="totals">
       <div class="row"><span>جمع کل (قبل از تخفیف)</span><span class="num" id="totSubtotal">0</span></div>
       <div class="row">
         <label style="display:flex; align-items:center; gap:6px; cursor:pointer;"><input type="checkbox" id="vatCheck"> <span id="vatLabelText">افزودن ۱۰٪ ارزش افزوده</span></label>
         <span class="num" id="totVat">0</span>
       </div>
-      <div class="row">
-        <span>درصد تخفیف</span>
-        <input id="discountPct" type="number" min="0" max="100" value="0" style="width:80px; padding:4px 8px;">
-      </div>
-      <div class="row"><span>مبلغ تخفیف</span><span class="num" id="totDiscount">0</span></div>
+      <div class="row" style="color:#0f7a4f;"><span>تخفیف</span><span class="num" id="totDiscountMirror">0</span></div>
       <div class="row manual-adj-row">
         <span>تعدیل دستی (مبلغ ثابت)</span>
         <span style="display:flex; align-items:center; gap:8px;">
@@ -1658,69 +1702,89 @@
 /* شماتیک‌های ابعادی موتور بشکه‌ای جنتلرایز (WTD2-P) — از فایل‌های Mechanical_WTD2-P-*.pdf؛
    کلید نقشه: «ظرفیت kg | سرعت m/s». فقط ترکیب‌هایی که فایل شماتیک دارند در این نقشه‌اند. */
 const GENTEL_SCHEMATIC_IMG = {
-  s450:"img/motors/gentel-s450.fac9140e.png",
-  s630:"img/motors/gentel-s630.6f1e5109.png",
-  s630_16:"img/motors/gentel-s630_16.c7199910.png",
-  s800:"img/motors/gentel-s800.63906b37.png",
-  s1000:"img/motors/gentel-s1000.47de54fb.png",
-  s1000_16:"img/motors/gentel-s1000_16.a59b2354.png",
-  s1250:"img/motors/gentel-s1250.50b7105c.png",
-  s1600:"img/motors/gentel-s1600.fa41b777.png",
-  s2000:"img/motors/gentel-s2000.8bab1d5c.png"
+  s450:"/img/motors/gentel-s450.fac9140e.png",
+  s630:"/img/motors/gentel-s630.6f1e5109.png",
+  s630_16:"/img/motors/gentel-s630_16.c7199910.png",
+  s800:"/img/motors/gentel-s800.63906b37.png",
+  s1000:"/img/motors/gentel-s1000.47de54fb.png",
+  s1000_16:"/img/motors/gentel-s1000_16.a59b2354.png",
+  s1250:"/img/motors/gentel-s1250.50b7105c.png",
+  s1600:"/img/motors/gentel-s1600.fa41b777.png",
+  s2000:"/img/motors/gentel-s2000.8bab1d5c.png"
 };
 const GENTEL_SCHEMATIC_MAP = {"450|1": "s450", "450|1.6": "s450", "630|1": "s630", "630|1.6": "s630_16", "800|1": "s800", "800|1.6": "s800", "1000|1": "s1000", "1000|1.6": "s1000_16", "1250|1": "s1250", "1250|1.6": "s1250", "1600|1": "s1600", "1600|1.6": "s1600", "2000|1": "s2000"};
 /* شماتیک‌های ابعادی موتور دیسکی جنتلرایز (WTD1-B) — از فایل‌های Mechanical_WTD1-B*.pdf؛
    کلید نقشه: «ظرفیت kg | سرعت m/s». فقط ترکیب‌هایی که فایل شماتیک دارند در این نقشه‌اند.
    نکته: برای 450kg هر دو سرعت، و 630/800/1000kg هر دو سرعت هم‌گروه (1 و 1.6 یا 2 و 2.5)، بدنه فیزیکی موتور یکسان است — از یک تصویر مشترک استفاده شده.
-   برای 1250kg فقط سرعت 1.6 شماتیک دارد؛ 1600kg و 2500kg فعلاً شماتیک ندارند. */
+   سیستم 1:1 (450 و 630kg) و 630kg با فلکه 320 شماتیک اختصاصی خود را دارند (Mechanical …-suspention 11 / sheave 320). */
 const DISK_SCHEMATIC_IMG = {
-  d1600:"img/motors/disk-d1600.9922fb13.png",
-  d2000:"img/motors/disk-d2000.8e1c802e.png",
-  d2500:"img/motors/disk-d2500.1c38379f.png",
-  d450:"img/motors/disk-d450.5d35ec6f.png",
-  d630:"img/motors/disk-d630.c41e2107.png",
-  d630_16:"img/motors/disk-d630_16.c41e2107.png",
-  d800:"img/motors/disk-d800.3867555f.png",
-  d800_2:"img/motors/disk-d800_2.1da88ce8.png",
-  d1000:"img/motors/disk-d1000.c4660d5a.png",
-  d1000_2:"img/motors/disk-d1000_2.bdf43c36.png",
-  d1250:"img/motors/disk-d1250.815b310d.png"
+  d1600:"/img/motors/disk-d1600.9922fb13.png",
+  d2000:"/img/motors/disk-d2000.8e1c802e.png",
+  d2500:"/img/motors/disk-d2500.1c38379f.png",
+  d450:"/img/motors/disk-d450.5d35ec6f.png",
+  d630:"/img/motors/disk-d630.c41e2107.png",
+  d630_16:"/img/motors/disk-d630_16.c41e2107.png",
+  d800:"/img/motors/disk-d800.3867555f.png",
+  d800_2:"/img/motors/disk-d800_2.1da88ce8.png",
+  d1000:"/img/motors/disk-d1000.c4660d5a.png",
+  d1000_2:"/img/motors/disk-d1000_2.bdf43c36.png",
+  d1250:"/img/motors/disk-d1250.815b310d.png",
+  d450_11:"/img/motors/disk-d450_11.a02b0c33.png",
+  d630_11:"/img/motors/disk-d630_11.1883331f.png",
+  d630_s320:"/img/motors/disk-d630_s320.32bdd615.png"
 };
-const DISK_SCHEMATIC_MAP = {"450|1": "d450", "450|1.6": "d450", "630|1": "d630", "630|1.6": "d630_16", "800|1": "d800", "800|1.6": "d800", "800|2": "d800_2", "800|2.5": "d800_2", "1000|1": "d1000", "1000|1.6": "d1000", "1000|2": "d1000_2", "1000|2.5": "d1000_2", "1250|1": "d1250", "1250|1.6": "d1250", "1250|2": "d1250", "1250|2.5": "d1250", "1600|1": "d1600", "1600|1.6": "d1600", "1600|2": "d1600", "1600|2.5": "d1600", "2000|1": "d2000", "2000|1.6": "d2000", "2000|2": "d2000", "2000|2.5": "d2000", "2500|1": "d2500", "2500|1.6": "d2500", "2500|2": "d2500", "2500|2.5": "d2500"};
-/* شماتیک‌های ابعادی موتور داینا لیفت دیسکی (WTD1-B) — از فایل‌های اسکن‌شدهٔ واقعی DAYNA-LIFT؛
+const DISK_SCHEMATIC_MAP = {"450|1": "d450", "450|1.6": "d450", "630|1": "d630", "630|1.6": "d630_16", "800|1": "d800", "800|1.6": "d800", "800|2": "d800_2", "800|2.5": "d800_2", "1000|1": "d1000", "1000|1.6": "d1000", "1000|2": "d1000_2", "1000|2.5": "d1000_2", "1250|1": "d1250", "1250|1.6": "d1250", "1250|2": "d1250", "1250|2.5": "d1250", "1600|1": "d1600", "1600|1.6": "d1600", "1600|2": "d1600", "1600|2.5": "d1600", "2000|1": "d2000", "2000|1.6": "d2000", "2000|2": "d2000", "2000|2.5": "d2000", "2500|1": "d2500", "2500|1.6": "d2500", "2500|2": "d2500", "2500|2.5": "d2500", "1:1|450|1": "d450_11", "1:1|630|1": "d630_11", "s320|630|1": "d630_s320"};
+/* کلید ویژهٔ شماتیک دیسکی: سیستم 1:1 (Suspention 1:1) و 630kg با فلکه 320 فایل شماتیک جداگانه دارند؛ بقیه «ظرفیت|سرعت». */
+function diskSchematicLookupKey(kg, speed, ratio, sheave){
+  const base = `${Number(kg)}|${Number(speed)}`;
+  if(ratio==="1:1") return "1:1|"+base;
+  if(Number(kg)===630 && Number(sheave)===320) return "s320|"+base;
+  return base;
+}
+/* شماتیک‌های ابعادی موتور داینا لیفت دیسکی (WTD1-B) — از فایل‌های واقعی DAYNA-LIFT (پوشهٔ DINA LIFT CALTALOUG DESIGN)؛
+   «suspention 11» یعنی سیستم 1:1؛ 450kg و 630kg (فلکه 320 و 1:1) برای هر سرعت نقشهٔ جدا دارند؛
    کلید نقشه: «ظرفیت kg | سرعت m/s». فقط ترکیب‌هایی که فایل شماتیک دارند در این نقشه‌اند.
    630kg فقط سرعت 1 و 1.6 (سیستم پیش‌فرض، شیو 400)؛ 800/1000kg هر دو سرعتِ هم‌گروه (1و1.6 یا 2و2.5) یک تصویر مشترک دارند؛ 1250kg یک تصویر برای هر ۴ سرعت. */
 const DYNA_DISK_SCHEMATIC_IMG = {
-  d630:"img/motors/dyna-disk-d630.21546031.png",
-  d630_16:"img/motors/dyna-disk-d630_16.6f00f7f4.png",
-  d800:"img/motors/dyna-disk-d800.a2daf315.png",
-  d800_2:"img/motors/dyna-disk-d800_2.925a20f8.png",
-  d1000:"img/motors/dyna-disk-d1000.40239ba9.png",
-  d1000_2:"img/motors/dyna-disk-d1000_2.974954e8.png",
-  d1250:"img/motors/dyna-disk-d1250.0b435591.png",
-  d1600:"img/motors/dyna-disk-d1600.7a464cc3.png",
-  d2000:"img/motors/dyna-disk-d2000.91dbc578.png",
-  d2500:"img/motors/dyna-disk-d2500.5c2f5dc8.png",
+  d630:"/img/motors/dyna-disk-d630.21546031.png",
+  d630_16:"/img/motors/dyna-disk-d630_16.6f00f7f4.png",
+  d800:"/img/motors/dyna-disk-d800.a2daf315.png",
+  d800_2:"/img/motors/dyna-disk-d800_2.925a20f8.png",
+  d1000:"/img/motors/dyna-disk-d1000.40239ba9.png",
+  d1000_2:"/img/motors/dyna-disk-d1000_2.974954e8.png",
+  d1250:"/img/motors/dyna-disk-d1250.0b435591.png",
+  d1600:"/img/motors/dyna-disk-d1600.7a464cc3.png",
+  d2000:"/img/motors/dyna-disk-d2000.91dbc578.png",
+  d2500:"/img/motors/dyna-disk-d2500.5c2f5dc8.png",
+  d450:"/img/motors/dyna-disk-d450.7e7c3ec1.png",
+  d450_11:"/img/motors/dyna-disk-d450_11.b5bfccdb.png",
+  d450_11_16:"/img/motors/dyna-disk-d450_11_16.f54c15c4.png",
+  d450_16:"/img/motors/dyna-disk-d450_16.fcccb68b.png",
+  d630_11:"/img/motors/dyna-disk-d630_11.05a4cf81.png",
+  d630_11_16:"/img/motors/dyna-disk-d630_11_16.23493aaa.png",
+  d630_s320:"/img/motors/dyna-disk-d630_s320.0ebc9394.png",
+  d630_s320_16:"/img/motors/dyna-disk-d630_s320_16.73364ee3.png",
 };
-const DYNA_DISK_SCHEMATIC_MAP = {"630|1": "d630", "630|1.6": "d630_16", "800|1": "d800", "800|1.6": "d800", "800|2": "d800_2", "800|2.5": "d800_2", "1000|1": "d1000", "1000|1.6": "d1000", "1000|2": "d1000_2", "1000|2.5": "d1000_2", "1250|1": "d1250", "1250|1.6": "d1250", "1250|2": "d1250", "1250|2.5": "d1250", "1600|1": "d1600", "1600|1.6": "d1600", "1600|2": "d1600", "1600|2.5": "d1600", "2000|1": "d2000", "2000|1.6": "d2000", "2000|2": "d2000", "2000|2.5": "d2000", "2500|1": "d2500", "2500|1.6": "d2500", "2500|2": "d2500", "2500|2.5": "d2500"};
+const DYNA_DISK_SCHEMATIC_MAP = {"450|1": "d450", "450|1.6": "d450_16", "1:1|450|1": "d450_11", "1:1|450|1.6": "d450_11_16", "1:1|630|1": "d630_11", "1:1|630|1.6": "d630_11_16", "s320|630|1": "d630_s320", "s320|630|1.6": "d630_s320_16", "630|1": "d630", "630|1.6": "d630_16", "800|1": "d800", "800|1.6": "d800", "800|2": "d800_2", "800|2.5": "d800_2", "1000|1": "d1000", "1000|1.6": "d1000", "1000|2": "d1000_2", "1000|2.5": "d1000_2", "1250|1": "d1250", "1250|1.6": "d1250", "1250|2": "d1250", "1250|2.5": "d1250", "1600|1": "d1600", "1600|1.6": "d1600", "1600|2": "d1600", "1600|2.5": "d1600", "2000|1": "d2000", "2000|1.6": "d2000", "2000|2": "d2000", "2000|2.5": "d2000", "2500|1": "d2500", "2500|1.6": "d2500", "2500|2": "d2500", "2500|2.5": "d2500"};
 // بلوک HTML شماتیک داینا لیفت دیسکی (تصویر داخل خود فایل است؛ نیازی به اینترنت ندارد)
-function dynaDiskSchematicHTML(kg, speed){
-  const k = `${Number(kg)}|${Number(speed)}`;
+function dynaDiskSchematicHTML(kg, speed, ratio, sheave){
+  const k = diskSchematicLookupKey(kg, speed, ratio, sheave);
   const id = DYNA_DISK_SCHEMATIC_MAP[k];
   if(!id || !DYNA_DISK_SCHEMATIC_IMG[id]) return '';
   return `<div class="motor-schematic"><div class="ms-title">شماتیک ابعادی موتور — Dyna Lift WTD1-B-${Number(kg)}</div><img src="${DYNA_DISK_SCHEMATIC_IMG[id]}" alt="شماتیک ابعادی موتور داینا لیفت WTD1-B-${Number(kg)}"></div>`;
 }
 /* شماتیک‌های ابعادی موتور داینا لیفت بشکه‌ای (WTD2-P) — از فایل‌های اسکن‌شدهٔ واقعی DAYNA-LIFT؛
    کلید نقشه: «ظرفیت kg | سرعت m/s». هر ظرفیت یک تصویر مشترک برای سرعت‌های 1 و 1.6 دارد (بدنه فیزیکی یکسان).
-   موتورهای ۶ نفره فعلاً شماتیک ندارند. */
+   موتور ۶ نفره (450kg) از شماتیک هم‌بدنهٔ WTD2-P-450 با برچسب DAYNA-LIFT استفاده می‌کند. */
 const DYNA_DRUM_SCHEMATIC_IMG = {
-  s630:"img/motors/dyna-drum-s630.73b44344.png",
-  s800:"img/motors/dyna-drum-s800.979becb8.png",
-  s1000:"img/motors/dyna-drum-s1000.a1526fe1.png",
-  s1250:"img/motors/dyna-drum-s1250.2831a57d.png",
-  s1600:"img/motors/dyna-drum-s1600.8d7cab52.png",
+  s630:"/img/motors/dyna-drum-s630.73b44344.png",
+  s800:"/img/motors/dyna-drum-s800.979becb8.png",
+  s1000:"/img/motors/dyna-drum-s1000.a1526fe1.png",
+  s1250:"/img/motors/dyna-drum-s1250.2831a57d.png",
+  s1600:"/img/motors/dyna-drum-s1600.8d7cab52.png",
+  s450:"/img/motors/dyna-drum-s450.73e9404d.png",
 };
-const DYNA_DRUM_SCHEMATIC_MAP = {"630|1": "s630", "630|1.6": "s630", "800|1": "s800", "800|1.6": "s800", "1000|1": "s1000", "1000|1.6": "s1000", "1250|1": "s1250", "1250|1.6": "s1250", "1600|1": "s1600", "1600|1.6": "s1600"};
+const DYNA_DRUM_SCHEMATIC_MAP = {"450|1": "s450", "450|1.6": "s450", "630|1": "s630", "630|1.6": "s630", "800|1": "s800", "800|1.6": "s800", "1000|1": "s1000", "1000|1.6": "s1000", "1250|1": "s1250", "1250|1.6": "s1250", "1600|1": "s1600", "1600|1.6": "s1600"};
 // بلوک HTML شماتیک داینا لیفت بشکه‌ای (تصویر داخل خود فایل است؛ نیازی به اینترنت ندارد)
 function dynaDrumSchematicHTML(kg, speed){
   const k = `${Number(kg)}|${Number(speed)}`;
@@ -1732,9 +1796,9 @@ function dynaDrumSchematicHTML(kg, speed){
 <script>
 // ---------- لوگوهای برند (Base64) — برای نمایش در result-hero و PDF مشخصات فنی ----------
 const BRAND_LOGO = {
-  gentelrise: "img/motors/logo-gentelrise.86b264f8.jpg",
-  huber: "img/motors/logo-huber.34450241.png",
-  dyna: "img/motors/logo-dyna.710651e8.png"
+  gentelrise: "/img/motors/logo-gentelrise.86b264f8.jpg",
+  huber: "/img/motors/logo-huber.34450241.png",
+  dyna: "/img/motors/logo-dyna.710651e8.png"
 };
 // ---------- DATA ----------
 // price fields are in Rial. packPrice = "پک خدماتی" price (service pack). motorPrice = dated column (motor unit price).
@@ -1866,6 +1930,33 @@ const DYNA_PRICE_MAP_0802 = Object.assign({}, DYNA_PRICE_MAP_0712, {
   [dynaKey('disk','2:1',800,1)]: 5150000000,   // ۱۰ نفره دیسکی 1m/s (قبلی 4,780,450,000)
   [dynaKey('disk','2:1',1000,1)]: 5300000000,  // ۱۳ نفره دیسکی 1m/s (قبلی 5,045,100,000)
 });
+/* قیمت‌های داینا لیفت — «تغییر قیمت مورخ 1405/08/03» (فایل اکسل «قیمت جدید موتور و کاراسلینگ» — قیمت نهایی داینا بدون ارزش افزوده) */
+const DYNA_PRICE_MAP_0803 = {
+  [dynaKey('drum','2:1',450,1)]: 4726800000,
+  [dynaKey('drum','2:1',630,1)]: 5418000000,
+  [dynaKey('drum','2:1',630,1.6)]: 5562000000,
+  [dynaKey('drum','2:1',800,1)]: 6642000000,
+  [dynaKey('drum','2:1',800,1.6)]: 6760800000,
+  [dynaKey('drum','2:1',1000,1)]: 6807600000,
+  [dynaKey('drum','2:1',1000,1.6)]: 7117200000,
+  [dynaKey('drum','2:1',1250,1)]: 10641600000,
+  [dynaKey('drum','2:1',1250,1.6)]: 10641600000,
+  [dynaKey('drum','2:1',1600,1)]: 11545200000,
+  [dynaKey('drum','2:1',1600,1.6)]: 11545200000,
+  [dynaKey('disk','2:1',450,1)]: 4417200000,
+  [dynaKey('disk','2:1',630,1)]: 5011200000,
+  [dynaKey('disk','2:1',630,1.6)]: 5104800000,
+  [dynaKey('disk','2:1',800,1)]: 5137200000,
+  [dynaKey('disk','2:1',800,1.6)]: 5230800000,
+  [dynaKey('disk','2:1',1000,1)]: 5421600000,
+  [dynaKey('disk','2:1',1000,1.6)]: 5666400000,
+  [dynaKey('disk','2:1',1250,1)]: 9003600000,
+  [dynaKey('disk','2:1',1250,1.6)]: 9003600000,
+  [dynaKey('disk','2:1',1600,1)]: 10490400000,
+  [dynaKey('disk','2:1',1600,1.6)]: 10490400000,
+  [dynaKey('disk','1:1',450,1)]: 5385600000,
+  [dynaKey('disk','1:1',630,1)]: 6588000000,
+};
 // اصلاح مشخصات فنی مخصوص داینا لیفت (فقط داینا؛ جنتلرایز دست‌نخورده می‌ماند):
 // دیسکی — سیستم 1:1 — ظرفیت 630kg (8 نفر): Power = 4.1kw ، Current = 18A
 const DYNA_SPEC_OVERRIDES = {
@@ -1917,15 +2008,15 @@ const DATA_HUBER = [
 /* شماتیک‌های ابعادی موتور هوبر (Huber, T-series) — از فایل‌های PDF لافرت (Lafert)؛
    کلید نقشه: دقیقاً همان رشتهٔ «model» در DATA_HUBER (مثل "T24.320.10").
    نکته: برای هر مدل، یکی از حالت‌های شیار سیم‌بکسل (که در PDF مبدا هم گاهی چند نسخه دارد) به‌عنوان تصویر معرف انتخاب شده.
-   T32.320.20 و T32L.320.20 و T32XL.320.20 (سرعت ۲) فعلاً فایل شماتیک ندارند. */
+   T32.320.20 و T32L.320.20 و T32XL.320.20 (سرعت ۲) از نقشهٔ ابعادی فریم هم‌نام (هم‌تعداد شیار) استفاده می‌کنند. */
 const HUBER_SCHEMATIC_IMG = {
-  h_t24_10:"img/motors/huber-h_t24_10.52fb206c.png",
-  h_t24l:"img/motors/huber-h_t24l.1adf20aa.png",
-  h_t32s:"img/motors/huber-h_t32s.721cd7d8.png",
-  h_t32_10:"img/motors/huber-h_t32_10.6c6a7d25.png",
-  h_t32_16:"img/motors/huber-h_t32_16.e678d66a.png",
-  h_t32l:"img/motors/huber-h_t32l.440e7eef.png",
-  h_t32xl:"img/motors/huber-h_t32xl.aa983446.png"
+  h_t24_10:"/img/motors/huber-h_t24_10.52fb206c.png",
+  h_t24l:"/img/motors/huber-h_t24l.1adf20aa.png",
+  h_t32s:"/img/motors/huber-h_t32s.721cd7d8.png",
+  h_t32_10:"/img/motors/huber-h_t32_10.6c6a7d25.png",
+  h_t32_16:"/img/motors/huber-h_t32_16.e678d66a.png",
+  h_t32l:"/img/motors/huber-h_t32l.440e7eef.png",
+  h_t32xl:"/img/motors/huber-h_t32xl.aa983446.png"
 };
 const HUBER_SCHEMATIC_MAP = {
   "T24.320.10": "h_t24_10",
@@ -1938,7 +2029,11 @@ const HUBER_SCHEMATIC_MAP = {
   "T32L.320.10": "h_t32l",
   "T32L.320.16": "h_t32l",
   "T32XL.320.10": "h_t32xl",
-  "T32XL.320.16": "h_t32xl"
+  "T32XL.320.16": "h_t32xl",
+  // سرعت ۲ m/s: فایل جداگانه ندارد؛ بدنه (فریم) و فلکه 320 با هم‌خانواده یکسان است → از نقشهٔ همان فریم استفاده می‌شود
+  "T32.320.20": "h_t32_16",
+  "T32L.320.20": "h_t32l",
+  "T32XL.320.20": "h_t32xl"
 };
 function huberSchematicKey(model){
   return (model && HUBER_SCHEMATIC_MAP[model]) ? model : '';
@@ -2111,8 +2206,8 @@ function huberSpecTable(r){
 }
 
 // کلید شماتیک موتور جنتلرایز (دیسکی یا بشکه‌ای) بر اساس نوع/ظرفیت/سرعت؛ اگر شماتیکی برای آن ترکیب نباشد رشتهٔ خالی برمی‌گرداند
-function gentelSchematicKey(kg, speed, motorType){
-  const k = `${Number(kg)}|${Number(speed)}`;
+function gentelSchematicKey(kg, speed, motorType, ratio, sheave){
+  const k = motorType==='disk' ? diskSchematicLookupKey(kg, speed, ratio, sheave) : `${Number(kg)}|${Number(speed)}`;
   const map = motorType==='disk' ? DISK_SCHEMATIC_MAP : GENTEL_SCHEMATIC_MAP;
   return (map && map[k]) ? (motorType==='disk' ? 'disk:'+k : k) : '';
 }
@@ -2125,8 +2220,9 @@ function motorSchematicHTML(key){
   const imgs = isDisk ? DISK_SCHEMATIC_IMG : GENTEL_SCHEMATIC_IMG;
   const id = realKey && map[realKey];
   if(!id || !imgs[id]) return '';
-  const kg = realKey.split('|')[0];
-  const modelTag = isDisk ? 'WTD1-B' : 'WTD2-P';
+  const parts = realKey.split('|');
+  const kg = parts.length===3 ? parts[1] : parts[0];
+  const modelTag = (isDisk ? 'WTD1-B' : 'WTD2-P');
   return `<div class="motor-schematic"><div class="ms-title">شماتیک ابعادی موتور — Gentle-rise ${modelTag}-${kg}</div><img src="${imgs[id]}" alt="شماتیک ابعادی موتور جنتلرایز ${modelTag}-${kg}"></div>`;
 }
 
@@ -2645,11 +2741,9 @@ function bfShowOperatorBadge(){
     // پیش از چاپ: متن بج به «عنوان سازمانی» (نه نام واقعی) تغییر می‌کند؛ اگر عنوانی برای این نام
     // تعریف نشده باشد، بج در چاپ اصلاً نمایش داده نمی‌شود. بعد از چاپ، نام واقعی برمی‌گردد.
     window.addEventListener('beforeprint', function(){
-      const cur = bfGetOperator();
-      const label = bfOperatorPrintLabel(cur ? cur.name : '');
+      // به درخواست: هیچ نام/عنوان کاربری (مدیر فروش، واحد فروش و ...) در هیچ چاپی (پیش‌فاکتور و پشت برگ) نمایش داده نمی‌شود
       badge.dataset.onscreenText = badge.textContent;
-      if(label){ badge.textContent = '👤 ' + label; badge.style.visibility = 'visible'; }
-      else{ badge.textContent = ''; badge.style.visibility = 'hidden'; }
+      badge.textContent = ''; badge.style.visibility = 'hidden';
     });
     window.addEventListener('afterprint', function(){
       if(badge.dataset.onscreenText != null) badge.textContent = badge.dataset.onscreenText;
@@ -2837,9 +2931,52 @@ function bfAddToFactorPlus(){
     __behfarazFactorPlusAdd: true,
     sourceType: 'motor', sourceLabel: 'موتور گیرلس', sourceIcon: '⚙️',
     companyName, projectName, description: desc + (d.vatEnabled ? ' — شامل ' + bfVatRate() + '٪ ارزش افزوده' : ''), qty: (d.items||[]).length || 1,
-    total: (d.subtotal || 0) + (d.vatEnabled ? Math.round((d.subtotal || 0) * bfVatRate() / 100) : 0), discount: d.pct || 0
+    total: (d.subtotal || 0) + (d.vatEnabled ? Math.round((d.subtotal || 0) * bfVatRate() / 100) : 0), discount: d.pct || 0,
+    official: !!(d.vatEnabled || d.officialInvoice),
+    snap: (function(){ try{ return JSON.parse(JSON.stringify(d)); }catch(e){ return null; } })()
   };
+  // [FPX] هر موتور/فلکه یک ردیف مستقل با مشخصات کامل، جدول مشخصات فنی، شماتیک ابعادی و قیمت خودش
   try{
+    const vatScale = d.vatEnabled ? (1 + bfVatRate()/100) : 1;
+    const fpItems = (d.items||[]).map(it=>{
+      const isFal = it.brand==='falake';
+      let schHtml = '';
+      try{
+        const schKey = (it.brand==='gentelrise' && it.specs) ? gentelSchematicKey(it.specs.kg, it.specs.speed, it.type, it.ratio, it.specs.sheave) : '';
+        const huberSchKey = (it.brand==='huber' && it.specs) ? huberSchematicKey(it.specs.model) : '';
+        const dynaSchHtml = (it.brand==='dyna' && it.specs) ? (it.type==='disk' ? dynaDiskSchematicHTML(it.specs.kg, it.specs.speed, it.ratio, it.specs.sheave) : (it.type==='drum' ? dynaDrumSchematicHTML(it.specs.kg, it.specs.speed) : '')) : '';
+        schHtml = schKey ? motorSchematicHTML(schKey) : (huberSchKey ? huberSchematicHTML(huberSchKey) : dynaSchHtml);
+      }catch(e){}
+      const mSrc = /<img[^>]+src="([^"]+)"/.exec(schHtml || '');
+      const mTitle = /ms-title">([^<]+)</.exec(schHtml || '');
+      const specsTxt = (isFal ? bfCompactFalakeSpecsText(it) : bfCompactMotorSpecsText(it)) || '';
+      const brandFa = ({gentelrise:'جنتلرایز (Gentle-rise)', huber:'هوبر (Huber)', dyna:'داینا لیفت (Dyna Lift)', falake:'پرهام صنعت'})[it.brand] || '';
+      const typeFa = it.type==='disk' ? 'دیسکی' : (it.type==='drum' ? 'بشکه‌ای (درامی)' : '');
+      const specs = [];
+      if(brandFa) specs.push({ k:'برند', v: brandFa });
+      if(typeFa) specs.push({ k:'نوع موتور', v: typeFa });
+      if(it.ratio && !isFal) specs.push({ k:'سیستم بکسل‌بندی', v: String(it.ratio) });
+      specsTxt.split(/\s*\|\s*/).filter(Boolean).forEach(v=> specs.push({ k:'', v }));
+      const lines = [];
+      if(it.qtyPack>0){
+        lines.push({ name: it.desc || 'موتور', spec: '', qty: String(it.qtyMotor||1), amount: fmt((it.qtyMotor||1) * (it.unitPrice||0)) });
+        lines.push({ name: it.packLabel || 'پک خدماتی (Service Pack)', spec: it.packContents ? String(it.packContents).replace(/^(محتویات پک خدماتی: |محتویات پک: |پک خدماتی شامل: |پک شامل: )/,'') : '', qty: String(it.qtyPack), amount: fmt(it.qtyPack * (it.packUnitPrice||0)) });
+      }
+      let note = '';
+      try{ const y = (typeof getWarrantyYears==='function') ? getWarrantyYears(it) : 0; if(y && !isFal) note = 'این محصول از ' + y + ' سال گارانتی معتبر برخوردار است؛ Encoder به‌کاررفته نیز دارای ۲ سال گارانتی می‌باشد.'; }catch(e){}
+      return {
+        description: (it.desc||'') + (specsTxt ? ' — ' + specsTxt : ''),
+        title: it.desc || 'موتور گیرلس', qty: it.qtyMotor || 1,
+        total: Math.round((Number(it.lineTotal)||0) * vatScale),
+        specs, lines, specTable: (!isFal && it.specTable) ? it.specTable : null,
+        schematic: mSrc ? { src: mSrc[1], title: mTitle ? mTitle[1] : 'شماتیک ابعادی موتور' } : null,
+        note
+      };
+    });
+    if(fpItems.length) payload.items = fpItems;
+  }catch(e){}
+  try{
+    if(window.__bfFpCapture){ window.__bfFpCapture(payload); return; }
     if(window.parent && window.parent !== window){ window.parent.postMessage(payload, '*'); bfToast('➕ به فاکتور پلاس افزوده شد', 'ok'); }
     else alert('این ابزار باید از داخل «صفحه اصلی بهفراز» باز شود تا افزودن به فاکتور پلاس کار کند.');
   }catch(e){}
@@ -3057,14 +3194,12 @@ function renderFalakePicker(){
   box.innerHTML = falakeCandidates.map((f,i)=>{
     let tag = '';
     if(f._hasKw) tag = f._kwMatch ? '<span class="tag ok">مطابق kW موتور</span>' : '<span class="tag warn">خارج از بازهٔ kW</span>';
-    /* هر عدد داخل یک قطعهٔ LTR جدا (bdi) تا ترتیب «برچسب ← عدد» در متن راست‌به‌چپ به هم نریزد */
-    const L = v => `<bdi dir="ltr">${v}</bdi>`;
-    const kwLine = type==='drum' ? `درامی ${L(kwText(f.kwDrum))}` : (type==='disk' ? `دیسکی ${L(kwText(f.kwDisk))}` : `دیسکی ${L(kwText(f.kwDisk))} · درامی ${L(kwText(f.kwDrum))}`);
+    const kwLine = type==='drum' ? `درامی ${kwText(f.kwDrum)}` : (type==='disk' ? `دیسکی ${kwText(f.kwDisk)}` : `دیسکی ${kwText(f.kwDisk)} · درامی ${kwText(f.kwDrum)}`);
     return `<label class="falake-opt${i===cur?' sel':''}" data-idx="${i}">
       <input type="radio" name="falakeModelRadio" value="${i}"${i===cur?' checked':''}>
       <span>
-        <span class="t1">کابین ${f.cabinCapacity} نفر — قطر فلکه ${L(f.sheave+'mm')} — شیار ${f.grooveCount} — بکسل ${L(f.ropeSize+'mm')}${tag}</span><br>
-        <span class="t2">${kwLine} · بلبرینگ ${L(f.bearingCount+'×'+f.bearingSize+'mm')} · شفت ${L(f.shaftDia+'mm')} · قیمت ${L(fmt(f.price))} ریال</span>
+        <span class="t1">کابین ${f.cabinCapacity} نفر — قطر فلکه ${f.sheave}mm — شیار ${f.grooveCount} — بکسل ${f.ropeSize}mm${tag}</span><br>
+        <span class="t2">${kwLine} · بلبرینگ ${f.bearingCount}×${f.bearingSize}mm · شفت ${f.shaftDia}mm · ${fmt(f.price)} ریال</span>
       </span>
     </label>`;
   }).join('');
@@ -3357,16 +3492,24 @@ capacityDynaEl.addEventListener('change', () => {
    مبنای «قیمت‌های قبلی» همان مقادیر اصلی هر ردیف است که در v نگه داشته می‌شود؛ هر برند مستقل عوض می‌شود.
    ============================================================ */
 const BF_PH_MULT_NEW = 1.10;
+// تغییر قیمت مورخ 1405/08/04 (ریال)
+const BF_PH_0804 = { gentelDrum450: 5600000000, dynaDrum450: 5400000000 };
 const BF_PH = {
-  dyna:       { mult: BF_PH_MULT_NEW, set:'m0802', refs: [], cls:'ph-dyna',   label:'داینا' },
-  gentelrise: { mult: BF_PH_MULT_NEW, set:'new', refs: [], cls:'ph-gentel', label:'جنتلرایز' },
+  dyna:       { mult: BF_PH_MULT_NEW, set:'m0804', refs: [], cls:'ph-dyna',   label:'داینا' },
+  gentelrise: { mult: BF_PH_MULT_NEW, set:'m0804', refs: [], cls:'ph-gentel', label:'جنتلرایز' },
   huber:      { mult: BF_PH_MULT_NEW, set:'new', refs: [], cls:'ph-huber',  label:'هوبر' }
 };
 Object.keys(DATA_DYNA).forEach(t=>Object.keys(DATA_DYNA[t]).forEach(ra=>DATA_DYNA[t][ra].forEach(r=>{
-  if(typeof r.motorPrice === 'number') BF_PH.dyna.refs.push({o:r, v:r.motorPrice, m:DYNA_PRICE_MAP_0712[dynaKey(t,ra,r.kg,r.speed)], m2:DYNA_PRICE_MAP_0802[dynaKey(t,ra,r.kg,r.speed)]});
+  if(typeof r.motorPrice === 'number'){
+    const m3 = DYNA_PRICE_MAP_0803[dynaKey(t,ra,r.kg,r.speed)];
+    // [1405/08/04] داینا لیفت ۶ نفره بشکه‌ای (450kg) = ۵۴۰ میلیون تومان؛ بقیه همان نرخ 1405/08/03
+    const m4 = (t==='drum' && Number(r.kg)===450) ? BF_PH_0804.dynaDrum450 : m3;
+    BF_PH.dyna.refs.push({o:r, v:r.motorPrice, m:DYNA_PRICE_MAP_0712[dynaKey(t,ra,r.kg,r.speed)], m2:DYNA_PRICE_MAP_0802[dynaKey(t,ra,r.kg,r.speed)], m3, m4});
+  }
 })));
 Object.keys(DATA).forEach(t=>Object.keys(DATA[t]).forEach(ra=>DATA[t][ra].forEach(r=>{
-  if(typeof r.motorPrice === 'number') BF_PH.gentelrise.refs.push({o:r, v:r.motorPrice});
+  // [1405/08/04] جنتلرایز ۶ نفره بشکه‌ای (450kg) = ۵۶۰ میلیون تومان؛ بقیه همان نرخ «+۱۰٪»
+  if(typeof r.motorPrice === 'number') BF_PH.gentelrise.refs.push({o:r, v:r.motorPrice, m4: (t==='drum' && Number(r.kg)===450) ? BF_PH_0804.gentelDrum450 : Math.round(r.motorPrice * BF_PH_MULT_NEW)});
 })));
 DATA_HUBER.forEach(r=>{ if(typeof r.motorPrice === 'number') BF_PH.huber.refs.push({o:r, v:r.motorPrice}); });
 
@@ -3379,7 +3522,7 @@ function bfUpdatePriceHistoryUI(){
   const ac = document.getElementById('bfPhActive');
   if(ac) ac.innerHTML = Object.keys(BF_PH).map(b=>{
     const c = BF_PH[b];
-    return '<span class="ph-chip '+c.cls+'">'+c.label+': '+(c.set==='m0802' ? '1405/08/02' : c.set==='manual' ? '1405/07/12' : (c.mult!==1 ? '+۱۰٪' : '1405/07/08'))+'</span>';
+    return '<span class="ph-chip '+c.cls+'">'+c.label+': '+(c.set==='m0804' ? '1405/08/04' : c.set==='m0803' ? '1405/08/03' : c.set==='m0802' ? '1405/08/02' : c.set==='manual' ? '1405/07/12' : (c.mult!==1 ? '+۱۰٪' : '1405/07/08'))+'</span>';
   }).join('');
 }
 function bfRefreshShownMotorPrice(brand){
@@ -3413,12 +3556,12 @@ function bfApplyPriceSet(brand, which){
   const c = BF_PH[brand]; if(!c) return;
   c.set = which;
   c.mult = (which === 'old') ? 1 : BF_PH_MULT_NEW;
-  c.refs.forEach(x=>{ x.o.motorPrice = (which==='m0802' && typeof x.m2==='number') ? x.m2 : (which==='manual' && typeof x.m==='number') ? x.m : Math.round(x.v * c.mult); });
+  c.refs.forEach(x=>{ x.o.motorPrice = (which==='m0804' && typeof x.m4==='number') ? x.m4 : (which==='m0803' && typeof x.m3==='number') ? x.m3 : (which==='m0802' && typeof x.m2==='number') ? x.m2 : (which==='manual' && typeof x.m==='number') ? x.m : Math.round(x.v * c.mult); });
   bfUpdatePriceHistoryUI();
   bfRefreshShownMotorPrice(brand);
 }
 // حالت پیش‌فرض هنگام باز شدن فرم: قیمت‌های جدید (۱۰٪ افزایش) برای هر سه برند
-Object.keys(BF_PH).forEach(b=>{ BF_PH[b].refs.forEach(x=>{ x.o.motorPrice = (BF_PH[b].set==='m0802' && typeof x.m2==='number') ? x.m2 : (BF_PH[b].set==='manual' && typeof x.m==='number') ? x.m : Math.round(x.v * BF_PH[b].mult); }); });
+Object.keys(BF_PH).forEach(b=>{ BF_PH[b].refs.forEach(x=>{ x.o.motorPrice = (BF_PH[b].set==='m0804' && typeof x.m4==='number') ? x.m4 : (BF_PH[b].set==='m0803' && typeof x.m3==='number') ? x.m3 : (BF_PH[b].set==='m0802' && typeof x.m2==='number') ? x.m2 : (BF_PH[b].set==='manual' && typeof x.m==='number') ? x.m : Math.round(x.v * BF_PH[b].mult); }); });
 document.querySelectorAll('#bfPriceHistory .ph-item').forEach(b=>{
   b.addEventListener('click', ()=> bfApplyPriceSet(b.dataset.brand, b.dataset.set));
 });
@@ -3429,9 +3572,9 @@ bfUpdatePriceHistoryUI();
    تاریخ واردشده در چاپ پیش‌فاکتور (و پشت برگ) درج می‌شود.
    «نرخ جاری» هر برند = همان حالت پیش‌فاکتورِ پیش‌فرض؛ هر نرخ دیگری «قدیمی» حساب می‌شود.
    ============================================================ */
-const BF_PH_CURRENT = { dyna:'m0802', gentelrise:'new', huber:'new' };
+const BF_PH_CURRENT = { dyna:'m0804', gentelrise:'m0804', huber:'new' };
 let bfOldPriceDateDraft = '';
-function bfPhSetLabel(set){ return set==='old' ? 'نرخ 1405/07/08' : set==='m0802' ? 'نرخ 1405/08/02' : (set==='manual' ? 'نرخ 1405/07/12' : 'نرخ +۱۰٪'); }
+function bfPhSetLabel(set){ return set==='old' ? 'نرخ 1405/07/08' : set==='m0804' ? 'نرخ 1405/08/04' : set==='m0803' ? 'نرخ 1405/08/03' : set==='m0802' ? 'نرخ 1405/08/02' : (set==='manual' ? 'نرخ 1405/07/12' : 'نرخ +۱۰٪'); }
 function bfHasOldPriceItems(){ return orderItems.some(it=>it && it.priceIsOld); }
 function bfNormPriceDate(v){
   let t = String(v||'').trim()
@@ -3504,7 +3647,7 @@ function showResultDyna(r){
   document.getElementById('dynaPackCheck').checked = true;
   document.getElementById('qtyPackDyna').value = 1;
   const dynaSpecT = gentelriseSpecTable(r, motorTypeDynaEl.value, ratioDynaEl.value);
-  const dynaSchHtml = motorTypeDynaEl.value === 'disk' ? dynaDiskSchematicHTML(r.kg, r.speed) : (motorTypeDynaEl.value === 'drum' ? dynaDrumSchematicHTML(r.kg, r.speed) : '');
+  const dynaSchHtml = motorTypeDynaEl.value === 'disk' ? dynaDiskSchematicHTML(r.kg, r.speed, ratioDynaEl.value, r.sheave) : (motorTypeDynaEl.value === 'drum' ? dynaDrumSchematicHTML(r.kg, r.speed) : '');
   document.getElementById('specProDyna').innerHTML = buildMotorSpecCardHTML(dynaSpecT, 'specProTableDyna', 'مشخصات فنی موتور داینا لیفت (Dyna Lift)', 'dyna') + dynaSchHtml;
   resultCardDyna.classList.remove('hidden');
   updateFalakeSuggestion(r.sheave, r.ropes, {type: motorTypeDynaEl.value, power: r.power, kg: r.kg});
@@ -3561,7 +3704,7 @@ function showResult(r){
   document.getElementById('packCheck').checked = (r.packPrice!=null);
   document.getElementById('qtyPack').value = r.packPrice!=null ? 1 : 0;
   const gentelSpecT = gentelriseSpecTable(r, motorTypeEl.value, ratioEl.value);
-  document.getElementById('specProGentelrise').innerHTML = buildMotorSpecCardHTML(gentelSpecT, 'specProTableGentelrise', 'مشخصات فنی موتور جنتلرایز (Gentelrise)', 'gentelrise', gentelSchematicKey(r.kg, r.speed, motorTypeEl.value));
+  document.getElementById('specProGentelrise').innerHTML = buildMotorSpecCardHTML(gentelSpecT, 'specProTableGentelrise', 'مشخصات فنی موتور جنتلرایز (Gentelrise)', 'gentelrise', gentelSchematicKey(r.kg, r.speed, motorTypeEl.value, ratioEl.value, r.sheave));
   resultCard.classList.remove('hidden');
   updateFalakeSuggestion(r.sheave, r.ropes, {type: motorTypeEl.value, power: r.power, kg: r.kg});
 }
@@ -3894,13 +4037,67 @@ function bfSyncVatLabel(){
   const t = document.getElementById('vatLabelText');
   if(t) t.textContent = bfIsHuberOfficialMode() ? 'صدور فاکتور رسمی' : 'افزودن ۱۰٪ ارزش افزوده';
 }
+// تیک پیش‌فرض بر اساس برند سبد: هوبر ← «فاکتور رسمی» تیک‌خورده؛ جنتلرایز/داینا ← ۱۰٪ بدون تیک.
+// هر بار که محصولی به سبد اضافه شود (یا حالت سبد عوض شود) پیش‌فرض دوباره اعمال می‌شود؛ کاربر بعد از آن آزادانه
+// می‌تواند تیک را تغییر دهد (تا انتخاب محصول بعدی). هنگام بازیابی (ویرایش/پیش‌نویس) همان وضعیت ذخیره‌شده حفظ می‌شود.
+let bfVatLastMode = 'none', bfVatLastCount = 0, bfVatSkipAuto = false;
+function bfVatModeNow(){
+  if(bfIsHuberOfficialMode()) return 'huber';
+  const has = b => Array.isArray(orderItems) && orderItems.some(it => it && it.brand === b);
+  return (has('gentelrise') || has('dyna')) ? 'other' : 'none';
+}
+function bfApplyVatDefault(){
+  const m = bfVatModeNow();
+  const n = Array.isArray(orderItems) ? orderItems.length : 0;
+  if(bfVatSkipAuto){ bfVatSkipAuto = false; bfVatLastMode = m; bfVatLastCount = n; return; }
+  const added = n > bfVatLastCount;
+  bfVatLastCount = n;
+  if(m === bfVatLastMode && !added) return;
+  const vc = document.getElementById('vatCheck');
+  if(vc){ if(m === 'huber') vc.checked = true; else if(m === 'other') vc.checked = false; }
+  bfVatLastMode = m;
+}
+// متن پانویس مالیاتی پیش‌فاکتور/فاکتور چاپی
+function bfTaxFootnoteHtml(data){
+  const items = Array.isArray(data.items) ? data.items : [];
+  const has = b => items.some(it => it && it.brand === b);
+  const huber = has('huber') && !has('gentelrise') && !has('dyna');
+  let txt = '';
+  if(data.officialInvoice) txt = 'فاکتور فوق با احتساب مالیات بر ارزش افزوده می‌باشد.';
+  else if(huber) txt = 'پیش‌فاکتور فوق با احتساب مالیات بر ارزش افزوده می‌باشد.';
+  else txt = data.vatEnabled ? 'پیش‌فاکتور فوق با محاسبه مالیات بر ارزش افزوده می‌باشد.' : 'پیش‌فاکتور فوق بدون محاسبه مالیات بر ارزش افزوده می‌باشد.';
+  return txt ? `<div class="bf-tax-note" style="margin-top:8px; padding:6px 12px; border:1px dashed #777; border-radius:6px; text-align:center; font-weight:800; font-size:.88rem; page-break-inside:avoid;">${txt}</div>` : '';
+}
 function computeVatAmount(baseBeforeDiscount){ return isVatEnabled() ? Math.round((baseBeforeDiscount||0) * bfVatRate() / 100) : 0; }
 function getInvoiceNote(){ const el = document.getElementById('invoiceNote'); return el ? el.value.trim() : ''; }
 
+// [ADJ-SPLIT] اثر نهایی افزایش + تخفیف نسبت به قیمت لیست، و یادآوری افزایشِ ذخیره‌شده در حالت ویرایش
+let bfEditSavedMarkup = 0;
+function bfAdjEffectUpdate(subtotal, vatAmount, discount, grand, pct, mPct){
+  const box = document.getElementById('adjEffect'); if(!box) return;
+  const sv = document.getElementById('adjSavedMarkup');
+  if(sv){
+    if(bfEditSavedMarkup>0 && editingInvoiceId!=null){ sv.style.display=''; sv.innerHTML = '⚠️ این پیش‌فاکتور قبلاً با <b>' + bfEditSavedMarkup + '٪ افزایش</b> ذخیره شده و این افزایش از قبل داخل «قیمت واحد» ردیف‌هاست (برای همین باکس بالا صفر است).'; }
+    else sv.style.display='none';
+  }
+  const embedded = (editingInvoiceId!=null ? bfEditSavedMarkup : 0);
+  const totalUp = (1 + (Number(mPct)||0)/100) * (1 + embedded/100);
+  if(!orderItems.length || (totalUp===1 && !(pct>0))){ box.style.display='none'; return; }
+  const listBase = Math.round(subtotal / totalUp) + (vatAmount ? Math.round(vatAmount / totalUp) : 0);
+  const diff = grand - listBase;
+  const dPct = listBase>0 ? (diff/listBase*100) : 0;
+  const both = (totalUp>1) && pct>0;
+  box.className = 'adj-effect' + (both ? '' : ' ok');
+  box.style.display = '';
+  box.innerHTML = (both ? '⚠️ هم «افزایش قیمت» و هم «تخفیف» فعال است — این دو هم‌دیگر را خنثی نمی‌کنند.<br>' : '')
+    + 'قیمت لیست سامانه: <span class="num">' + fmt(listBase) + '</span> ریال ← مبلغ نهایی: <span class="num">' + fmt(grand) + '</span> ریال '
+    + '(<span class="num">' + (diff>=0?'+':'−') + fmt(Math.abs(diff)) + '</span> ریال، <span class="num">' + (dPct>=0?'+':'−') + Math.abs(dPct).toFixed(2) + '٪</span> نسبت به لیست)';
+}
 function updateTotals(){
   const mPct = getMarkupPct();
   // تعدیل دستی دیگر جداگانه به «مبلغ نهایی» اضافه نمی‌شود؛ چون پیش‌تر متناسب بین قیمت ردیف‌ها توزیع شده
   // و همان‌جا در «جمع کل» زیر منظور شده است (دقیقاً مثل درصد افزایش قیمت)
+  bfApplyVatDefault();
   const subtotal = applyAdjustmentsToItems(orderItems, mPct).subtotal;
   const pct = Math.min(100, Math.max(0, parseFloat(document.getElementById('discountPct').value)||0));
   const vatAmount = computeVatAmount(subtotal);
@@ -3910,6 +4107,8 @@ function updateTotals(){
   bfSyncVatLabel();
   const vatEl = document.getElementById('totVat'); if(vatEl) vatEl.textContent = bfIsHuberOfficialMode() ? '—' : fmt(vatAmount);
   document.getElementById('totDiscount').textContent = fmt(discount);
+  { const mi = document.getElementById('totDiscountMirror'); if(mi) mi.textContent = discount ? ('− ' + fmt(discount)) : '0'; }
+  try{ bfAdjEffectUpdate(subtotal, vatAmount, discount, grand, pct, mPct); }catch(e){}
   document.getElementById('totGrand').textContent = fmt(grand);
 }
 document.getElementById('discountPct').addEventListener('input', updateTotals);
@@ -3972,6 +4171,7 @@ function clearOrder(){
   if(pctEl) pctEl.value = 0;
   const markupEl = document.getElementById('markupPct');
   if(markupEl) markupEl.value = 0;
+  bfEditSavedMarkup = 0;
   const manualAdjEl = document.getElementById('manualAdjAmount');
   if(manualAdjEl) manualAdjEl.value = '';
   setManualAdjSign(-1);
@@ -4070,9 +4270,9 @@ function buildInvoiceHTML(data, opts){
   const specsSectionHtml = data.items.map((it,i)=>{
     if(!it.specTable) return '';
     // شماتیک برای «جنتلرایز» یا «هوبر» طبق روال قبل؛ برای «داینا لیفت دیسکی» از شماتیک واقعی و مخصوص خودش (برند DAYNA-LIFT) استفاده می‌شود
-    const schKey = (it.brand==='gentelrise' && it.specs) ? gentelSchematicKey(it.specs.kg, it.specs.speed, it.type) : '';
+    const schKey = (it.brand==='gentelrise' && it.specs) ? gentelSchematicKey(it.specs.kg, it.specs.speed, it.type, it.ratio, it.specs.sheave) : '';
     const huberSchKey = (it.brand==='huber' && it.specs) ? huberSchematicKey(it.specs.model) : '';
-    const dynaSchHtml = (it.brand==='dyna' && it.specs) ? (it.type==='disk' ? dynaDiskSchematicHTML(it.specs.kg, it.specs.speed) : (it.type==='drum' ? dynaDrumSchematicHTML(it.specs.kg, it.specs.speed) : '')) : '';
+    const dynaSchHtml = (it.brand==='dyna' && it.specs) ? (it.type==='disk' ? dynaDiskSchematicHTML(it.specs.kg, it.specs.speed, it.ratio, it.specs.sheave) : (it.type==='drum' ? dynaDrumSchematicHTML(it.specs.kg, it.specs.speed) : '')) : '';
     const schHtml = schKey ? motorSchematicHTML(schKey) : (huberSchKey ? huberSchematicHTML(huberSchKey) : dynaSchHtml);
     return `
     <div class="motor-spec-wrap${schHtml ? ' has-schematic' : ''}" style="margin-top:8px; page-break-inside:avoid;">
@@ -4137,6 +4337,7 @@ function buildInvoiceHTML(data, opts){
       ${opts.showMarkup && data.manualAdjAmount>0 && data.manualAdjSign>0 ? `<tr><td>تعدیل دستی (توزیع‌شده در قیمت ردیف‌ها، لحاظ‌شده در جمع کل)</td><td class="num">+ ${fmt(data.manualAdjAmount)}</td></tr>` : ''}
       <tr style="font-weight:700;"><td>${(data.manualAdjAmount>0 && data.manualAdjSign<0) ? 'قیمت نهایی (ریال)' : 'مبلغ نهایی (ریال)'}</td><td class="num">${fmt(data.grand)}</td></tr>
     </table>
+    ${bfTaxFootnoteHtml(data)}
     ${noteBlockHtml}
     ${opts.hideSpecs ? '' : specsSectionHtml}
     ${opts.hideSpecs ? '' : termsNoticeHtml}
@@ -4191,6 +4392,8 @@ function renderInvoiceCore(oldPriceDate, mode){
 
   bfOpenedFromSavedId = null; // پیش‌فاکتور تازه تولید می‌شود، نه بازشده از لیست
   currentInvoiceData = { name, phone, project, date, preInvoiceNo, pct, markupPct, subtotal, discount, manualAdjSign, manualAdjAmount, manualAdjMode:'final', vatEnabled, vatAmount, note, grand, customerType: bfGetCustomerType(), officialInvoice: isOfficialInvoice(), oldPriceDate: oldPriceDate||'', items: JSON.parse(JSON.stringify(markedItems)) };
+  // [ADJ-SPLIT] افزایشِ ذخیره‌شدهٔ قبلی (که داخل قیمت واحد است) در ویرایش گم نشود — فقط برای نمایش در پشت برگ
+  if(!(Number(currentInvoiceData.markupPct)>0) && editingInvoiceId!=null && bfEditSavedMarkup>0) currentInvoiceData.markupPct = bfEditSavedMarkup;
   document.getElementById('invoiceArea').innerHTML = buildInvoiceHTML(currentInvoiceData);
   // ذخیره‌ی خودکار برداشته شد: ذخیره فقط با دکمهٔ «💾 ذخیره پیش‌فاکتور» (mode='save') یا با پاسخ «بله» به پرسش هنگام چاپ انجام می‌شود.
   // در حالت عادی (تولید پیش‌فاکتور) مستقیم به چاپ می‌رویم؛ قالب چاپ دست‌نخورده می‌ماند
@@ -4270,6 +4473,7 @@ function editSavedInvoice(id){
   // توجه: آیتم‌های این پیش‌فاکتور ذخیره‌شده از قبل شامل درصد افزایش قیمت (در صورت وجود) هستند؛
   // بنابراین باکس «درصد افزایش قیمت» صفر می‌شود تا افزایش قبلی دوباره روی آن اعمال نشود
   if(document.getElementById('markupPct')) document.getElementById('markupPct').value = 0;
+  bfEditSavedMarkup = Number(rec.markupPct)||0;
   // اکنون «تعدیل دستی» هم دقیقاً مثل «درصد افزایش قیمت» از قبل بین قیمت واحد ردیف‌های همین آیتم‌های ذخیره‌شده
   // توزیع و در آن‌ها جای گرفته است؛ بنابراین باکس «تعدیل دستی» صفر می‌شود تا همان مبلغ دوباره روی آن اعمال نشود
   const manualAdjEl = document.getElementById('manualAdjAmount');
@@ -4279,7 +4483,7 @@ function editSavedInvoice(id){
   if(rec.manualAdjMode==='final' && rec.manualAdjSign<0 && rec.manualAdjAmount>0 && manualAdjEl){
     manualAdjEl.value = formatFxDisplay(rec.manualAdjAmount);
   }
-  { const vc = document.getElementById('vatCheck'); if(vc) vc.checked = !!(rec.vatEnabled || rec.officialInvoice);
+  { const vc = document.getElementById('vatCheck'); if(vc) vc.checked = !!(rec.vatEnabled || rec.officialInvoice); bfVatSkipAuto = true;
     bfSetCustomerType(rec.customerType || '');
     const nt = document.getElementById('invoiceNote'); if(nt) nt.value = rec.note || ''; }
   renderOrder();
@@ -4329,6 +4533,7 @@ function renderSavedInvoices(){
         <button class="btn btn-ghost" style="padding:4px 10px;" onclick="viewSavedInvoice(${rec.id})">مشاهده / چاپ</button>
         <button class="btn btn-pdf" style="padding:4px 10px;" onclick="generateMotorBackSheet(${rec.id})">🖨 چاپ پشت برگ</button>
         <button class="btn btn-green" style="padding:4px 10px;" onclick="editSavedInvoice(${rec.id})">ویرایش (Edit)</button>
+        <button class="btn" style="padding:4px 10px;background:#1565c0;color:#fff;border-color:#1565c0;" title="یک پیش‌فاکتور جدید (ذخیره‌نشده) با همان مشخصات و با قیمت‌های فعال «تاریخچه قیمت» ساخته می‌شود؛ سفارش قبلی تغییر نمی‌کند" onclick="bfMotorUpdateSaved(${rec.id})">🔄 به‌روزرسانی</button>
         <button class="btn btn-danger" style="padding:4px 10px;" onclick="deleteSavedInvoice(${rec.id})">حذف</button>
       </td>
     </tr>`).join('');
@@ -4620,13 +4825,14 @@ function mcMoney(v){ return (v==null || v==='') ? '<span class="mc-call">تما�
 function mcTxt(v){ return (v===null || v===undefined || v==='') ? '—' : '<span class="mc-n">'+dispDec(v)+'</span>'; }
 function mcPriceNote(brand){
   const c = BF_PH[brand];
+  if(c && c.set==='m0803') return 'قیمت‌های داینا لیفت مورخ 1405/08/03 — قیمت نهایی بدون ارزش افزوده است.';
   if(c && c.set==='m0802') return 'قیمت‌های داینا لیفت مورخ 1405/08/02 — قیمت نهایی بدون ارزش افزوده است.';
   if(c && c.set==='manual') return 'قیمت‌های داینا لیفت مورخ 1405/07/12 — قیمت نهایی بدون ارزش افزوده است.';
   if(brand==='huber') return 'صدور فاکتور رسمی با نرخ‌های ذیل امکان‌پذیر می‌باشد';
   if(brand==='gentelrise') return 'قیمتهای اعلام شده به صورت غیر رسمی بوده و در صورت درخواست فاکتور رسمی،۱۰درصد به مبالغ فوق اضافه خواهد شد';
   return 'صدور فاکتور رسمی با نرخ‌های ذیل، با احتساب ۱۰ درصد افزایش قیمت، امکان‌پذیر است.';
 }
-const MC_LOGO_BEHFARAZ = "img/motors/logo-behfaraz.606f0bc8.png";
+const MC_LOGO_BEHFARAZ = "/img/motors/logo-behfaraz.606f0bc8.png";
 function mcHead(brand, title, today){
   return `<div class="mc-head">
     <img src="${BRAND_LOGO[brand]||''}" alt="${brand}">
@@ -4705,7 +4911,8 @@ function mcFalakePage(today){
       <td>${f.kwDisk?'<span class="mc-n">'+kwText(f.kwDisk).replace(' kW','')+'</span>':'—'}</td><td>${f.kwDrum?'<span class="mc-n">'+kwText(f.kwDrum).replace(' kW','')+'</span>':'—'}</td>
       <td class="fp-price">${mcMoney(f.price)}</td>
     </tr>`).join('');
-  const jp = ''; // در PDF لیست قیمت فلکه، متن بلبرینگ ژاپن نمایش داده نمی‌شود
+  const jp = (typeof FALAKE_JP_BEARING_PRICE==='number' && FALAKE_JP_BEARING_PRICE>0)
+    ? `<div>بلبرینگ ژاپن اختیاری است؛ به ازای هر بلبرینگ <span class="mc-n">${fmt(FALAKE_JP_BEARING_PRICE)}</span> ریال به قیمت فوق اضافه می‌شود و به‌صورت سفارشی تهیه می‌گردد .</div>` : '';
   return `<section class="mc-page fp-page">
     <div class="fp-box">
       <img class="fp-wm" src="${MC_LOGO_BEHFARAZ}" alt="">
@@ -4798,6 +5005,7 @@ function mcPrintCatalog(brand){
       bfDraft.writeFields(CUST, Object.assign({}, s.cust, { preInvoiceSeq: s.seq }), true);
       updatePreInvoiceFullDisplay();
       orderItems = JSON.parse(JSON.stringify(s.items || []));
+      bfVatSkipAuto = true;
       bfOldPriceDateDraft = s.oldPriceDate || '';
       if(s.brand) selectBrand(s.brand);
       bfDraft.writeFields(STEPS, s.steps);                 // با رویداد change — لیست‌های آبشاری به‌ترتیب ساخته می‌شوند
@@ -5021,6 +5229,393 @@ function bfAutoSeqInit(cfg){
 bfAutoSeqInit({product:'motor',seqEl:function(){return document.getElementById('preInvoiceSeq')},maxLen:4,ph:'خودکار',
   apply:function(e,seq){e.value=String(seq).padStart(2,'0')},
   buttons:'button[onclick^="renderInvoice("],button[onclick="generateMotorBackSheet()"],button[onclick^="bfPrintInvoice"],button[onclick^="saveCurrentInvoice"],#addToFactorPlusBtn'});
+</script>
+<style id="bfPhFoldCss">
+/* 📈 تاریخچه قیمت — حالت تاشو: هر گروه و هر تغییر جدا باز/بسته می‌شود */
+#bfPriceHistory .ph-group > .ph-group-title{cursor:pointer;user-select:none;flex-wrap:wrap;}
+#bfPriceHistory .ph-group > .ph-group-title::after{content:"▾";margin-inline-start:auto;font-size:12px;transition:transform .2s;}
+#bfPriceHistory .ph-group.ph-folded > .ph-group-title::after{transform:rotate(90deg);}
+#bfPriceHistory .ph-group.ph-folded > :not(.ph-group-title){display:none !important;}
+#bfPriceHistory .ph-fold-active{font-size:.72rem;font-weight:700;opacity:.8;padding:1px 8px;border-radius:999px;background:rgba(0,0,0,.05);}
+#bfPriceHistory .ph-item .ph-txt small{display:none;}
+#bfPriceHistory .ph-item.ph-open .ph-txt small{display:block;}
+#bfPriceHistory .ph-more{display:inline-flex;align-items:center;justify-content:center;margin-inline-start:8px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;border:1px solid rgba(0,0,0,.18);font-size:11px;font-weight:800;line-height:1;cursor:pointer;opacity:.75;vertical-align:middle;background:#fff;color:inherit;}
+#bfPriceHistory .ph-more:hover{opacity:1;}
+#bfPriceHistory details.ph-log-fold{border:1px dashed rgba(0,0,0,.18);border-radius:10px;padding:6px 10px;}
+#bfPriceHistory details.ph-log-fold > summary{cursor:pointer;font-size:.8rem;font-weight:800;}
+@media print{#bfPriceHistory .ph-more{display:none !important;}}
+</style>
+<script id="bfPhFoldScript">
+(function(){
+  try{
+    var root = document.getElementById('bfPriceHistory'); if(!root) return;
+
+    // ۰) ترتیب: آخرین تغییرات بالا — گروه‌ها و ردیف‌ها بر اساس جدیدترین تاریخ ۱۴xx/xx/xx داخل متنشان (نزولی، پایدار) مرتب می‌شوند
+    function phMaxDate(el){
+      var t = String(el.textContent||'').replace(/[۰-۹]/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d); }).replace(/[٠-٩]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); });
+      var m, best = 0, re = /(1[34]\d\d)\/(\d{1,2})\/(\d{1,2})/g;
+      while((m = re.exec(t))){ var v = (+m[1])*10000 + (+m[2])*100 + (+m[3]); if(v > best) best = v; }
+      return best;
+    }
+    function phSortChildren(parent, sel){
+      var kids = Array.prototype.filter.call(parent.children, function(c){ return c.matches(sel); });
+      if(kids.length < 2) return;
+      var anchor = kids[kids.length-1].nextSibling;
+      var sorted = kids.map(function(k,i){ return { k:k, i:i, d:phMaxDate(k) }; }).sort(function(a,b){ return (b.d - a.d) || (a.i - b.i); });
+      sorted.forEach(function(o){ parent.insertBefore(o.k, anchor); });
+    }
+    var phParents = [];
+    root.querySelectorAll('.ph-group, .ph-item').forEach(function(el){ if(phParents.indexOf(el.parentNode) < 0) phParents.push(el.parentNode); });
+    phParents.forEach(function(p){ phSortChildren(p, '.ph-group'); phSortChildren(p, '.ph-item'); });
+    // ۱) هر ردیف تغییر قیمت: فقط عنوان دیده می‌شود؛ جزئیات با دکمهٔ «…» باز/بسته می‌شود (انتخاب نرخ با کلیک روی خود ردیف مثل قبل)
+    root.querySelectorAll('.ph-item').forEach(function(it){
+      var sm = it.querySelector('.ph-txt small'), b = it.querySelector('.ph-txt b');
+      if(!sm || !b || it.querySelector('.ph-more')) return;
+      var t = document.createElement('span'); t.className = 'ph-more'; t.title = 'نمایش / پنهان کردن جزئیات'; t.textContent = '…';
+      t.setAttribute('role','button'); t.setAttribute('tabindex','0');
+      function tog(e){ e.preventDefault(); e.stopPropagation(); it.classList.toggle('ph-open'); t.textContent = it.classList.contains('ph-open') ? '▴' : '…'; }
+      t.addEventListener('click', tog);
+      t.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' ') tog(e); });
+      b.appendChild(t);
+    });
+    // ۲) هر گروه (برند / نوع کالا): تاشو — پیش‌فرض بسته؛ نرخ فعال کنار عنوان نمایش داده می‌شود
+    root.querySelectorAll('.ph-group').forEach(function(g){
+      var title = g.querySelector(':scope > .ph-group-title'); if(!title) return;
+      g.classList.add('ph-folded');
+      var act = document.createElement('span'); act.className = 'ph-fold-active'; title.appendChild(act);
+      function refresh(){
+        var a = g.querySelector('.ph-item.active .ph-txt b');
+        var txt = a ? Array.prototype.filter.call(a.childNodes, function(n){ return !(n.classList && n.classList.contains('ph-more')); }).map(function(n){ return n.textContent; }).join('').trim() : '';
+        act.textContent = txt ? ('فعال: ' + txt) : '';
+      }
+      title.addEventListener('click', function(){ g.classList.toggle('ph-folded'); });
+      g.querySelectorAll('.ph-item').forEach(function(it){ new MutationObserver(refresh).observe(it, { attributes:true, attributeFilter:['class'] }); });
+      refresh();
+    });
+    // ۳) یادداشت‌های گزارش تغییرات (ph-log) — همه در یک بخش تاشو
+    var logs = root.querySelectorAll('.ph-log');
+    if(logs.length){
+      var d = document.createElement('details'); d.className = 'ph-log-fold';
+      var s = document.createElement('summary'); s.textContent = '📋 گزارش تغییرات (' + logs.length + ')'; d.appendChild(s);
+      logs[0].parentNode.insertBefore(d, logs[0]);
+      logs.forEach(function(l){ d.appendChild(l); });
+    }
+  }catch(e){}
+})();
+</script>
+<style id="bfMotorUpdCss">
+#bfMotorUpdBanner{background:linear-gradient(135deg,#1e6f8c,#145a73);color:#fff;padding:12px 16px;border-radius:12px;margin:0 0 14px;font-size:13px;line-height:2;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+#bfMotorUpdBanner b{color:#ffe08a}
+#bfMotorUpdBanner .upd-warn{background:rgba(255,224,138,.16);border:1px solid #ffe08a;border-radius:8px;padding:6px 10px;margin-top:6px}
+#bfMotorUpdBanner ul{margin:4px 22px 0;padding:0}
+#bfMotorUpdBanner .upd-close{cursor:pointer;text-decoration:underline;margin-inline-start:10px}
+#orderBody tr.bf-row-review td{background:rgba(255,120,120,.14) !important}
+.bf-row-badge{display:inline-block;background:#ffe1e5;color:#a3162a;border:1px solid #d9485d;border-radius:999px;font-size:10.5px;font-weight:800;padding:0 8px;margin-inline-start:6px;white-space:nowrap}
+@media print{#bfMotorUpdBanner,.bf-row-badge{display:none !important}#orderBody tr.bf-row-review td{background:none !important}}
+</style>
+<script id="bfMotorUpdScript">
+/* ============================================================
+   🔄 به‌روزرسانی پیش‌فاکتور ذخیره‌شده (موتورها) — همان قاعدهٔ شکیب و پشت‌برگ:
+   یک پیش‌فاکتور «جدید و ذخیره‌نشده» از روی سفارش قبلی با نرخ‌های فعال «📈 تاریخچه قیمت» ساخته می‌شود؛ سفارش قبلی دست‌نخورده می‌ماند.
+   - جنتلرایز / داینا لیفت / هوبر / فلکه پرهام: قیمت از جدول فعال همان مدل (و پک / درخت سیم / بلبرینگ) دوباره خوانده می‌شود.
+   - محصولات تکمیلی و ردیف‌هایی که مدلشان پیدا نشود: همان قیمت قبلی می‌ماند و ردیف هایلایت می‌شود تا دستی بررسی شود.
+   - درصد افزایش، تخفیف، ارزش افزوده و توضیحات منتقل می‌شوند؛ «تعدیل دستی» منتقل نمی‌شود (هشدار داده می‌شود).
+   ============================================================ */
+function bfMotorUpdEsc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function bfMotorFindRow(it){
+  const sp = it.specs || {};
+  if(it.brand==='gentelrise' || it.brand==='dyna'){
+    const T = it.brand==='dyna' ? DATA_DYNA : DATA;
+    const rows = (T[it.type] && T[it.type][it.ratio]) || [];
+    return rows.find(r=>r.kg===sp.kg && String(r.speed)===String(sp.speed)) || null;
+  }
+  if(it.brand==='huber') return DATA_HUBER.find(r=>r.model===sp.model) || DATA_HUBER.find(r=>String(r.capacityPerson)===String(sp.capacityPerson) && String(r.speed)===String(sp.speed)) || null;
+  if(it.brand==='falake') return FALAKE_DATA.find(r=>r.row===sp.row) || null;
+  return null;
+}
+function bfMotorUpdateSaved(id){
+  const rec = savedInvoices.find(x=>x.id===id);
+  if(!rec) return;
+  if(!confirm('یک پیش‌فاکتور «جدید و ذخیره‌نشده» از روی «'+(rec.name||'بدون نام')+'» با قیمت‌های فعال ساخته می‌شود و جایگزین سبد فعلی می‌شود. پیش‌فاکتور قبلی تغییری نمی‌کند. ادامه می‌دهید؟')) return;
+  // ۱) نرخ فعال هر برند باید «نرخ جاری» باشد
+  const notCur = Object.keys(BF_PH).filter(b=>BF_PH[b].set !== BF_PH_CURRENT[b]);
+  if(notCur.length && confirm('بخشی از «📈 تاریخچه قیمت» روی نرخ قدیمی است ('+notCur.map(b=>BF_PH[b].label).join('، ')+'). برای به‌روزرسانی، روی «نرخ جاری» برگردند؟\n(با «انصراف»، همان نرخ‌های فعلی صفحه استفاده می‌شود)')){
+    notCur.forEach(b=>{ try{ bfApplyPriceSet(b, BF_PH_CURRENT[b]); }catch(e){} });
+  }
+  // ۲) فرم به‌عنوان سفارش جدید
+  editingInvoiceId = null; editingItemIndex = null; falakeOrderIndex = null;
+  try{ document.getElementById('editBanner').classList.add('hidden'); }catch(e){}
+  try{ bfOpenedFromSavedId = null; currentInvoiceData = null; bfOldPriceDateDraft = ''; }catch(e){}
+  const setv = (eid,v)=>{ const el=document.getElementById(eid); if(el) el.value = (v && v!=='-') ? v : ''; };
+  setv('custName', rec.name); setv('custPhone', rec.phone); setv('custProject', rec.project); setv('custDate', '');
+  try{ initPreInvoicePrefix(); const sq=document.getElementById('preInvoiceSeq'); if(sq) sq.value=''; updatePreInvoiceFullDisplay(); }catch(e){}
+  if(document.getElementById('discountPct')) document.getElementById('discountPct').value = rec.pct || 0;
+  const mPct = Number(rec.markupPct)||0;
+  if(document.getElementById('markupPct')) document.getElementById('markupPct').value = mPct;
+  const hadManual = (Number(rec.manualAdjAmount)||0) > 0;
+  const manualAdjEl = document.getElementById('manualAdjAmount'); if(manualAdjEl) manualAdjEl.value = '';
+  try{ setManualAdjSign(-1); }catch(e){}
+  { const vc = document.getElementById('vatCheck'); if(vc) vc.checked = !!(rec.vatEnabled || rec.officialInvoice); bfVatSkipAuto = true; }
+  try{ bfSetCustomerType(rec.customerType || ''); }catch(e){}
+  { const nt = document.getElementById('invoiceNote'); if(nt) nt.value = rec.note || ''; }
+  // ۳) قیمت‌گذاری دوبارهٔ ردیف‌ها
+  const unmark = v => Math.round((Number(v)||0) / (1 + mPct/100));
+  const review = []; let updated = 0;
+  orderItems = (rec.items||[]).map(src=>{
+    const it = JSON.parse(JSON.stringify(src));
+    delete it._review; delete it.priceIsOld; delete it.priceSet;
+    const row = bfMotorFindRow(it);
+    const label = String(it.desc||'').replace(/<[^>]+>/g,'').slice(0,70);
+    if(row && (it.brand==='falake' ? row.price!=null : row.motorPrice!=null)){
+      if(it.brand==='falake'){
+        it.unitPrice = row.price;
+        it.packUnitPrice = (it.qtyPack>0) ? FALAKE_JP_BEARING_PRICE : 0;
+      } else {
+        it.unitPrice = row.motorPrice;
+        it.packUnitPrice = it.brand==='gentelrise' ? (row.packPrice||0) : (it.brand==='huber' ? (row.ropeTreePrice||0) : 0);
+        if(BF_PH[it.brand]){ it.priceSet = BF_PH[it.brand].set; it.priceIsOld = (it.priceSet !== BF_PH_CURRENT[it.brand]); }
+      }
+      it.specs = Object.assign({}, it.specs||{}, row);
+      updated++;
+    } else {
+      // قیمت خودکار پیدا نشد: قیمت قبلی (بدون درصد افزایش ثبت‌شده) می‌ماند و ردیف برای بررسی دستی هایلایت می‌شود
+      it.unitPrice = unmark(it.unitPrice); it.packUnitPrice = unmark(it.packUnitPrice);
+      it._review = true;
+      review.push(label + (it.brand==='custom' ? ' (محصول تکمیلی — قیمت دستی)' : ''));
+    }
+    it.lineTotal = (Number(it.qtyMotor)||0)*(Number(it.unitPrice)||0) + (Number(it.qtyPack)||0)*(Number(it.packUnitPrice)||0);
+    return it;
+  });
+  renderOrder();
+  try{ document.getElementById('invoiceCard').classList.add('hidden'); }catch(e){}
+  // ۴) گزارش
+  const setNames = Object.keys(BF_PH).map(b=>BF_PH[b].label+': '+(BF_PH[b].set===BF_PH_CURRENT[b]?'جاری':'قدیمی')).join(' · ');
+  let html = '<b>🔄 پیش‌فاکتور جدید از روی «'+bfMotorUpdEsc(rec.name||'بدون نام')+(rec.project && rec.project!=='-' ? ' — '+bfMotorUpdEsc(rec.project) : '')+'» ساخته شد.</b> این پیش‌فاکتور هنوز ذخیره نشده و نسخهٔ قبلی دست‌نخورده است؛ شمارهٔ پیش‌فاکتور را وارد کنید.'
+    + '<br>نرخ‌های فعال: '+setNames+' — '+updated+' ردیف با قیمت جدید به‌روز شد.';
+  if(mPct>0) html += '<br>درصد افزایش قیمت قبلی (<b>'+mPct+'٪</b>) روی قیمت‌های جدید اعمال شده است.';
+  const warns = review.slice();
+  if(hadManual) warns.push('«تعدیل دستی» سفارش قبلی ('+fmt(rec.manualAdjAmount)+' ریال) منتقل نشد — در صورت نیاز دوباره وارد کنید');
+  if(warns.length) html += '<div class="upd-warn">⚠ این موارد خودکار به‌روز نشدند — لطفاً بررسی و در صورت نیاز دستی اصلاح کنید (ردیف‌ها در سبد هایلایت شده‌اند):<ul>'+warns.map(w=>'<li>'+bfMotorUpdEsc(w)+'</li>').join('')+'</ul></div>';
+  html += '<span class="upd-close" onclick="this.parentNode.remove()">بستن</span>';
+  let b = document.getElementById('bfMotorUpdBanner');
+  if(!b){ b = document.createElement('div'); b.id = 'bfMotorUpdBanner'; const t = document.getElementById('orderTable'); t.parentNode.insertBefore(b, t); }
+  b.innerHTML = html;
+  document.getElementById('orderCard').scrollIntoView({behavior:'smooth'});
+  try{ bfToast('🔄 پیش‌فاکتور با قیمت‌های جدید ساخته شد — ذخیره نشده است', 'ok'); }catch(e){}
+}
+/* هایلایت ردیف‌هایی که قیمتشان خودکار به‌روز نشد (فقط روی صفحه، نه در چاپ) */
+(function(){
+  const _ro = renderOrder;
+  renderOrder = function(){
+    const r = _ro.apply(this, arguments);
+    try{
+      const rows = document.querySelectorAll('#orderBody > tr'); let ri = 0;
+      orderItems.forEach(it=>{
+        const span = it.qtyPack>0 ? 2 : 1;
+        if(it._review){
+          for(let k=0;k<span;k++){ if(rows[ri+k]) rows[ri+k].classList.add('bf-row-review'); }
+          const c = rows[ri] && rows[ri].cells[1];
+          if(c && !c.querySelector('.bf-row-badge')) c.insertAdjacentHTML('beforeend','<span class="bf-row-badge">⚠ قیمت خودکار به‌روز نشد — بررسی شود</span>');
+        }
+        ri += span;
+      });
+    }catch(e){}
+    return r;
+  };
+  if(typeof savePriceEdit==='function'){
+    const _sp = savePriceEdit;
+    savePriceEdit = function(idx){ try{ if(orderItems[idx]) delete orderItems[idx]._review; }catch(e){} return _sp.apply(this, arguments); };
+  }
+})();
+</script>
+
+<script id="bfFpRepriceBridge">
+/* ===== [FP-UPD] پل «به‌روزرسانی قیمت» فاکتور پلاس =====
+   صفحهٔ اصلی این ابزار را در یک قاب پنهان باز می‌کند و یک «عکس فوری» از سفارش (snap) می‌فرستد؛ ابزار همان سفارش را
+   با قیمت‌های فعال خودش بازسازی و همان پیام «افزودن به فاکتور پلاس» را (به‌جای ارسال) برمی‌گرداند. هیچ چیزی ذخیره نمی‌شود. */
+(function(){
+  function capture(run){
+    let got = null; const msgs = []; const oa = window.alert, oc = window.confirm;
+    window.__bfFpCapture = function(p){ got = p; };
+    window.alert = function(m){ msgs.push(String(m)); };
+    window.confirm = function(){ return true; };
+    try{ run(); }catch(e){ msgs.push(String(e && e.message || e)); }
+    finally{ window.__bfFpCapture = null; window.alert = oa; window.confirm = oc; }
+    return { payload: got, msgs: msgs };
+  }
+  window.bfFpCaptureRun = capture;
+  window.addEventListener('message', function(e){
+    const d = e.data;
+    if(!d || !d.__bfFpReprice || typeof window.bfFpRepriceImpl !== 'function') return;
+    let res;
+    try{ res = window.bfFpRepriceImpl(d.snap) || {}; }catch(err){ res = { ok:false, notes:['خطا: ' + (err && err.message || err)] }; }
+    try{ e.source.postMessage(Object.assign({ __bfFpRepriced:true, reqId:d.reqId }, res), '*'); }catch(_){}
+  });
+  function ready(){ try{ if(window.parent && window.parent !== window) window.parent.postMessage({ __bfFpRepriceReady:true }, '*'); }catch(e){} }
+  if(document.readyState === 'complete') setTimeout(ready, 800); else window.addEventListener('load', ()=> setTimeout(ready, 800));
+})();
+
+window.bfFpRepriceImpl = function(snap){
+  if(!snap || !Array.isArray(snap.items)) return { ok:false, notes:['اطلاعات این سفارش برای به‌روزرسانی کافی نیست'] };
+  const notes = []; const tmpId = 'fp_tmp_' + Date.now();
+  const rec = Object.assign(JSON.parse(JSON.stringify(snap)), { id: tmpId });
+  savedInvoices.push(rec);
+  let r;
+  try{
+    r = bfFpCaptureRun(function(){
+      bfMotorUpdateSaved(tmpId);
+      const w = document.querySelector('#bfMotorUpdBanner .upd-warn'); if(w) notes.push(w.textContent.replace(/\s+/g,' ').trim());
+      currentInvoiceData = null;
+      bfAddToFactorPlus();
+    });
+  } finally { savedInvoices = savedInvoices.filter(x=>x.id!==tmpId); }
+  return { ok: !!r.payload, payload: r.payload, notes: notes.concat(r.msgs) };
+};
+</script>
+<style id="bfAdjGridCss">
+/* ===== [BF-AG] جدول ستونی «تعدیل / افزایش / ارزش افزوده / تخفیف» — مشترک همهٔ محصولات ===== */
+.bfag{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:16px 0 12px; direction:rtl; font-family:inherit; }
+@media(max-width:980px){ .bfag{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:520px){ .bfag{ grid-template-columns:1fr; } }
+.bfag-col{ --c:#555; --t:#f6f6f6; position:relative; border-radius:16px; background:linear-gradient(180deg,var(--t) 0%,#fff 85%); border:1.8px solid color-mix(in srgb,var(--c) 45%,#fff); box-shadow:0 2px 10px color-mix(in srgb,var(--c) 14%,transparent); overflow:hidden; display:flex; flex-direction:column; min-width:0; }
+.bfag-col::before{ content:""; height:6px; background:var(--c); display:block; }
+.bfag-adj { --c:#6b4fd1; --t:#f2efff; }
+.bfag-mark{ --c:#d63a3a; --t:#fff0f0; }
+.bfag-vat { --c:#c98600; --t:#fff8e6; }
+.bfag-disc{ --c:#13a065; --t:#eafaf2; }
+.bfag-h{ display:flex; align-items:center; gap:8px; padding:10px 12px 2px; font-weight:900; font-size:.95rem; color:var(--c); }
+.bfag-step{ width:22px; height:22px; border-radius:50%; background:var(--c); color:#fff; font-size:.72rem; display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; }
+.bfag-sub{ padding:0 12px 8px; font-size:.7rem; color:#5d6b6a; line-height:1.7; min-height:2.4em; }
+.bfag-b{ padding:4px 12px 12px; display:flex; flex-direction:column; gap:8px; flex:1; }
+.bfag-b > *{ margin:0 !important; max-width:none !important; width:auto !important; }
+.bfag-b label, .bfag-b .row > span:first-child{ font-size:.78rem !important; font-weight:800 !important; color:#2b3a39 !important; }
+.bfag-b input[type=number], .bfag-b input[type=text]{ border:2px solid color-mix(in srgb,var(--c) 55%,#fff) !important; border-radius:10px !important; font-weight:900 !important; font-size:1rem !important; color:var(--c) !important; text-align:center !important; background:#fff !important; padding:6px 8px !important; min-width:70px; }
+.bfag-b input:focus{ outline:3px solid color-mix(in srgb,var(--c) 25%,transparent) !important; }
+.bfag-b .row, .bfag-b .discount-field, .bfag-b .manual-adj-row, .bfag-b .inv-adj-group, .bfag-b .adj-field{ display:flex !important; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; background:transparent !important; border:0 !important; padding:0 !important; }
+.bfag-b .official-toggle, .bfag-b label:has(> input[type=checkbox]){ display:flex !important; align-items:flex-start; gap:8px; background:#fff; border:1.5px dashed color-mix(in srgb,var(--c) 50%,#fff) !important; border-radius:12px; padding:8px 10px !important; cursor:pointer; }
+.bfag-b input[type=checkbox]{ accent-color:var(--c); width:18px; height:18px; margin-top:2px; flex:0 0 auto; }
+.bfag-b .back-only-note{ display:none !important; }
+.bfag-b .num, .bfag-b .adj-amt{ font-weight:900; color:var(--c); }
+.bfag-b .adj-inp, .bfag-b .box, .bfag-b .adj-box{ border:0 !important; background:transparent !important; box-shadow:none !important; padding:0 !important; }
+.bfag-off{ filter:grayscale(1); opacity:.55; }
+.bfag-na{ font-size:.75rem; color:#777; text-align:center; padding:10px 0; }
+@media print{ .bfag{ display:none !important; } }
+</style>
+<script id="bfAdjGridJs">
+/* [BF-AG] کنترل‌های موجود هر ابزار (با همان رفتار و رویدادها) به ستون‌های رنگی منتقل می‌شوند.
+   ترتیب از راست: ۱ تعدیل قیمت · ۲ افزایش قیمت · ۳ ارزش افزوده · ۴ تخفیف */
+(function(){
+  const DEF = [
+    ['adj',  'تعدیل قیمت',   'مبلغ ثابت به ریال — با + یا − به جمع اضافه/کم می‌شود'],
+    ['mark', 'افزایش قیمت',  'داخلی — در پیش‌فاکتور مشتری نوشته نمی‌شود؛ داخل قیمت واحد می‌رود'],
+    ['vat',  'ارزش افزوده',  'فاکتور رسمی / ۱۰٪ مالیات بر ارزش افزوده'],
+    ['disc', 'تخفیف',        'برای مشتری — در پیش‌فاکتور نمایش داده می‌شود']
+  ];
+  window.bfAgWrap = function(id, sel){ const el = document.getElementById(id); if(!el) return null; return sel ? (el.closest(sel) || el) : el; };
+  window.bfBuildAdjGrid = function(anchor, place, cols){
+    if(!anchor || !anchor.parentNode) return null;
+    const g = document.createElement('div'); g.className = 'bfag no-print';
+    DEF.forEach(([k, t, sub], i)=>{
+      const c = document.createElement('div'); c.className = 'bfag-col bfag-' + k;
+      c.innerHTML = '<div class="bfag-h"><span class="bfag-step">' + '۱۲۳۴'[i] + '</span><span>' + ((cols.title && cols.title[k]) || t) + '</span></div><div class="bfag-sub">' + ((cols.sub && cols.sub[k]) || sub) + '</div><div class="bfag-b"></div>';
+      const b = c.querySelector('.bfag-b');
+      const nodes = (cols[k] || []).filter(Boolean).filter((n, ix, a)=> a.indexOf(n) === ix);
+      if(!nodes.length){ c.classList.add('bfag-off'); b.innerHTML = '<div class="bfag-na">در این بخش کاربرد ندارد</div>'; }
+      else nodes.forEach(n=> b.appendChild(n));
+      g.appendChild(c);
+    });
+    if(place === 'after') anchor.parentNode.insertBefore(g, anchor.nextSibling);
+    else if(place === 'prepend') anchor.insertBefore(g, anchor.firstChild);
+    else anchor.parentNode.insertBefore(g, anchor);
+    return g;
+  };
+})();
+</script>
+<script id="bfAdjGridInit">
+(function(){ try{
+  const split = document.querySelector('.adj-split'); if(!split) return;
+  bfBuildAdjGrid(split, 'before', {
+    adj:  [bfAgWrap('manualAdjAmount','.manual-adj-row')],
+    mark: [bfAgWrap('markupPct','.adj-field'), document.getElementById('adjSavedMarkup')],
+    vat:  [bfAgWrap('vatCheck','.row')],
+    disc: [bfAgWrap('discountPct','.adj-field'), split.querySelector('.adj-amt')],
+    sub:  { adj:'مبلغ ثابت (ریال) — منفی در پیش‌فاکتور مثل تخفیف؛ مثبت فقط در پشت برگ' }
+  });
+  split.remove();
+}catch(e){ console.error('[BF-AG]', e); } })();
+</script>
+<style id="bfQuickCopyCss">
+.bf-qc-btn{margin-inline-start:auto; display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,#13a065,#0f7a4e); color:#fff; border:0; border-radius:10px; padding:11px 18px; font:inherit; font-size:.92rem; font-weight:800; cursor:pointer; box-shadow:0 3px 10px rgba(19,160,101,.3); transition:transform .12s, box-shadow .12s;}
+.bf-qc-btn:hover{transform:translateY(-1px); box-shadow:0 5px 14px rgba(19,160,101,.38);}
+.bf-qc-btn.done{background:linear-gradient(135deg,#0f3d3a,#134a45);}
+.bf-qc-btn small{font-weight:600; opacity:.85; font-size:.72rem;}
+@media print{ .bf-qc-btn{display:none !important;} }
+</style>
+<script id="bfQuickCopyJs">
+/* ===== کپی سریع اطلاعات موتور برای مشتری (بدون صدور پیش‌فاکتور) — در کادر result-hero ===== */
+(function(){
+  function selTxt(id){ const el=document.getElementById(id); if(!el||el.selectedIndex<0||!el.value) return ''; return (el.options[el.selectedIndex].text||'').trim(); }
+  function txt(id){ const el=document.getElementById(id); const t=el?(el.textContent||'').trim():''; return (t && t!=='-') ? t : ''; }
+  function chk(id){ const el=document.getElementById(id); return !!(el&&el.checked); }
+  function digits(t){ return Number(String(t||'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[^\d]/g,''))||0; }
+  function toman(t){ const n=digits(t); return n ? Math.round(n/10).toLocaleString('en-US') : ''; }
+  function typeLabel(v){ return v==='drum' ? 'بشکه‌ای (WT2-P)' : v==='disk' ? 'دیسکی (WT1-B)' : ''; }
+  function build(kind){
+    const L=[], add=(k,v)=>{ if(v) L.push('▫️ '+k+': '+v); };
+    let price='';
+    if(kind==='gentel' || kind==='dyna'){
+      const sfx = kind==='dyna' ? 'Dyna' : '';
+      L.push('🔹 موتور گیرلس ' + (kind==='dyna' ? 'داینا لیفت (Dyna Lift)' : 'جنتل رایز (Gentle Rise)'));
+      add('نوع موتور', typeLabel((document.getElementById('motorType'+sfx)||{}).value) || selTxt('motorType'+sfx));
+      add('سیستم (Roping)', selTxt('ratio'+sfx));
+      add('سرعت', selTxt('speed'+sfx) ? selTxt('speed'+sfx).replace(/m\/s/i,'').trim()+' متر بر ثانیه' : '');
+      add('ظرفیت', selTxt('capacity'+sfx));
+      add('توان', txt('rPower'+sfx) ? txt('rPower'+sfx)+' kW' : '');
+      price = txt('rPrice'+sfx);
+    } else {
+      L.push('🔹 موتور گیرلس هوبر (Huber)');
+      add('مدل', txt('hModel'));
+      add('ظرفیت', selTxt('huberCapacity'));
+      add('سرعت', selTxt('huberSpeed') ? selTxt('huberSpeed').replace(/m\/s/i,'').trim()+' متر بر ثانیه' : '');
+      add('قطر فلکه', txt('hSheave') ? txt('hSheave')+' mm' : '');
+      add('توان', txt('hPower') ? txt('hPower')+' kW' : '');
+      price = txt('hPrice');
+    }
+    if(!price) return '';
+    L.push('');
+    L.push('💰 قیمت: ' + price + ' ریال' + (toman(price) ? '  (' + toman(price) + ' تومان)' : ''));
+    if(kind==='gentel' && chk('packCheck') && txt('packPriceDisp')) L.push('➕ پک خدماتی (اختیاری): ' + txt('packPriceDisp') + ' ریال');
+    if(kind==='dyna' && chk('dynaPackCheck')) L.push('🎁 درخت سیم ۷ متری: رایگان');
+    if(kind==='huber' && chk('huberRopeTreeCheck') && txt('huberRopeTreePriceDisp')) L.push('➕ درخت سیم (اختیاری): ' + txt('huberRopeTreePriceDisp') + ' ریال');
+    L.push('');
+    L.push('مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس');
+    return L.join('\n');
+  }
+  function copyText(t){
+    // روی شبکهٔ داخلی (http) کلیپ‌بورد مدرن در دسترس نیست — روش جایگزین با textarea
+    function fallback(){ const ta=document.createElement('textarea'); ta.value=t; ta.setAttribute('readonly',''); ta.style.cssText='position:fixed;top:-1000px;opacity:0;'; document.body.appendChild(ta); ta.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch(e){} ta.remove(); return ok; }
+    if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t).then(()=>true).catch(fallback);
+    return Promise.resolve(fallback());
+  }
+  window.bfQuickCopyBuild = build;
+  function mount(cardId, kind){
+    const hero = document.querySelector('#'+cardId+' .result-hero'); if(!hero || hero.querySelector('.bf-qc-btn')) return;
+    const b=document.createElement('button'); b.type='button'; b.className='bf-qc-btn';
+    b.innerHTML='📋 کپی اطلاعات برای مشتری'; b.title='نوع موتور، سیستم، سرعت، ظرفیت و قیمت را کپی می‌کند تا در واتساپ/تلگرام/بله paste کنید';
+    b.onclick=function(){
+      const t=build(kind);
+      if(!t){ alert('ابتدا مدل موتور (و قیمت) را کامل انتخاب کنید.'); return; }
+      copyText(t).then(ok=>{
+        b.classList.add('done'); b.innerHTML = ok ? '✅ کپی شد — paste کنید' : '⚠️ کپی نشد';
+        if(!ok) prompt('متن را کپی کنید (Ctrl+C):', t);
+        setTimeout(()=>{ b.classList.remove('done'); b.innerHTML='📋 کپی اطلاعات برای مشتری'; }, 2200);
+      });
+    };
+    hero.appendChild(b);
+  }
+  function init(){ mount('resultCard','gentel'); mount('resultCardDyna','dyna'); mount('huberResultCard','huber'); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
 </script>
 </body>
 </html>

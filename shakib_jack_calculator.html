@@ -2,14 +2,6 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- [BF-ICON] آیکون بهفراز برای «افزودن به صفحهٔ اصلی» در آیفون / اندروید -->
-<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="apple-mobile-web-app-title" content="بهفراز">
-<meta name="theme-color" content="#0f3d3a">
-
 <script id="bfStaticMode">
 /* ===================== [BF-STATIC] نسخهٔ آنلاین بدون سرور (GitHub Pages) =====================
    این بلوک قبل از هر کد دیگری اجرا می‌شود و یک «سرور محلی» داخل مرورگر می‌سازد:
@@ -121,6 +113,14 @@
   };
 })();
 </script>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- [BF-ICON] آیکون بهفراز برای «افزودن به صفحهٔ اصلی» در آیفون / اندروید -->
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="بهفراز">
+<meta name="theme-color" content="#0f3d3a">
 
 <script>
 /* BF-SERVER-ORDERS: فهرست پیش‌فاکتورها دیگر داخل localStorage مرورگر ذخیره نمی‌شود.
@@ -394,6 +394,7 @@
   if(window.bfDraft) return;
   var PREFIX = 'bf_draft_v1|', SESSION_KEY = 'bf_operator_session_v1', MAX_AGE = 7 * 24 * 3600 * 1000;
   var A = null, baseSig = null, ready = false, timer = null, busy = false;
+  var BF_DRAFT_ENABLED = false;   // ⏸ پرسش «پیش‌فاکتور نیمه‌کاره داشتید» فعلاً غیرفعال است (برای فعال‌سازی دوباره: true)
 
   function opName(){ try{ var o = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); return (o && o.name) || ''; }catch(e){ return ''; } }
   function key(){ return PREFIX + A.product + '|' + (opName() || '_'); }
@@ -478,6 +479,7 @@
     /* adapter = { product, label, capture(): {state, customer, summary, editing}, restore(state), sigOmit:[...] } */
     init: function(adapter){
       if(A) return; A = adapter;
+      if(!BF_DRAFT_ENABLED) return;   // نه پیش‌نویس ذخیره می‌شود و نه پرسشی نمایش داده می‌شود
       ['input', 'change', 'click', 'keyup'].forEach(function(ev){ document.addEventListener(ev, schedule, true); });
       window.addEventListener('pagehide', persist);
       window.addEventListener('beforeunload', persist);
@@ -1618,6 +1620,7 @@
     #printSheet.plx-on, #printSheet.plx-on *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   }
 </style>
+<style id="bfNoOpPrint">@media print{ #bfOperatorBadge{ display:none !important; } }</style>
 <style id="bfMobileFix">
 /* [BF-MOBILE] نمایش درست روی آیفون / موبایل: هیچ بخشی از صفحه از عرض گوشی بیرون نزند و نیازی به کشیدن صفحه به کنار نباشد.
    فقط روی صفحهٔ نمایش (screen) اعمال می‌شود؛ روی چاپ و PDF پیش‌فاکتور هیچ اثری ندارد. */
@@ -1707,6 +1710,17 @@
         <button type="button" class="ph-item" data-group="dry" data-set="old">
           <span class="ph-radio"></span>
           <span class="ph-txt"><b>قیمت‌های قبلی</b><small>نرخ پاوریونیت موتور خشک پیش از لیست 1405/07/13</small></span>
+        </button>
+      </div>
+      <div class="ph-group ph-pkg">
+        <div class="ph-group-title">کاراسلینگ شکیب (HC700 / HC600 / HP500 / HC510 / HC65 / هوم لیفتی)</div>
+        <button type="button" class="ph-item" data-group="kar" data-set="new">
+          <span class="ph-radio"></span>
+          <span class="ph-txt"><b>قیمت‌های جدید — لیست کاراسلینگ شکیب مورخ 1405/08/03</b><small>HC700: ۱٬۴۶۵ · HC600: ۱٬۳۱۵ · HP500/HC510: ۱٬۳۵۰ · HC65: ۱٬۱۲۵ · هوم لیفتی: ۱٬۰۸۰ / ۱٬۰۷۰ میلیون ریال · پایه جک ۳ متری: ۸۰ · ۴ متری: ۱۱۵ میلیون</small></span>
+        </button>
+        <button type="button" class="ph-item" data-group="kar" data-set="old">
+          <span class="ph-radio"></span>
+          <span class="ph-txt"><b>قیمت‌های قبلی</b><small>نرخ کاراسلینگ شکیب پیش از لیست 1405/08/03 (پایه جک: ۶۵ میلیون)</small></span>
         </button>
       </div>
       <div class="ph-note">فقط برای ردیف‌هایی که از این پس به سبد سفارش اضافه می‌شوند اعمال می‌شود؛ ردیف‌های ثبت‌شدهٔ قبلی تغییر نمی‌کنند. با تغییر قیمت‌ها، فرم انتخاب جاری بازنشانی می‌شود تا قیمت‌ها دوباره محاسبه شوند.</div>
@@ -2175,6 +2189,11 @@
     <div id="singleKaraslingHost" style="display:none;"></div>
 
     <!-- ================= تب «موتور خشک» — انتخاب پلکانی از جدول رسمی موتور خشک شکیب (تعداد طبقه > حداکثر وزن وارد بر سر جک > طول تراول > سایز جک؛ سپس نوع پمپ > برق پمپ > نوع بوبین شیر > برند شیر > فلوکنترل/رپچر) ================= -->
+    <!-- زیرتب‌های «موتور خشک»: محاسبه فنی (جدول رسمی) / محاسبه سفارشی -->
+    <div class="valve-toggle no-print" id="drySubTabs" style="display:none;margin-bottom:14px;">
+      <button type="button" id="dryTabTech" class="active">🛠 محاسبه فنی</button>
+      <button type="button" id="dryTabCustom">🧩 محاسبه سفارشی</button>
+    </div>
     <div class="grid" id="singleDryMotorGrid" style="display:none;">
       <div class="card" id="cardSingleDryFloor">
         <label><span class="num">1</span>تعداد طبقه</label>
@@ -2218,6 +2237,70 @@
       </div>
     </div>
 
+    <!-- ================= موتور خشک — زیرتب «محاسبه سفارشی»: نوع جک ← قطر ← کورس (همهٔ جک‌ها) ← پمپ ← توان ← برق ← بوبین ← شیر ← فلو/رپچر ================= -->
+    <div class="grid" id="dryCustomGrid" style="display:none;">
+      <div class="card" id="dcCardJType">
+        <label><span class="num">1</span>نوع جک</label>
+        <div class="valve-toggle">
+          <button type="button" id="dcBtnIndirect">غیر مستقیم</button>
+          <button type="button" id="dcBtnDirect">مستقیم</button>
+          <button type="button" id="dcBtnStage">جک های دو استیج و سه استیج</button>
+        </div>
+      </div>
+      <div class="card disabled" id="dcCardDia">
+        <label><span class="num">2</span>قطر جک (Ø شفت)</label>
+        <select id="dcSelDia" disabled></select>
+      </div>
+      <div class="card disabled" id="dcCardLength">
+        <label><span class="num">3</span>طول جک (کورس)</label>
+        <select id="dcSelLength" disabled></select>
+      </div>
+      <div class="card disabled" id="dcCardStageCount" style="display:none;">
+        <label><span class="num">2</span>تعداد استیج</label>
+        <select id="dcSelStageCount" disabled></select>
+      </div>
+      <div class="card disabled" id="dcCardStageType" style="display:none;">
+        <label><span class="num">3</span>نوع جک استیج</label>
+        <select id="dcSelStageType" disabled></select>
+      </div>
+      <div class="card disabled" id="dcCardStageLength" style="display:none;">
+        <label><span class="num">4</span>طول جک (کورس)</label>
+        <select id="dcSelStageLength" disabled></select>
+      </div>
+      <div class="card" id="dcCardJackInfo">
+        <label><span class="num">✓</span>سایز جک / قیمت</label>
+        <div class="manual-field-hint" id="dcJackInfo" style="font-size:13px;">—</div>
+      </div>
+      <div class="card disabled" id="dcCardFamily">
+        <label><span class="num">5</span>نوع پمپ</label>
+        <select id="dcSelFamily" disabled></select>
+      </div>
+      <div class="card disabled" id="dcCardHp">
+        <label><span class="num">6</span>HP (اسب)</label>
+        <select id="dcSelHp" disabled></select>
+      </div>
+      <div class="card disabled" id="dcCardPhase">
+        <label><span class="num">7</span>برق پمپ</label>
+        <select id="dcSelPhase" disabled></select>
+      </div>
+      <div class="card disabled" id="dcCardCoil">
+        <label><span class="num">8</span>نوع بوبین شیر</label>
+        <select id="dcSelCoil" disabled></select>
+      </div>
+      <div class="card disabled" id="dcCardValve">
+        <label><span class="num">9</span>برند شیر</label>
+        <select id="dcSelValve" disabled></select>
+      </div>
+      <div class="card" id="dcCardPuInfo">
+        <label><span class="num">✓</span>پاوریونیت / قیمت</label>
+        <div class="manual-field-hint" id="dcPuInfo" style="font-size:13px;white-space:pre-line;">—</div>
+      </div>
+      <div class="card disabled" id="dcCardAccessory">
+        <label><span class="num">10</span>فلوکنترل یا رپچر</label>
+        <select id="dcSelAccessory" disabled></select>
+      </div>
+    </div>
+    <div class="no-print" id="dcWarnBox" style="display:none;margin:-6px 0 14px;padding:10px 14px;border:1.5px dashed #e0a43a;background:rgba(255,196,77,.14);color:#8a4f00;border-radius:10px;font-size:12.5px;line-height:2;font-weight:700;"></div>
     <div class="acc-panel" id="dryIncludePanel" style="display:none;">
       <div class="acc-panel-row" style="font-weight:800;color:var(--text);">اقلام مورد نیاز از این ست کدامند؟ (هر ترکیبی مجاز است)</div>
       <div class="acc-panel-row" style="gap:18px;flex-wrap:wrap;">
@@ -2249,7 +2332,9 @@
       <div class="qty-item acc-item" data-for="fitting"><label>تعداد اتصالات (مغزی)</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="sqpFitting" value="1"></div>
       <div class="qty-item acc-item" data-for="rupture"><label>تعداد پکیج رپچر (رپچر + شلنگ تخلیه روغن و زانویی)</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="sqpRupture" value="1"></div>
       <div class="qty-item acc-item" data-for="valveacc"><label>تعداد شیر / متعلقات</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="sqpValveAcc" value="1"></div>
-      <div class="qty-item acc-item"><label>تعداد نفرات</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="sqpPersons" value=""></div>
+      <div class="qty-item acc-item"><label>وزن بار (kg)</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="sqpLoad" value=""></div>
+      <div class="qty-item acc-item"><label>سرعت (m/s)</label><input type="text" inputmode="decimal" lang="en" dir="ltr" id="sqpSpeed" value=""></div>
+      <div class="qty-item acc-item"><label>حداکثر طول مسیر حرکت (mm)</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="sqpMaxTravel" placeholder="دستی" value=""></div>
       <div class="qty-item acc-item"><label>حداکثر وزن وارد بر سر جک (kg)</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="sqpStaticCap" value=""></div>
       <div class="qty-item" style="flex:1 1 100%;flex-direction:column;align-items:stretch;gap:6px;">
         <label for="sqpNote">توضیحات اضافه (در فاکتور چاپ می‌شود)</label>
@@ -3530,7 +3615,7 @@ const selRupture = document.getElementById('selRupture');
 const resultEl = document.getElementById('result');
 
 let state = { floor:null, cap:null, travel:null, valve:'belin' };
-let qty = { jack:1, pu:1, fitting:3, rupturePkg:1, staticCap:null, staticPersons:null, speed:null }; // تعداد جک، پاوریونیت، اتصالات (مغزی) و پکیج رپچر (رپچر + شلنگ تخلیه روغن و زانویی) — قابل تنظیم پیش از صدور پیش‌فاکتور — پیش‌فرض تعداد اتصالات (مغزی) همیشه ۳ عدد — staticCap: مقدار دستی ظرفیت استاتیک (kg)، وقتی null باشد از مقدار پیش‌فرض ترکیب انتخابی استفاده می‌شود — staticPersons: مقدار دستی تعداد نفرات، وقتی null باشد از مقدار پیش‌فرض ترکیب انتخابی استفاده می‌شود
+let qty = { jack:1, pu:1, fitting:3, rupturePkg:1, staticCap:null, staticPersons:null, speed:null, maxTravel:null }; // تعداد جک، پاوریونیت، اتصالات (مغزی) و پکیج رپچر (رپچر + شلنگ تخلیه روغن و زانویی) — قابل تنظیم پیش از صدور پیش‌فاکتور — پیش‌فرض تعداد اتصالات (مغزی) همیشه ۳ عدد — staticCap: مقدار دستی ظرفیت استاتیک (kg)، وقتی null باشد از مقدار پیش‌فرض ترکیب انتخابی استفاده می‌شود — staticPersons: مقدار دستی تعداد نفرات، وقتی null باشد از مقدار پیش‌فرض ترکیب انتخابی استفاده می‌شود
 const FITTING_UNIT_PRICE = 5000000; // قیمت واحد اتصالات (مغزی) — ریال
 
 // ===================== ماژول روکش کروم جک (آبکاری کروم) — اختیاری، بر اساس سایز (قطر) جک و متراژ دستی =====================
@@ -3646,13 +3731,13 @@ const KARASLING_GROUPS = [
   { company:'110', model:null, capacity:'تا 13 نفر', railOpenings:['110CM'], railSizes:['T16'],      width:21, thickness:4, pit:55, price:1480000000 },
 
   // ---- شرکت شکیب ----
-  { company:'شکیب', model:'هوم لیفتی پشت کوتاه', capacity:'تا 3 نفر', railOpenings:['60CM','80CM'], railSizes:['T9'], width:18, thickness:3, pit:40, price:968000000 },
-  { company:'شکیب', model:'هوم لیفتی پشت بلند',  capacity:'تا 3 نفر', railOpenings:['60CM','80CM'], railSizes:['T9'], width:18, thickness:3, pit:40, price:979000000 },
-  { company:'شکیب', model:'HC65',           capacity:'تا 4 نفر', railOpenings:['60CM','70CM','80CM','90CM'],        railSizes:['T9','T16'], width:16, thickness:3, pit:60, price:1030000000,  columnPrice:65000000 },
-  { company:'شکیب', model:'HC510',          capacity:'تا 6 نفر', railOpenings:['70CM','90CM'],                     railSizes:['T9','T16'], width:20, thickness:4, pit:30, price:1210000000,  columnPrice:65000000 },
-  { company:'شکیب', model:'HP500 pitless',  capacity:'تا 6 نفر', railOpenings:['70CM','90CM'],                     railSizes:['T9','T16'], width:'20K14:R15', thickness:4, pit:15, price:1210000000, columnPrice:65000000 },
-  { company:'شکیب', model:'HC600',          capacity:'تا 6 نفر', railOpenings:['70CM','80CM','90CM'],              railSizes:['T9','T16'], width:19, thickness:4, pit:60, price:1190000000, columnPrice:65000000 },
-  { company:'شکیب', model:'HC700',          capacity:'تا 8 نفر', railOpenings:['70CM','80CM','90CM','100CM'],      railSizes:['T9','T16'], width:20, thickness:5, pit:60, price:1340000000, columnPrice:65000000 },
+  { company:'شکیب', model:'هوم لیفتی پشت کوتاه', capacity:'تا 3 نفر', railOpenings:['60CM','80CM'], railSizes:['T9'], width:18, thickness:3, pit:50, overhead:265, price:1070000000 },
+  { company:'شکیب', model:'هوم لیفتی پشت بلند',  capacity:'تا 3 نفر', railOpenings:['60CM','80CM'], railSizes:['T9'], width:18, thickness:3, pit:50, overhead:265, price:1080000000 },
+  { company:'شکیب', model:'HC65',           capacity:'تا 4 نفر', railOpenings:['60CM','70CM','80CM','90CM'],        railSizes:['T9','T16'], width:16, thickness:3, pit:75, overhead:280, price:1125000000,  columnPrice:115000000, columnPrices:{3:80000000, 4:115000000} },
+  { company:'شکیب', model:'HC510',          capacity:'تا 6 نفر', railOpenings:['70CM','90CM'],                     railSizes:['T9','T16'], width:20, thickness:4, pit:50, overhead:290, price:1350000000,  columnPrice:115000000, columnPrices:{3:80000000, 4:115000000} },
+  { company:'شکیب', model:'HP500 pitless',  capacity:'تا 6 نفر', railOpenings:['70CM','90CM'],                     railSizes:['T9','T16'], width:'20K14:R15', thickness:4, pit:30, overhead:290, price:1350000000, columnPrice:115000000, columnPrices:{3:80000000, 4:115000000} },
+  { company:'شکیب', model:'HC600',          capacity:'تا 6 نفر', railOpenings:['70CM','80CM','90CM'],              railSizes:['T9','T16'], width:19, thickness:4, pit:70, overhead:280, price:1315000000, columnPrice:115000000, columnPrices:{3:80000000, 4:115000000} },
+  { company:'شکیب', model:'HC700',          capacity:'تا 8 نفر', railOpenings:['70CM','80CM','90CM','100CM'],      railSizes:['T9','T16'], width:20, thickness:5, pit:75, overhead:'290~350', price:1465000000, columnPrice:115000000, columnPrices:{3:80000000, 4:115000000} },
 
   // ---- شرکت اصفهان دانا ----
   { company:'اصفهان دانا', model:null, capacity:'تا 3 نفر', railOpenings:['60CM','70CM'],                          railSizes:['T9'],        width:12, thickness:3, pit:25, price:600000000, columnPrice:60000000 },
@@ -3663,7 +3748,7 @@ let karaslingCompany = '';   // شرکت سازنده کاراسلینگ انت�
 let karaslingGroupKey = '';  // کلید مدل/ظرفیت انتخاب‌شده در چارچوب همان شرکت
 let karaslingRailOpening = ''; // دهانه ریل (DBG) انتخاب‌شده
 let karaslingRailSize = '';    // سایز ریل انتخاب‌شده (T9 / T16)
-let karaslingColumnMode = '';  // فقط برای شرکت‌هایی که قیمت ستون دارند (شکیب/اصفهان دانا): 'with' یا 'without'
+let karaslingColumnMode = '';  // پایه جک (قبلاً «قوطی زیر جک») — شکیب: 'with3' / 'with4' / 'without' · اصفهان دانا: 'with' / 'without' (قدیمی 'with' در شکیب = ۴ متری)
 // نکته: در جدول شرکت «110» یک ظرفیت (مثلاً «تا 6 نفر») ممکن است به دو دهانه ریل متفاوت (با قیمت/مشخصات متفاوت)
 // تعلق داشته باشد؛ به همین دلیل «ظرفیت/مدل» به‌تنهایی یک ردیف را مشخص نمی‌کند و باید همراه با «دهانه ریل» ترکیب شود.
 function karaslingGroupsForCompany(company){ return KARASLING_GROUPS.filter(g=>g.company===company); }
@@ -3699,15 +3784,39 @@ function karaslingFindRow(company, groupKey, railOpening, railSize){
 }
 // آیا این ردیف نیاز به انتخاب «با ستون / بدون ستون» دارد؟ (فقط ردیف‌هایی که قیمت ستون جدا دارند)
 function karaslingHasColumnChoice(g){ return !!(g && g.columnPrice); }
-// متن «با/بدون قوطی زیر» برای ردیف کاراسلینگ در چاپ و پیش‌فاکتور (فقط وقتی مدل انتخاب قوطی دارد و کاربر انتخاب کرده)
-function karaslingColumnTxt(g){ return (karaslingHasColumnChoice(g) && karaslingColumnMode) ? (' · ' + (karaslingColumnMode==='with' ? 'با قوطی زیر' : 'بدون قوطی زیر')) : ''; }
+// ===== پایه جک (نام قبلی: «قوطی زیر جک») — لیست شکیب 1405/08/03: پایه ۳ متری ۸۰٬۰۰۰٬۰۰۰ و ۴ متری ۱۱۵٬۰۰۰٬۰۰۰ ریال =====
+// ردیف‌های شکیب columnPrices = {3,4} دارند؛ اصفهان دانا یک قیمت (columnPrice). حالت ذخیره‌شدهٔ قدیمی 'with' = پایه ۴ متری.
+function karaslingColumnOptions(g){
+  if(!g) return [];
+  if(g.columnPrices) return [{val:'with3', label:'با پایه جک ۳ متری', price:g.columnPrices[3]}, {val:'with4', label:'با پایه جک ۴ متری', price:g.columnPrices[4]}];
+  return [{val:'with', label:'با پایه جک', price:g.columnPrice}];
+}
+function karaslingColumnAdd(g, mode){
+  if(!g || !mode || mode==='without') return 0;
+  if(g.columnPrices) return (mode==='with3' ? g.columnPrices[3] : g.columnPrices[4]) || 0;
+  return g.columnPrice || 0;
+}
+function karaslingColumnLabelOf(g, mode){
+  if(!mode) return '';
+  if(mode==='without') return 'بدون پایه جک';
+  if(g && g.columnPrices) return mode==='with3' ? 'با پایه جک ۳ متری' : 'با پایه جک ۴ متری';
+  return 'با پایه جک';
+}
+function karaslingColumnBtnsHtml(g, cur){
+  return karaslingColumnOptions(g).map(o=>`<button type="button" data-val="${o.val}" class="${cur===o.val || (o.val==='with4' && cur==='with')?'active':''}">${o.label}</button>`).join('')
+    + `<button type="button" data-val="without" class="${cur==='without'?'active':''}">بدون پایه جک</button>`;
+}
+
+// متن «با/بدون پایه جک» برای ردیف کاراسلینگ در چاپ و پیش‌فاکتور (فقط وقتی مدل انتخاب پایه دارد و کاربر انتخاب کرده)
+// متن پیت/اورهد کاراسلینگ برای شرح کالا (طبق لیست شکیب 1405/08/03)
+function karaslingPitTxt(g){ if(!g) return ''; return (g.pit!=null ? ' · پیت ' + g.pit + 'cm' : '') + (g.overhead ? ' · اورهد ' + g.overhead + 'cm' : ''); }
+function karaslingColumnTxt(g){ return (karaslingHasColumnChoice(g) && karaslingColumnMode) ? (' · ' + karaslingColumnLabelOf(g, karaslingColumnMode)) : ''; }
 function karaslingCostCalc(){
   const g = karaslingFindRow(karaslingCompany, karaslingGroupKey, karaslingRailOpening, karaslingRailSize);
   if(!g) return 0;
   if(karaslingHasColumnChoice(g)){
-    if(karaslingColumnMode==='with') return Math.round((g.price||0) + (g.columnPrice||0));
-    if(karaslingColumnMode==='without') return Math.round(g.price||0);
-    return 0; // هنوز وضعیت ستون انتخاب نشده
+    if(karaslingColumnMode) return Math.round((g.price||0) + karaslingColumnAdd(g, karaslingColumnMode));
+    return 0; // هنوز وضعیت پایه جک انتخاب نشده
   }
   return Math.round((g.price||0) + (g.columnPrice||0));
 }
@@ -3721,7 +3830,7 @@ function renderKaraslingBox(){
   const needsColumnChoice = karaslingHasColumnChoice(finalRow);
   const rowComplete = !!finalRow && (!needsColumnChoice || !!karaslingColumnMode);
   const cost = karaslingCostCalc();
-  const columnLabel = karaslingColumnMode==='with' ? 'با قوطی زیر جک' : (karaslingColumnMode==='without' ? 'بدون قوطی زیر جک' : '');
+  const columnLabel = karaslingColumnLabelOf(finalRow, karaslingColumnMode);
   return `
   <div class="hose-box karasling-box">
     <div class="hose-head karasling-head">انتخاب کاراسلینگ</div>
@@ -3756,15 +3865,14 @@ function renderKaraslingBox(){
       </div>
       ${ needsColumnChoice ? `
       <div class="hose-field">
-        <label>قوطی زیر جک</label>
+        <label>پایه جک</label>
         <div class="karasling-col-btns" id="karaslingColumnBtns">
-          <button type="button" data-val="with" class="${karaslingColumnMode==='with'?'active':''}">با قوطی زیر جک</button>
-          <button type="button" data-val="without" class="${karaslingColumnMode==='without'?'active':''}">بدون قوطی زیر جک</button>
+          ${karaslingColumnBtnsHtml(finalRow, karaslingColumnMode)}
         </div>
       </div>` : '' }
     </div>
-    ${ rowComplete ? `<div class="hose-info-line karasling-info-line">شرکت: <b>${finalRow.company==='110'?'مدل 110':finalRow.company}</b>${finalRow.model?` · مدل: <b>${finalRow.model}</b>`:''} · ظرفیت: <b class="numlt">${finalRow.capacity}</b> · دهانه ریل: <b class="numlt">${karaslingRailOpening}</b> · سایز ریل: <b class="numlt">${karaslingRailSize}</b>${needsColumnChoice?` · <b>${columnLabel}</b>`:''}<br>عرض ستون‌ها: <b class="numlt">${finalRow.width}</b> mm · ضخامت ورق: <b class="numlt">${finalRow.thickness}</b> mm · پیت مورد نیاز: <b class="numlt">${finalRow.pit}</b> cm</div>` : '' }
-    ${ rowComplete ? `<div class="hose-cost-badge karasling-cost-badge">هزینه کاراسلینگ در ریز اقلام قیمت: <b class="numlt">${fmt(cost)}</b> ریال${(finalRow.columnPrice && (!needsColumnChoice || karaslingColumnMode==='with'))?` <span style="opacity:.75;">(شامل قیمت ستون <span class="numlt">${fmt(finalRow.columnPrice)}</span> ریال)</span>`:''}</div>` : '' }
+    ${ rowComplete ? `<div class="hose-info-line karasling-info-line">شرکت: <b>${finalRow.company==='110'?'مدل 110':finalRow.company}</b>${finalRow.model?` · مدل: <b>${finalRow.model}</b>`:''} · ظرفیت: <b class="numlt">${finalRow.capacity}</b> · دهانه ریل: <b class="numlt">${karaslingRailOpening}</b> · سایز ریل: <b class="numlt">${karaslingRailSize}</b>${needsColumnChoice?` · <b>${columnLabel}</b>`:''}<br>عرض ستون‌ها: <b class="numlt">${finalRow.width}</b> mm · ضخامت ورق: <b class="numlt">${finalRow.thickness}</b> mm · پیت مورد نیاز: <b class="numlt">${finalRow.pit}</b> cm${finalRow.overhead?` · اورهد مورد نیاز: <b class="numlt">${finalRow.overhead}</b> cm`:''}</div>` : '' }
+    ${ rowComplete ? `<div class="hose-cost-badge karasling-cost-badge">هزینه کاراسلینگ در ریز اقلام قیمت: <b class="numlt">${fmt(cost)}</b> ریال${(()=>{ const add = needsColumnChoice ? karaslingColumnAdd(finalRow, karaslingColumnMode) : (finalRow.columnPrice||0); return add ? ` <span style="opacity:.75;">(شامل قیمت پایه جک <span class="numlt">${fmt(add)}</span> ریال)</span>` : ''; })()}</div>` : '' }
   </div>`;
 }
 
@@ -3937,7 +4045,7 @@ function populateCap(){
 selCap.addEventListener('change', ()=>{
   state.cap = selCap.value;
   state.travel = null;
-  priceOverride = {}; ruptureOverride = null; qty.staticCap = null; qty.staticPersons = null; qty.speed = null;
+  priceOverride = {}; ruptureOverride = null; qty.staticCap = null; qty.staticPersons = null; qty.speed = null; qty.maxTravel = null;
   disableRuptureCard();
   populateTravel();
   updateResult();
@@ -4055,6 +4163,12 @@ function effectivePersons(c){
   return (qty.staticPersons!=null && qty.staticPersons!=='') ? qty.staticPersons : (c ? c.persons : '');
 }
 
+// حداکثر طول تراول مؤثر (mm): در ست‌های جدول (محاسبه سریع / فنی) از خود رکورد؛ در «جک و پاور سفارشی» و
+// «سفارش بر اساس جک» که تراول تعریف‌شده ندارند (عدد رکورد = طول جک است)، فقط مقدار دستی باکس «حداکثر طول تراول»
+function effectiveMaxTravel(r){
+  if(r && r._custom) return (qty.maxTravel!=null && qty.maxTravel!=='') ? Number(qty.maxTravel) : null;
+  return r ? shownTravel(r) : null;
+}
 // سرعت حرکت مؤثر (m/s) — اگر کاربر در «جک و پاور سفارشی» / «سفارش بر اساس جک» دستی مقداری در باکس «سرعت حرکت» ثبت کرده باشد همان، وگرنه سرعت رکورد
 function effectiveSpeed(r){
   if(qty.speed!=null && qty.speed!=='') return qty.speed;
@@ -4144,7 +4258,7 @@ let customSel = { dia:null, length:null, kw:null, puIdx:null, pumpVal:null };
 
 function resetSelectionState(){
   state = { floor:null, cap:null, travel:null, valve:'belin' };
-  qty = { jack:1, pu:1, fitting:3, rupturePkg:1, staticCap:null, staticPersons:null, speed:null };
+  qty = { jack:1, pu:1, fitting:3, rupturePkg:1, staticCap:null, staticPersons:null, speed:null, maxTravel:null };
   priceOverride = {}; ruptureOverride = null; bfFitRupKey = null; bfFitHold = false;
   techRecord = null; techSel = { load:null, travel:null, optIdx:null };
   customRecord = null; customSel = { dia:null, length:null, kw:null, puIdx:null, pumpVal:null };
@@ -4163,9 +4277,11 @@ function switchCalcMode(mode){
   modeTabDryMotor.classList.toggle('active', mode==='drymotor');
   quickGrid.style.display = mode==='quick' ? '' : 'none';
   techGrid.style.display = mode==='technical' ? '' : 'none';
-  customGrid.style.display = mode==='custom' ? '' : 'none';
+  // «ست کامل (جک + پاوریونیت)» از همان موتور هوشمند «سفارش بر اساس جک» استفاده می‌کند (نوع جک ← قطر ← کورس ← ...)؛
+  // گرید قدیمی قطر/طول بدون نوع جک دیگر نمایش داده نمی‌شود
+  customGrid.style.display = 'none';
   customNote.style.display = mode==='custom' ? '' : 'none';
-  byJackGrid.style.display = mode==='byjack' ? '' : 'none';
+  byJackGrid.style.display = (mode==='byjack' || mode==='custom') ? '' : 'none';
   byJackNote.style.display = mode==='byjack' ? '' : 'none';
   resetSelectionState();
   if(mode==='custom' || mode==='byjack'){ qty.fitting = 1; }
@@ -4192,6 +4308,7 @@ function switchCalcMode(mode){
     qtySingleDryFittingInput.value = 3;
     dryFittingRow.style.display = '';
     singleDryMotorGrid.style.display = '';
+    try{ dryApplySubTab(); }catch(e){}   // زیرتب «محاسبه فنی / محاسبه سفارشی»
     dryIncludePanel.style.display = '';
     singleDryMotorQtyGrid.style.display = 'none'; // تعداد‌ها از پنل «⚠ توجه — تعداد اقلام» داده می‌شود
     document.getElementById('dryExtraDetails').style.display = '';
@@ -4239,6 +4356,7 @@ function switchCalcMode(mode){
   disableByJackRuptureCard();
   syncByJackValveButtons();
 
+  try{ dryApplySubTab(); }catch(e){}   // زیرتب‌های موتور خشک فقط در تب «موتور خشک» دیده می‌شوند
   updateResult();
 }
 modeTabQuick.addEventListener('click', ()=>switchCalcMode('quick'));
@@ -4264,7 +4382,7 @@ const TECH_LOAD_PERSONS = { 720:3, 900:4, 1000:5, 1150:6, 1400:8, 1700:10 };
 selTechLoad.addEventListener('change', ()=>{
   techSel.load = Number(selTechLoad.value);
   techSel.travel = null; techSel.optIdx = null; techRecord = null;
-  priceOverride = {}; ruptureOverride = null; qty.staticCap = null; qty.staticPersons = null; qty.speed = null;
+  priceOverride = {}; ruptureOverride = null; qty.staticCap = null; qty.staticPersons = null; qty.speed = null; qty.maxTravel = null;
 
   const travels = unique(TECH_DATA.filter(d=>d.load===techSel.load).map(d=>d.travel)).sort((a,b)=>a-b);
   selTechTravel.innerHTML = '<option value="" disabled selected>انتخاب کنید...</option>';
@@ -4418,7 +4536,7 @@ selCustomRupture.addEventListener('change', ()=>{
 selCustomDia.addEventListener('change', ()=>{
   customSel.dia = Number(selCustomDia.value);
   customSel.length = null; customSel.kw = null; customSel.puIdx = null; customSel.pumpVal = null; customRecord = null;
-  priceOverride = {}; ruptureOverride = null; qty.staticCap = null; qty.staticPersons = null; qty.speed = null;
+  priceOverride = {}; ruptureOverride = null; qty.staticCap = null; qty.staticPersons = null; qty.speed = null; qty.maxTravel = null;
 
   const lengths = Object.keys(getCatalogSizes(customSel.dia)).map(Number).sort((a,b)=>a-b);
   selCustomLength.innerHTML = '<option value="" disabled selected>انتخاب کنید...</option>';
@@ -4742,7 +4860,7 @@ function bfStageLabelWithTravel(label, travel){
 function bfSizeDisp(r){ return (r && r._stageJack) ? bfStageSizeFromStr(r.pipeSize) : (r ? r.pipeSize : ''); }
 function bfSizeDispOrder(o){
   const sel = o && o.selection;
-  const isStage = !!(sel && sel.calcMode==='byjack' && sel.byJackSel && sel.byJackSel.type==='stage');
+  const isStage = !!(sel && (sel.calcMode==='byjack' || sel.calcMode==='custom') && sel.byJackSel && sel.byJackSel.type==='stage');
   return isStage ? bfStageSizeFromStr(o.pipeSize) : (o ? o.pipeSize : '');
 }
 function bfJackSizeText(r){ return (r && r._stageJack) ? bfStageLabelWithTravel(r._stageLabel, r.travel) : (r ? r.pipeSize : ''); }
@@ -5097,7 +5215,7 @@ let singleItemType = null; // 'jack' | 'pu' | 'rupture'
 let singleSel = { dia:null, length:null, kw:null, puIdx:null, valve:'belin', ruptureIdx:null };
 let singlePuOptions = [];
 let singleCart = []; // پیش‌سفارش در حال ساخت — هر بار «افزودن این قلم به پیش‌فاکتور» زده شود یک ردیف اضافه می‌شود (جک/پاوریونیت/رپچر با هم، هر تعداد که لازم باشد)
-let singleExtra = { persons:'', staticCap:'', note:'' }; // پنل تعداد سفارش تکی: نفرات / حداکثر وزن / توضیحات اضافه
+let singleExtra = { persons:'', staticCap:'', note:'', loadKg:'', speed:'', maxTravel:'' }; // پنل تعداد سفارش تکی: وزن بار / سرعت / حداکثر وزن / توضیحات اضافه (persons فقط برای سفارش‌های قدیمی نگه داشته می‌شود)
 let singleCartCalc = null; // آخرین محاسبه معتبر روی singleCart (برای ذخیره/چاپ/فاکتور پلاس)
 
 // ===================== تب «موتور خشک» — عناصر و وضعیت انتخاب پلکانی =====================
@@ -5341,13 +5459,32 @@ function resetDrySelectionOnly(){
   dryQty = { jack:1, pu:1, acc:1 };
   dryOilQty = 0; hoseMeters = null;
   karaslingCompany=''; karaslingGroupKey=''; karaslingRailOpening=''; karaslingRailSize=''; karaslingColumnMode='';
+  try{ dcResetForm(); }catch(e){}   // فرم «محاسبه سفارشی» موتور خشک
 }
 
+// بازنشانی فرم «نوع جک ← قطر ← کورس ← پاور ← شیر ← رپچر» (مشترک بین «ست کامل» و «سفارش بر اساس جک»)
+function bfResetByJackForm(){
+  byJackSel = { type:null, dia:null, variantIdx:null, length:null, kw:null, puIdx:null, pumpVal:null, stageCount:null, stageKey:null, rangeIdx:null };
+  byJackPuOptions = [];
+  customRecord = null; priceOverride = {}; ruptureOverride = null;
+  try{ bfByJackLeaveStage(); }catch(e){}
+  btnByJackIndirect.classList.remove('active'); btnByJackDirect.classList.remove('active');
+  selByJackDia.value = ''; cardByJackDia.classList.add('disabled'); selByJackDia.disabled = true; selByJackDia.innerHTML = '';
+  cardByJackLength.classList.add('disabled'); selByJackLength.disabled = true; selByJackLength.innerHTML = '';
+  cardByJackKw.classList.add('disabled'); selByJackKw.disabled = true; selByJackKw.innerHTML = '';
+  cardByJackPump.classList.add('disabled'); selByJackPump.disabled = true; selByJackPump.innerHTML = '';
+  cardByJackValve.classList.add('disabled'); btnByJackBelin.disabled = true; btnByJackShakib.disabled = true;
+  disableByJackRuptureCard();
+  syncByJackValveButtons();
+}
 function switchSubOrderMode(mode){
+  const prevSub = subOrderMode;
   subOrderMode = mode;
   btnSetMode.classList.toggle('active', mode==='set');
   btnSingleMode.classList.toggle('active', mode==='single');
-  customGrid.style.display = mode==='set' ? '' : 'none';
+  customGrid.style.display = 'none';
+  byJackGrid.style.display = (mode==='set' && calcMode==='custom') ? '' : (calcMode==='byjack' ? '' : 'none');
+  if(mode==='set' && prevSub!=='set' && calcMode==='custom'){ bfResetByJackForm(); syncByJackQtyCards(); if(typeof updateResult==='function') updateResult(); }
   customNote.style.display = mode==='set' ? '' : 'none';
   document.getElementById('result').style.display = mode==='set' ? '' : 'none';
   singleItemPanel.style.display = mode==='single' ? '' : 'none';
@@ -5392,7 +5529,7 @@ function resetSingleItemSelectionOnly(){
 function resetSingleItemForm(){
   resetSingleItemSelectionOnly();
   singleCart = []; singleCartCalc = null;
-  singleExtra = { persons:'', staticCap:'', note:'' };
+  singleExtra = { persons:'', staticCap:'', note:'', loadKg:'', speed:'', maxTravel:'' };
   singleDiscountInput.value = 0;
   singleOfficialToggle.checked = false;
   renderSingleResult();
@@ -5421,6 +5558,7 @@ function hideAllSingleTypeGrids(){
   { const _op=document.getElementById('singleOilPipeBox'); if(_op) _op.style.display='none'; const _ob=document.getElementById('btnSingleTypeOilPipe'); if(_ob) _ob.classList.remove('active'); }
   singleChromeBox.style.display = 'none';
   singleDryMotorGrid.style.display = 'none';
+  { const _t=document.getElementById('drySubTabs'); if(_t) _t.style.display='none'; const _g=document.getElementById('dryCustomGrid'); if(_g) _g.style.display='none'; const _w=document.getElementById('dcWarnBox'); if(_w) _w.style.display='none'; }
   dryIncludePanel.style.display = 'none';
   singleDryMotorQtyGrid.style.display = 'none';
   const _dxd = document.getElementById('dryExtraDetails'); if(_dxd) _dxd.style.display = 'none';
@@ -5854,6 +5992,7 @@ function computeSingleDryFittingItem(){
 // (اتصالات مغزی از قبل توسط computeSingleDryFittingItem() جدا ساخته می‌شود)
 function computeSingleDrySubItems(){
   if(singleItemType!=='drymotor') return null;
+  if(typeof dryCalcSub!=='undefined' && dryCalcSub==='custom') return dryCComputeSubItems();   // زیرتب «محاسبه سفارشی»
   const incJack = cbDryIncludeJack.checked;
   const incPu = cbDryIncludePu.checked;
   const incAccessory = cbDryIncludeAccessory.checked;
@@ -5915,7 +6054,7 @@ function computeSingleItem(){
     if(!subItems) return null;
     const kindLabel = {'drymotor-jack':'جک غیرمستقیم تک استیج','drymotor-pu':'پاوریونیت','drymotor-flow':'فلو کنترل','drymotor-rupture':'رپچر'};
     const unitPrice = subItems.reduce((s,it)=>s+it.unitPrice*it.qty,0);
-    const title = subItems.map(it=>kindLabel[it.kind]).join(' + ') + ' موتور خشک شکیب';
+    const title = subItems.map(it=>it.shortLabel || kindLabel[it.kind]).join(' + ') + ' موتور خشک شکیب';
     return { kind:'drymotor', title, spec: subItems.map(it=>it.spec).join(' · '), unitPrice, qty: 1 };
   }
   if(singleItemType==='jack'){
@@ -6021,7 +6160,7 @@ function computeSingleItem(){
     return {
       kind:'karasling',
       title: 'کاراسلینگ',
-      spec: (kRow.company==='110' ? 'مدل 110' : kRow.company) + (kRow.model ? ' · ' + kRow.model : '') + ' · ظرفیت ' + kRow.capacity + ' · دهانه ریل ' + karaslingRailOpening + ' · سایز ریل ' + karaslingRailSize + colTxt,
+      spec: (kRow.company==='110' ? 'مدل 110' : kRow.company) + (kRow.model ? ' · ' + kRow.model : '') + ' · ظرفیت ' + kRow.capacity + ' · دهانه ریل ' + karaslingRailOpening + ' · سایز ریل ' + karaslingRailSize + colTxt + karaslingPitTxt(kRow),
       unitPrice: kTotal,
       qty: 1
     };
@@ -6095,7 +6234,9 @@ function syncSingleQtyPanel(){
     const wrap = el.closest('.qty-item'); if(wrap) wrap.style.opacity = applies ? '1' : '.45';
   });
   const setIf = (id,v)=>{ const el=document.getElementById(id); if(el && document.activeElement!==el) el.value = v; };
-  setIf('sqpPersons', singleExtra.persons);
+  setIf('sqpLoad', singleExtra.loadKg);
+  setIf('sqpSpeed', singleExtra.speed);
+  setIf('sqpMaxTravel', singleExtra.maxTravel || '');
   setIf('sqpStaticCap', singleExtra.staticCap);
   setIf('sqpNote', singleExtra.note);
 }
@@ -6127,7 +6268,8 @@ function syncSingleQtyPanel(){
       if(el.value==='' || (Number(el.value)||0) < 1){ orig.value = 1; el.value = 1; orig.dispatchEvent(new Event('input', { bubbles:true })); }
     });
   });
-  [['sqpPersons','persons'],['sqpStaticCap','staticCap']].forEach(([id,key])=>{
+  { const sp = document.getElementById('sqpSpeed'); if(sp) sp.addEventListener('input', ()=>{ let v = sp.value.replace(/[^0-9.]/g, ''); const i = v.indexOf('.'); if(i>=0) v = v.slice(0,i+1) + v.slice(i+1).replace(/\./g,''); sp.value = v; singleExtra.speed = v; }); }
+  [['sqpLoad','loadKg'],['sqpStaticCap','staticCap'],['sqpMaxTravel','maxTravel']].forEach(([id,key])=>{
     const el = document.getElementById(id); if(!el) return;
     el.addEventListener('input', ()=>{ el.value = el.value.replace(/[^0-9]/g, ''); singleExtra[key] = el.value; });
   });
@@ -6153,7 +6295,7 @@ function dryExtraItems(){
   const kTotal = karaslingCostCalc();
   if(kRow && kTotal>0){
     out.push({ kind:'karasling', title:'کاراسلینگ',
-               spec:(kRow.company==='110' ? 'مدل 110' : kRow.company) + (kRow.model ? ' · ' + kRow.model : '') + ' · ظرفیت ' + kRow.capacity + ' · دهانه ریل ' + karaslingRailOpening + ' · سایز ریل ' + karaslingRailSize + karaslingColumnTxt(kRow),
+               spec:(kRow.company==='110' ? 'مدل 110' : kRow.company) + (kRow.model ? ' · ' + kRow.model : '') + ' · ظرفیت ' + kRow.capacity + ' · دهانه ریل ' + karaslingRailOpening + ' · سایز ریل ' + karaslingRailSize + karaslingColumnTxt(kRow) + karaslingPitTxt(kRow),
                unitPrice: kTotal, qty: 1 });
   }
   return out;
@@ -6338,6 +6480,9 @@ function bfBuildSingleItemRecord(){
     invoiceNo: bfGetInvoiceNo(),
     _itemsLabel: 'سفارش تکی شکیب',
     persons: singleExtra.persons || '',
+    loadKg: singleExtra.loadKg || '',
+    singleSpeed: singleExtra.speed || '',
+    maxTravel: singleExtra.maxTravel || '',
     staticLoad: singleExtra.staticCap || '',
     extraNote: (singleExtra.note || '').trim(),
     _manualItems: items.map(it=>({ kind:it.kind, title:it.title, spec:it.spec, unitPrice:it.unitPrice, qty:it.qty, accCode:it.accCode||null, accText:it.accText||null, _review: it._review ? true : undefined }))
@@ -6380,6 +6525,7 @@ btnSinglePrint.addEventListener('click', ()=>{
         <tr><th>شماره تماس</th><td class="numlt">${rec.customerPhone}</td></tr>
       </tbody>
     </table>
+    ${bfManualSpecTableHtml(rec)}
     <table class="ps-table">
       <thead><tr><th>شرح کالا</th><th>مشخصات فنی</th><th>تعداد</th><th>مبلغ (ریال)</th></tr></thead>
       <tbody>
@@ -6392,6 +6538,7 @@ btnSinglePrint.addEventListener('click', ()=>{
       ${discountPct>0 ? `<div><span>تخفیف (<span class="numlt">${discountPct}</span>٪)</span><span class="numlt">−${fmt(discountAmount)} ریال</span></div>` : ''}
       <div class="grand"><span>مبلغ نهایی قابل پرداخت</span><span class="numlt">${fmt(finalTotal)} ریال</span></div>
     </div>
+    ${shkTaxNoteHtml(isOfficial)}
     ${rec.note ? `<div class="ps-note"><div class="ps-note-title">توضیحات</div>${rec.note.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>` : ''}
     <div class="ps-foot">
       لطفا پیش از تایید نهایی سفارش، نسبت به بررسی دقیق ابعاد و مشخصات کالای درج شده در فاکتور اقدام نمایید تا از هرگونه مغایرت با مشخصات پروژه جلوگیری شود<br>
@@ -6411,6 +6558,11 @@ btnSinglePrint.addEventListener('click', ()=>{
    (نسخه ساده‌شده — بدون جدول شکست رپچر/شیر که مخصوص «ست کامل» است؛ فقط اقلام واقعی همان سفارش را نشان می‌دهد) */
 /* ============ جدول ردیابی پشت برگ (خرید/فنی/انبار + توضیحات + ف‌ها + مشخصات فنی) ============
    کاملاً خالی است (بدون هیچ پر شدن خودکار) تا دستی تکمیل شود. در هر سه نوع پشت برگ (ست کامل، سفارش تکی، کاملاً دستی) یکسان است. */
+// پانویس مالیاتی پیش‌فاکتور چاپی شکیب: بر اساس تیک «صدور فاکتور رسمی / ۱۰٪ ارزش افزوده»
+function shkTaxNoteHtml(isOff){
+  const t = isOff ? 'پیش‌فاکتور فوق با محاسبه مالیات بر ارزش افزوده می‌باشد.' : 'پیش‌فاکتور فوق بدون محاسبه مالیات بر ارزش افزوده می‌باشد.';
+  return `<div class="shk-tax-note" style="margin:8px 0 6px;padding:6px 12px;border:1px dashed #777;border-radius:6px;text-align:center;font-weight:800;font-size:12.5px;color:#111;page-break-inside:avoid;">${t}</div>`;
+}
 function bfBackTrackHtml(){
   const cols = ['جک','رپچر + شلنگ تخلیه روغن و زانویی','پاور یونیت','مغزی','متعلقات پاور','کارسلینگ','شلنگ','روغن','کولینگ و شلنگ','لوله انتقال روغن'];
   const blank = cols.map(()=>'<td></td>').join('');
@@ -6502,6 +6654,31 @@ function bfPrintBackGeneric(opts){
 // خودش (نه خلاصهٔ ترکیبی) به فاکتور پلاس منتقل می‌شود.
 // discountAmount (اختیاری): مبلغ تخفیف ریالی همین محاسبه (از singleCartCalc.discountAmount یا manualCalc.discountAmount)
 // تا مبلغ «قبل از تخفیف» و درصد تخفیفِ معادل هم به فاکتور پلاس منتقل شود.
+// [FPX] استخراج مشخصات و ریز اقلام از HTML همان پیش‌فاکتور چاپی برای «فاکتور پلاس» (همان مواردی که در فاکتور خودش آمده)
+function bfFpExtractSheet(html){
+  const out = { specs: [], lines: [] };
+  try{
+    const doc = new DOMParser().parseFromString('<div>' + String(html||'') + '</div>', 'text/html');
+    const clean = s => String(s==null?'':s).replace(/\s+/g,' ').trim();
+    const seen = {};
+    const push = (k, v)=>{ k = clean(k).replace(/[:：]\s*$/,''); v = clean(v); if(!k || !v || v==='—' || v==='-' || seen[k]) return; seen[k] = 1; out.specs.push({ k, v }); };
+    doc.querySelectorAll('.ps-project-table tr').forEach(tr=>{ const th = tr.querySelector('th'), td = tr.querySelector('td'); if(th && td) push(th.textContent, td.textContent); });
+    doc.querySelectorAll('.ps-tech-line').forEach(box=>{
+      let label = '';
+      box.childNodes.forEach(n=>{
+        if(n.nodeType===3){ const tx = clean(n.textContent); if(tx) label = tx; }
+        else if(n.nodeName==='SPAN' && label){ push(label, n.textContent); label = ''; }
+      });
+    });
+    doc.querySelectorAll('.ps-table tbody tr').forEach(tr=>{
+      if(tr.classList.contains('ps-sub-row')) return;
+      const tds = tr.querySelectorAll('td');
+      if(tds.length < 4) return;
+      out.lines.push({ name: clean(tds[0].textContent), spec: clean(tds[1].textContent), qty: clean(tds[2].textContent).replace(/^×\s*/,''), amount: clean(tds[tds.length-1].textContent) });
+    });
+  }catch(e){}
+  return out;
+}
 function bfAddRecordToFactorPlus(rec, sourceLabel, discountAmount, itemsList){
   if(!rec){ alert('ابتدا مشخصات و قیمت را کامل کنید.'); return; }
   const companyName = (rec.customerName && rec.customerName!=='—') ? rec.customerName : '';
@@ -6509,7 +6686,16 @@ function bfAddRecordToFactorPlus(rec, sourceLabel, discountAmount, itemsList){
   const projectName = (rec.customerProject && rec.customerProject!=='—') ? rec.customerProject : '';
   const stripHtml = s => String(s||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
   const rows = Array.isArray(itemsList) ? itemsList
-    .map(it=>({ description: (stripHtml(bfPrintTitle(it)) + (bfPrintSpec(it) && stripHtml(bfPrintSpec(it))!=='—' ? ' — ' + stripHtml(bfPrintSpec(it)) : '')).trim(), total: (Number(it.unitPrice)||0) * (Number(it.qty)||0) }))
+    .map(it=>{
+      const fullTitle = stripHtml(bfPrintTitle(it));
+      const isSingle = /تکی/.test(sourceLabel||'');
+      // [FPX] سفارش تکی: سرفصل فقط نوع کالا + «(تکی)»؛ نام کامل کالا زیر آن
+      const KIND_FA = { jack:'جک', pu:'پاوریونیت', rupture:'رپچر', fitting:'اتصالات (مغزی)', oil:'روغن هیدرولیک', oilpipe:'لوله روغن', hose:'شلنگ', karasling:'کاراسلینگ', valveacc:'شیر / متعلقات', chrome:'روکش کروم جک', flow:'فلو کنترل', drymotor:'موتور خشک', extra:'قلم اضافه' };
+      const shortT = isSingle ? ((KIND_FA[it.kind] || fullTitle) + ' (تکی)') : fullTitle;
+      return { description: (fullTitle + (bfPrintSpec(it) && stripHtml(bfPrintSpec(it))!=='—' ? ' — ' + stripHtml(bfPrintSpec(it)) : '')).trim(), total: (Number(it.unitPrice)||0) * (Number(it.qty)||0),
+        qty: Number(it.qty)||1, kind: it.kind, title: shortT, subtitle: isSingle ? fullTitle : '',
+        specs: (bfPrintSpec(it) && stripHtml(bfPrintSpec(it))!=='—') ? stripHtml(bfPrintSpec(it)).split(/\s*[·|]\s*/).filter(Boolean).map(v=>({ k:'', v })) : [] };
+    })
     .filter(it=> it.description) : [];
   const desc = rows.length ? '' : (sourceLabel + ' — ' + (rec.jackSpec || '—'));
   const dAmt = Number(discountAmount) || 0;
@@ -6520,16 +6706,29 @@ function bfAddRecordToFactorPlus(rec, sourceLabel, discountAmount, itemsList){
   const rawRowsTotal = rows.reduce((s,it)=>s+it.total,0);
   const extra = preDiscountTotal - rawRowsTotal;
   const itemsForFP = rows.length ? rows.map(it=>({
-    description: it.description,
+    description: it.description, qty: it.qty, title: it.title, subtitle: it.subtitle, specs: it.specs,
     total: it.total + (rawRowsTotal>0 ? (it.total/rawRowsTotal)*extra : (extra/(rows.length||1)))
   })) : undefined;
+  // [FPX] مشخصات فنی پروژه (نفرات، وزن بار، سرعت، حداکثر وزن سر جک، حداکثر طول مسیر حرکت) کنار همان محصول
+  try{
+    if(itemsForFP && itemsForFP.length){
+      const projSpecs = bfFpExtractSheet('<table class="ps-project-table"><tbody>' + bfManualSpecRowsHtml(rec) + '</tbody></table>').specs;
+      if(projSpecs.length){
+        const targets = rows.map((r,i)=> r.kind==='jack' ? i : -1).filter(i=> i>=0);
+        (targets.length ? targets : [0]).forEach(i=>{ itemsForFP[i].specs = projSpecs.concat(itemsForFP[i].specs || []); });
+      }
+    }
+  }catch(e){}
   const payload = {
     __behfarazFactorPlusAdd: true,
     sourceType: 'shakib', sourceLabel, sourceIcon: '🔧',
     companyName, projectName, description: desc, items: itemsForFP, qty: 1,
-    total: preDiscountTotal, discount: effectivePct
+    total: preDiscountTotal, discount: effectivePct,
+    official: !!rec.isOfficial,
+    snap: (function(){ try{ const c = JSON.parse(JSON.stringify(rec)); delete c.invoiceHtml; return c; }catch(e){ return null; } })()
   };
   try{
+    if(window.__bfFpCapture){ window.__bfFpCapture(payload); return; }
     if(window.parent && window.parent !== window){ window.parent.postMessage(payload, '*'); bfToast('➕ به فاکتور پلاس افزوده شد', 'ok'); }
     else alert('این ابزار باید از داخل «صفحه اصلی بهفراز» باز شود تا افزودن به فاکتور پلاس کار کند.');
   }catch(e){}
@@ -6542,7 +6741,8 @@ btnSingleBackPrint.addEventListener('click', ()=>{
   bfPrintBackGeneric({
     title: 'پشت برگ سفارش تکی شکیب (' + items.length + ' قلم)',
     items, base, discountPct, discountAmount, isOfficial, vatAmount, finalTotal,
-    customer: { name: rec.customerName, project: rec.customerProject, address: rec.customerAddress, phone: rec.customerPhone }
+    customer: { name: rec.customerName, project: rec.customerProject, address: rec.customerAddress, phone: rec.customerPhone },
+    extraSpecRows: bfManualSpecRowsHtml(rec)
   });
 });
 btnSingleFactorPlus.addEventListener('click', ()=>{
@@ -6836,10 +7036,10 @@ function renderManualResult(){
 
 // ===================== «سفارش کاملا دستی» — همان جدول نتیجه (نفرات/وزن + تعداد اقلام) + «اقلام تکمیلی» =====================
 // تعداد نفرات و حداکثر وزن وارد بر سر جک فقط اطلاعاتی‌اند (قیمت ندارند)؛ بقیهٔ تعدادها با ستون «تعداد» جدول قیمت‌گذاری دوطرفه هم‌گام‌اند.
-let manQtyExtra = { persons:null, staticCap:null };
+let manQtyExtra = { persons:null, staticCap:null, speed:null, maxTravel:null };
 
 function bfManualResetExtras(){
-  manQtyExtra = { persons:null, staticCap:null };
+  manQtyExtra = { persons:null, staticCap:null, speed:null, maxTravel:null };
   chromeInclude = false; chromeMeters = null; chromeMetersManual = false;
   hoseProduct = ''; hoseSize = ''; hoseMeters = null;
   karaslingCompany = ''; karaslingGroupKey = ''; karaslingRailOpening = ''; karaslingRailSize = ''; karaslingColumnMode = '';
@@ -6849,7 +7049,9 @@ function bfManualResetExtras(){
 function bfApplyManualExtras(sel){
   manQtyExtra = {
     persons: sel.persons!=null ? sel.persons : null,
-    staticCap: sel.staticCap!=null ? sel.staticCap : null
+    staticCap: sel.staticCap!=null ? sel.staticCap : null,
+    speed: sel.speed!=null ? sel.speed : null,
+    maxTravel: sel.maxTravel!=null ? sel.maxTravel : null
   };
   const e = sel.extras;
   if(!e) return;
@@ -6921,7 +7123,7 @@ function bfManualExtraItems(){
   const kTotal = karaslingCostCalc();
   if(kRow && kTotal>0){
     out.push({ kind:'karasling', title:'کاراسلینگ',
-               spec:(kRow.company==='110' ? 'مدل 110' : kRow.company) + (kRow.model ? ' · ' + kRow.model : '') + ' · ظرفیت ' + kRow.capacity + ' · دهانه ریل ' + karaslingRailOpening + ' · سایز ریل ' + karaslingRailSize + karaslingColumnTxt(kRow),
+               spec:(kRow.company==='110' ? 'مدل 110' : kRow.company) + (kRow.model ? ' · ' + kRow.model : '') + ' · ظرفیت ' + kRow.capacity + ' · دهانه ریل ' + karaslingRailOpening + ' · سایز ریل ' + karaslingRailSize + karaslingColumnTxt(kRow) + karaslingPitTxt(kRow),
                unitPrice: kTotal, qty: 1 });
   }
   return out;
@@ -6972,7 +7174,8 @@ function renderManualSpecResult(){
     </div>
 
     <div class="specs">
-      <div class="spec"><div class="k">حداکثر طول تراول</div><div class="v numlt">${lenTxt}</div></div>
+      <div class="spec"><div class="k">حداکثر طول مسیر حرکت</div><div class="v numlt">${ (manQtyExtra.maxTravel!=null && manQtyExtra.maxTravel!=='') ? (fmt(Number(manQtyExtra.maxTravel)||0) + ' mm') : '<span class="fa" style="color:#d21f1f;font-size:.85em;">— در باکس «تعداد اقلام» دستی وارد کنید</span>' }</div></div>
+      <div class="spec"><div class="k">سرعت حرکت کابین</div><div class="v numlt">${ (manQtyExtra.speed!=null && manQtyExtra.speed!=='') ? (manQtyExtra.speed + ' m/s') : '—' }</div></div>
       <div class="spec spec-jp"><div class="k">🔩 سایز جک</div><div class="v numlt">${bfSizeDisp(r) || '—'}</div></div>
       <div class="spec spec-jp"><div class="k">⚡ مشخصات پاوریونیت</div><div class="v numlt">${puSpec || '—'}</div></div>
     </div>
@@ -6984,6 +7187,8 @@ function renderManualSpecResult(){
       <div class="qty-item acc-item"><label>تعداد پکیج رپچر (رپچر + شلنگ تخلیه روغن و زانویی)</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="manQtyRuptureInput" value="${dv('manQtyRuptureInput', manRuptureQty.value)}"></div>
       <div class="qty-item acc-item"><label>تعداد نفرات</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="manQtyPersonsInput" value="${dv('manQtyPersonsInput', persons!=null ? persons : '')}"></div>
       <div class="qty-item acc-item"><label>حداکثر وزن وارد بر سر جک (kg)</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="manQtyStaticCapInput" value="${dv('manQtyStaticCapInput', cap!=null ? cap : '')}"></div>
+      <div class="qty-item acc-item"><label>حداکثر طول مسیر حرکت (mm)</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="manQtyMaxTravelInput" placeholder="دستی" value="${dv('manQtyMaxTravelInput', manQtyExtra.maxTravel!=null ? manQtyExtra.maxTravel : '')}"></div>
+      <div class="qty-item acc-item"><label>سرعت حرکت (m/s)</label><input type="text" inputmode="decimal" lang="en" dir="ltr" id="manQtySpeedInput" value="${dv('manQtySpeedInput', manQtyExtra.speed!=null ? manQtyExtra.speed : '')}"></div>
     </div>
 
     <details class="extra-details" id="bfExtraDetails" ${bfExtraOpen?'open':''}>
@@ -7015,6 +7220,10 @@ function renderManualSpecResult(){
     });
   });
   // نفرات و حداکثر وزن (اطلاعاتی)
+  { const tv = host.querySelector('#manQtyMaxTravelInput');
+    if(tv) tv.addEventListener('input', ()=>{ tv.value = tv.value.replace(/[^0-9]/g, ''); manQtyExtra.maxTravel = tv.value==='' ? null : Number(tv.value); renderManualSpecResult(); }); }
+  { const sp = host.querySelector('#manQtySpeedInput');
+    if(sp) sp.addEventListener('input', ()=>{ let v = sp.value.replace(/[^0-9.]/g, ''); const i = v.indexOf('.'); if(i>=0) v = v.slice(0,i+1) + v.slice(i+1).replace(/\./g,''); sp.value = v; manQtyExtra.speed = v==='' ? null : v; renderManualSpecResult(); }); }
   [['manQtyPersonsInput', 'persons'], ['manQtyStaticCapInput', 'staticCap']].forEach(([id, key])=>{
     const el = host.querySelector('#'+id);
     if(!el) return;
@@ -7113,7 +7322,7 @@ function bfSnapshotManualSelection(){
     ruptureNote: manRuptureNote.value, flowNote: manFlowNote.value, extraNote: manExtraNote.value,
     extraPrice: manExtraPrice.value, extraQty: manExtraQty.value,
     discountPct: manualDiscountInput.value, isOfficial: manualOfficialToggle.checked,
-    persons: manQtyExtra.persons, staticCap: manQtyExtra.staticCap,
+    persons: manQtyExtra.persons, staticCap: manQtyExtra.staticCap, speed: manQtyExtra.speed, maxTravel: manQtyExtra.maxTravel,
     addedItems: manualAdded.map(it=>({ ...it })),
     bfxItems: (typeof bfxManualItems!=='undefined' ? bfxManualItems : []).map(it=>({ ...it })),
     extras: {
@@ -7130,6 +7339,9 @@ function bfManualSpecRowsHtml(o){
   if(!o) return '';
   const rows = [];
   if(o.persons!=null && o.persons!=='') rows.push('<tr><th>تعداد نفرات</th><td class="numlt">' + o.persons + '</td></tr>');
+  if(o.loadKg!=null && o.loadKg!=='') rows.push('<tr><th>وزن بار</th><td class="numlt">' + o.loadKg + ' kg</td></tr>');
+  if(o.singleSpeed!=null && o.singleSpeed!=='') rows.push('<tr><th>سرعت</th><td class="numlt">' + o.singleSpeed + ' m/s</td></tr>');
+  if(o.maxTravel!=null && o.maxTravel!=='') rows.push('<tr><th>حداکثر طول مسیر حرکت</th><td class="numlt">' + fmt(Number(o.maxTravel)||0) + ' mm</td></tr>');
   if(o.staticLoad!=null && o.staticLoad!=='') rows.push('<tr><th>حداکثر وزن وارد بر سر جک</th><td class="numlt">' + o.staticLoad + ' kg</td></tr>');
   return rows.join('');
 }
@@ -7158,6 +7370,8 @@ function bfBuildManualOrderRecord(){
     invoiceNo: bfGetInvoiceNo(),
     persons: (manQtyExtra.persons!=null ? manQtyExtra.persons : ''),
     staticLoad: (manQtyExtra.staticCap!=null ? manQtyExtra.staticCap : ''),
+    singleSpeed: (manQtyExtra.speed!=null ? manQtyExtra.speed : ''),
+    maxTravel: (manQtyExtra.maxTravel!=null ? manQtyExtra.maxTravel : ''),
     manualSelection: bfSnapshotManualSelection(),
     _manualItems: items.map(it=>({ kind:it.kind, title:it.title, spec:it.spec, unitPrice:it.unitPrice, qty:it.qty }))
   };
@@ -7212,6 +7426,7 @@ btnManualPrint.addEventListener('click', ()=>{
       ${discountPct>0 ? `<div><span>تخفیف (<span class="numlt">${discountPct}</span>٪)</span><span class="numlt">−${fmt(discountAmount)} ریال</span></div>` : ''}
       <div class="grand"><span>مبلغ نهایی قابل پرداخت</span><span class="numlt">${fmt(finalTotal)} ریال</span></div>
     </div>
+    ${shkTaxNoteHtml(isOfficial)}
     ${rec.note ? `<div class="ps-note"><div class="ps-note-title">توضیحات</div>${rec.note.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>` : ''}
     <div class="ps-foot">
       لطفا پیش از تایید نهایی سفارش، نسبت به بررسی دقیق ابعاد و مشخصات کالای درج شده در فاکتور اقدام نمایید تا از هرگونه مغایرت با مشخصات پروژه جلوگیری شود<br>
@@ -7456,11 +7671,9 @@ function bfShowOperatorBadge(){
     // پیش از چاپ: متن بج به «عنوان سازمانی» (نه نام واقعی) تغییر می‌کند؛ اگر عنوانی برای این نام
     // تعریف نشده باشد، بج در چاپ اصلاً نمایش داده نمی‌شود. بعد از چاپ، نام واقعی برمی‌گردد.
     window.addEventListener('beforeprint', function(){
-      const cur = bfGetOperator();
-      const label = bfOperatorPrintLabel(cur ? cur.name : '');
+      // به درخواست: هیچ نام/عنوان کاربری (مدیر فروش، واحد فروش و ...) در هیچ چاپی (پیش‌فاکتور و پشت برگ) نمایش داده نمی‌شود
       badge.dataset.onscreenText = badge.textContent;
-      if(label){ badge.textContent = '👤 ' + label; badge.style.visibility = 'visible'; }
-      else{ badge.textContent = ''; badge.style.visibility = 'hidden'; }
+      badge.textContent = ''; badge.style.visibility = 'hidden';
     });
     window.addEventListener('afterprint', function(){
       if(badge.dataset.onscreenText != null) badge.textContent = badge.dataset.onscreenText;
@@ -7625,9 +7838,21 @@ function bfAddToFactorPlus(){
     __behfarazFactorPlusAdd: true,
     sourceType: 'shakib', sourceLabel: 'جک و پاوریونیت شکیب', sourceIcon: '🔧',
     companyName, projectName, description: desc, qty: 1,
-    total: preDiscountTotal, discount: effectivePct
+    total: preDiscountTotal, discount: effectivePct,
+    official: !!(calc ? calc.isOfficial : rec.isOfficial),
+    snap: (function(){ try{ const c = JSON.parse(JSON.stringify(rec)); delete c.invoiceHtml; return c; }catch(e){ return null; } })()
   };
+  // [FPX] مشخصات کامل پروژه + ریز اقلام، عیناً از همان پیش‌فاکتور چاپی شکیب
   try{
+    if(calc){
+      const fx = bfFpExtractSheet(bfBuildQuickSheetHtml(calc, {}));
+      payload.title = 'ست جک و پاوریونیت شکیب';
+      payload.subtitle = r0 ? ('سایز جک ' + bfSizeDisp(r0)) : '';
+      payload.specs = fx.specs; payload.lines = fx.lines;
+    }
+  }catch(e){}
+  try{
+    if(window.__bfFpCapture){ window.__bfFpCapture(payload); return; }
     if(window.parent && window.parent !== window){ window.parent.postMessage(payload, '*'); bfToast('➕ به فاکتور پلاس افزوده شد', 'ok'); }
     else alert('این ابزار باید از داخل «صفحه اصلی بهفراز» باز شود تا افزودن به فاکتور پلاس کار کند.');
   }catch(e){}
@@ -7638,10 +7863,10 @@ function bfSnapshotShakibSelection(){
   return {
     calcMode: calcMode,
     customSel: calcMode==='custom' ? { dia: customSel.dia, length: customSel.length, kw: customSel.kw, puIdx: customSel.puIdx, pumpVal: customSel.pumpVal } : null,
-    byJackSel: calcMode==='byjack' ? { type: byJackSel.type, dia: byJackSel.dia, variantIdx: byJackSel.variantIdx, length: byJackSel.length, kw: byJackSel.kw, puIdx: byJackSel.puIdx, pumpVal: byJackSel.pumpVal, stageCount: byJackSel.stageCount, stageKey: byJackSel.stageKey, rangeIdx: byJackSel.rangeIdx } : null,
+    byJackSel: (calcMode==='byjack' || calcMode==='custom') ? { type: byJackSel.type, dia: byJackSel.dia, variantIdx: byJackSel.variantIdx, length: byJackSel.length, kw: byJackSel.kw, puIdx: byJackSel.puIdx, pumpVal: byJackSel.pumpVal, stageCount: byJackSel.stageCount, stageKey: byJackSel.stageKey, rangeIdx: byJackSel.rangeIdx } : null,
     techSel: calcMode==='technical' ? { load: techSel.load, travel: techSel.travel, optIdx: techSel.optIdx } : null,
     floor: state.floor, cap: state.cap, travel: state.travel, valve: state.valve,
-    qty: { jack: qty.jack, pu: qty.pu, fitting: qty.fitting, rupturePkg: qty.rupturePkg, staticCap: qty.staticCap, staticPersons: qty.staticPersons, speed: qty.speed },
+    qty: { jack: qty.jack, pu: qty.pu, fitting: qty.fitting, rupturePkg: qty.rupturePkg, staticCap: qty.staticCap, staticPersons: qty.staticPersons, speed: qty.speed, maxTravel: qty.maxTravel },
     priceOverride: Object.assign({}, priceOverride),
     ruptureOverride: ruptureOverride ? { ...ruptureOverride } : null,
     puBoost: { quick: bfPuBoost.quick, technical: bfPuBoost.technical, custom: bfPuBoost.custom, byjack: bfPuBoost.byjack },
@@ -7676,7 +7901,7 @@ function bfBuildShakibRecord(){
     dateStr: now.toLocaleDateString('fa-IR') + ' ' + now.toLocaleTimeString('fa-IR'),
     customerName: name, customerProject: project, customerAddress: address, customerPhone: phone, customerType: bfGetCustomerType(),
     note, isOfficial, jackSpec: sizeLabel, floor: state.floor, total: finalTotal,
-    pipeSize: r.pipeSize, valveName, persons: effectivePersons(c), kg: effectiveKg(c), staticLoad: effectiveStaticLoad(c, r), travel: shownTravel(r), speed: effectiveSpeed(r), current: r.current,
+    pipeSize: r.pipeSize, valveName, persons: effectivePersons(c), kg: effectiveKg(c), staticLoad: effectiveStaticLoad(c, r), travel: shownTravel(r), maxTravel: effectiveMaxTravel(r), speed: effectiveSpeed(r), current: r.current,
     chromeInclude: chromeInclude, chromeMeters: chromeMeters, chromeCost: calc.chromeCost||0,
     selection: bfSnapshotShakibSelection(),
     createdByOperator: (bfGetOperator()||{}).name || '',
@@ -7720,27 +7945,8 @@ function bfSaveShakibInvoice(silent){
 const __bfOrig_b = bfSaveShakibInvoice;
 bfSaveShakibInvoice = function(){ const __rec = bfBuildShakibRecord(); const __b = JSON.stringify(bfLoadOrders(BF_SHAKIB_ORDERS_KEY).map(o=>o.id+':'+(o.editCount||0))); const __r = __bfOrig_b.apply(this, arguments); if(JSON.stringify(bfLoadOrders(BF_SHAKIB_ORDERS_KEY).map(o=>o.id+':'+(o.editCount||0))) !== __b) bfMarkSaved(__rec); return __r; };
 /* بارگذاری یک سفارش قبلی برای ویرایش (از داشبورد صفحه اصلی) */
-/* بازسازی خودکار «همان ترکیب فنی قبلی» روی فرم، هنگام ویرایش یک سفارش ذخیره‌شده.
-   کاربر دیگر لازم نیست همه گزینه‌ها را از نو انتخاب کند؛ فقط همان موردی که می‌خواهد را عوض می‌کند. */
-function bfRestoreShakibSelection(o){
-  const sel = o && o.selection;
-  if(!sel) return false; // سفارش‌های قدیمی‌تر این عکس فوری را ندارند
-
-  const fire = el => { if(el) el.dispatchEvent(new Event('change')); };
-
-  if(sel.calcMode==='custom' && sel.customSel){
-    switchCalcMode('custom');
-    switchSubOrderMode('set'); // اگر قبلاً روی «سفارش تکی/دستی» بودیم، به «ست کامل» برگرد
-    const cs = sel.customSel;
-    if(cs.dia!=null){ selCustomDia.value = String(cs.dia); fire(selCustomDia); }
-    if(cs.length!=null){ selCustomLength.value = String(cs.length); fire(selCustomLength); }
-    if(cs.kw!=null){ selCustomKw.value = String(cs.kw); fire(selCustomKw); }
-    if(cs.puIdx!=null){ selCustomPump.value = String(cs.puIdx) + ':' + String(cs.pumpVal!=null ? cs.pumpVal : (customPuOptions[cs.puIdx] ? customPuOptions[cs.puIdx].pumps[0] : '')); fire(selCustomPump); }
-    if(sel.valve==='shakib') btnCustomShakib.click();
-    else if(sel.valve==='belin') btnCustomBelin.click();
-  } else if(sel.calcMode==='byjack' && sel.byJackSel){
-    switchCalcMode('byjack');
-    const bs = sel.byJackSel;
+/* بازگردانی کنترل‌های «نوع جک ← قطر ← کورس ← پاور ← شیر» (مشترک: «ست کامل» و «سفارش بر اساس جک») */
+function bfRestoreByJackControls(bs, sel, fire){
     if(bs.type==='direct') btnByJackDirect.click();
     else if(bs.type==='indirect') btnByJackIndirect.click();
     else if(bs.type==='stage'){
@@ -7754,6 +7960,32 @@ function bfRestoreShakibSelection(o){
     if(bs.puIdx!=null){ selByJackPump.value = String(bs.puIdx) + ':' + String(bs.pumpVal!=null ? bs.pumpVal : (byJackPuOptions[bs.puIdx] ? byJackPuOptions[bs.puIdx].pumps[0] : '')); fire(selByJackPump); }
     if(sel.valve==='shakib') btnByJackShakib.click();
     else if(sel.valve==='belin') btnByJackBelin.click();
+}
+/* بازسازی خودکار «همان ترکیب فنی قبلی» روی فرم، هنگام ویرایش یک سفارش ذخیره‌شده.
+   کاربر دیگر لازم نیست همه گزینه‌ها را از نو انتخاب کند؛ فقط همان موردی که می‌خواهد را عوض می‌کند. */
+function bfRestoreShakibSelection(o){
+  const sel = o && o.selection;
+  if(!sel) return false; // سفارش‌های قدیمی‌تر این عکس فوری را ندارند
+
+  const fire = el => { if(el) el.dispatchEvent(new Event('change')); };
+
+  if(sel.calcMode==='custom' && (sel.customSel || sel.byJackSel)){
+    switchCalcMode('custom');
+    switchSubOrderMode('set'); // اگر قبلاً روی «سفارش تکی/دستی» بودیم، به «ست کامل» برگرد
+    bfResetByJackForm();
+    let bs = (sel.byJackSel && sel.byJackSel.type) ? sel.byJackSel : null;
+    if(!bs && sel.customSel && sel.customSel.dia!=null){
+      // سفارش‌های قدیمی «ست کامل» (بدون نوع جک) از لیست غیرمستقیم بودند → به «غیرمستقیم» با همان قطر/کورس نگاشت می‌شوند
+      const cs = sel.customSel;
+      const vars = getByJackVariants(cs.dia);
+      let vi = vars.findIndex(v => v.indirect && cs.length!=null && v.indirect[cs.length]!=null);
+      if(vi<0) vi = vars.findIndex(v => !!v.indirect);
+      bs = { type:'indirect', dia: cs.dia, variantIdx: vi<0 ? 0 : vi, length: cs.length, kw: cs.kw, puIdx: cs.puIdx, pumpVal: cs.pumpVal };
+    }
+    if(bs) bfRestoreByJackControls(bs, sel, fire);
+  } else if(sel.calcMode==='byjack' && sel.byJackSel){
+    switchCalcMode('byjack');
+    bfRestoreByJackControls(sel.byJackSel, sel, fire);
   } else if(sel.calcMode==='technical'){
     // تب «🛠 محاسبه فنی (بر اساس جدول پاور)»: قبلاً این حالت مثل «محاسبه سریع» بازیابی می‌شد (طبقه/ظرفیت/کورس)
     // و هیچ‌کدام از انتخاب‌های فنی (نفرات ← تراول ← سرعت/پاور ← شیر) لود نمی‌شد.
@@ -7791,7 +8023,7 @@ function bfRestoreShakibSelection(o){
   }
 
   if(sel.puBoost){ bfPuBoost = { quick: sel.puBoost.quick || null, technical: sel.puBoost.technical || null, custom: sel.puBoost.custom || null, byjack: sel.puBoost.byjack || null }; try{ updateResult(); }catch(e){} }
-  if(sel.qty){ qty.jack = sel.qty.jack||1; qty.pu = sel.qty.pu||1; qty.fitting = sel.qty.fitting!=null ? sel.qty.fitting : 3; qty.rupturePkg = sel.qty.rupturePkg||1; qty.staticCap = sel.qty.staticCap!=null ? sel.qty.staticCap : null; qty.staticPersons = sel.qty.staticPersons!=null ? sel.qty.staticPersons : null; qty.speed = sel.qty.speed!=null ? sel.qty.speed : null; }
+  if(sel.qty){ qty.jack = sel.qty.jack||1; qty.pu = sel.qty.pu||1; qty.fitting = sel.qty.fitting!=null ? sel.qty.fitting : 3; qty.rupturePkg = sel.qty.rupturePkg||1; qty.staticCap = sel.qty.staticCap!=null ? sel.qty.staticCap : null; qty.staticPersons = sel.qty.staticPersons!=null ? sel.qty.staticPersons : null; qty.speed = sel.qty.speed!=null ? sel.qty.speed : null; qty.maxTravel = sel.qty.maxTravel!=null ? sel.qty.maxTravel : null; }
   if(sel.priceOverride) Object.assign(priceOverride, sel.priceOverride);
   ruptureOverride = sel.ruptureOverride ? { ...sel.ruptureOverride } : null;
   if(sel.qty && sel.qty.fitting!=null){ bfFitRupKey = null; bfFitHold = true; }   // [BF-FIT] تعداد اتصالات ثبت‌شده حفظ شود
@@ -7836,7 +8068,7 @@ function bfRestoreSingleItemOrder(o){
   singleCart = (o._manualItems||[]).map(it=>({ ...it }));
   singleDiscountInput.value = o.discountPct || 0;
   singleOfficialToggle.checked = !!o.isOfficial;
-  singleExtra = { persons: (o.persons!=null ? String(o.persons) : ''), staticCap: (o.staticLoad!=null ? String(o.staticLoad) : ''), note: o.extraNote || '' };
+  singleExtra = { persons: (o.persons!=null ? String(o.persons) : ''), staticCap: (o.staticLoad!=null ? String(o.staticLoad) : ''), note: o.extraNote || '', loadKg: (o.loadKg!=null ? String(o.loadKg) : ''), speed: (o.singleSpeed!=null ? String(o.singleSpeed) : ''), maxTravel: (o.maxTravel!=null ? String(o.maxTravel) : '') };
   renderSingleResult();
   return singleCart.length>0;
 }
@@ -8153,6 +8385,7 @@ function bfBuildQuickSheetHtml(calc, ov){
   const projectSpecRows = isCustom
     ? `<tr><th>${bfJackDiaK(r)}</th><td class="numlt">${bfJackDiaV(r)}</td></tr>
        <tr><th>طول جک (کورس)</th><td class="numlt">${fmt(shownTravel(r))} mm</td></tr>
+       ${ effectiveMaxTravel(r)!=null ? `<tr><th>حداکثر طول مسیر حرکت</th><td class="numlt">${fmt(effectiveMaxTravel(r))} mm</td></tr>` : '' }
        ${ (effectivePersons(c)!=='' && effectivePersons(c)!=null) ? `<tr><th>تعداد نفرات</th><td class="numlt">${effectivePersons(c)}</td></tr>` : '' }
        ${ (effectiveStaticLoad(c, r)!=='' && effectiveStaticLoad(c, r)!=null) ? `<tr><th>حداکثر وزن وارد بر سر جک</th><td class="numlt">${effectiveStaticLoad(c, r)} kg</td></tr>` : '' }
        ${ (qty.speed!=null && qty.speed!=='') ? `<tr><th>سرعت حرکت کابین</th><td class="numlt">${qty.speed} m/s</td></tr>` : '' }
@@ -8234,7 +8467,7 @@ function bfBuildQuickSheetHtml(calc, ov){
         <tr class="ps-sub-row"><td colspan="3"><b>قیمت نهایی</b></td><td class="num numlt"><b>${fmt(mainAfterDiscount)}</b></td></tr>
 
         ${ hoseRowPrint && hoseCost>0 ? `<tr><td>شلنگ</td><td>${hoseRowPrint.product} · سایز <span class="numlt">${hoseRowPrint.size}</span>" · ${hoseRowPrint.fitting} · قیمت واحد <span class="numlt">${fmt(hoseRowPrint.price)}</span> ریال/متر</td><td class="num numlt">×${hoseMeters!=null?hoseMeters:0}m</td><td class="num">${fmt(hoseCost)}</td></tr>` : '' }
-        ${ karaslingRowPrint && karaslingCost>0 ? `<tr><td>کاراسلینگ</td><td>${karaslingRowPrint.company==='110'?'مدل 110':karaslingRowPrint.company}${karaslingRowPrint.model?' · '+karaslingRowPrint.model:''} · ظرفیت <span class="numlt">${karaslingRowPrint.capacity}</span> · دهانه ریل <span class="numlt">${karaslingRailOpening}</span> · سایز ریل <span class="numlt">${karaslingRailSize}</span>${karaslingColumnTxt(karaslingRowPrint)} · عرض <span class="numlt">${karaslingRowPrint.width}</span>mm · ضخامت <span class="numlt">${karaslingRowPrint.thickness}</span>mm · پیت <span class="numlt">${karaslingRowPrint.pit}</span>cm</td><td class="num numlt">×1</td><td class="num">${fmt(karaslingCost)}</td></tr>` : '' }
+        ${ karaslingRowPrint && karaslingCost>0 ? `<tr><td>کاراسلینگ</td><td>${karaslingRowPrint.company==='110'?'مدل 110':karaslingRowPrint.company}${karaslingRowPrint.model?' · '+karaslingRowPrint.model:''} · ظرفیت <span class="numlt">${karaslingRowPrint.capacity}</span> · دهانه ریل <span class="numlt">${karaslingRailOpening}</span> · سایز ریل <span class="numlt">${karaslingRailSize}</span>${karaslingColumnTxt(karaslingRowPrint)} · عرض <span class="numlt">${karaslingRowPrint.width}</span>mm · ضخامت <span class="numlt">${karaslingRowPrint.thickness}</span>mm · پیت <span class="numlt">${karaslingRowPrint.pit}</span>cm${karaslingRowPrint.overhead?` · اورهد <span class="numlt">${karaslingRowPrint.overhead}</span>cm`:''}</td><td class="num numlt">×1</td><td class="num">${fmt(karaslingCost)}</td></tr>` : '' }
         ${ (()=>{
           const oCostRow = oilCost(r, puQty);
           const oil = computeOil(r);
@@ -8256,6 +8489,7 @@ function bfBuildQuickSheetHtml(calc, ov){
       <div class="grand"><span>مبلغ نهایی قابل پرداخت</span><span class="numlt">${fmt(finalTotal)} ریال</span></div>
     </div>
 
+    ${shkTaxNoteHtml(isOfficial)}
     ${note ? `<div class="ps-note"><div class="ps-note-title">توضیحات</div>${note.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>` : ''}
 
     <div style="text-align:right; color:#123a5c; font-weight:700; font-size:.8rem; margin:2px 0 4px; line-height:1.9;">این محصول از ${shkToFaDigits(warrantyTxt)} سال گارانتی معتبر برخوردار است و شرایط و ضوابط آن مطابق با مفاد مندرج در کارت گارانتی اصلی می‌باشد.</div>
@@ -8308,6 +8542,7 @@ printBackBtn.addEventListener('click', ()=>{
   const projectSpecRowsBack = isCustom
     ? `<tr><th>${bfJackDiaK(r)}</th><td class="numlt">${bfJackDiaV(r)}</td></tr>
        <tr><th>طول جک (کورس)</th><td class="numlt">${fmt(shownTravel(r))} mm</td></tr>
+       ${ effectiveMaxTravel(r)!=null ? `<tr><th>حداکثر طول مسیر حرکت</th><td class="numlt">${fmt(effectiveMaxTravel(r))} mm</td></tr>` : '' }
        ${ (effectivePersons(c)!=='' && effectivePersons(c)!=null) ? `<tr><th>تعداد نفرات</th><td class="numlt">${effectivePersons(c)}</td></tr>` : '' }
        ${ (effectiveStaticLoad(c, r)!=='' && effectiveStaticLoad(c, r)!=null) ? `<tr><th>حداکثر وزن وارد بر سر جک</th><td class="numlt">${effectiveStaticLoad(c, r)} kg</td></tr>` : '' }
        ${ (qty.speed!=null && qty.speed!=='') ? `<tr><th>سرعت حرکت کابین</th><td class="numlt">${qty.speed} m/s</td></tr>` : '' }
@@ -8383,7 +8618,7 @@ printBackBtn.addEventListener('click', ()=>{
         ${ chromeCost>0 ? `<tr><td>روکش کروم جک (آبکاری)</td><td>سایز جک <span class="numlt">Ø${chromeDia}</span> · قیمت واحد <span class="numlt">${fmt(bfChromePriceRate(chromeDia)||0)}</span> ریال/متر</td><td class="num numlt">×${chromeMeters}m</td><td class="num">${fmt(chromeCost)}</td></tr>` : '' }
         ${ fittingQty>0 ? `<tr><td>اتصالات (مغزی)</td><td>قطعات اصلی جک · قیمت واحد <span class="numlt">${fmt(FITTING_UNIT_PRICE)}</span> ریال</td><td class="num numlt">×${fittingQty}</td><td class="num">${fmt(fittingCost)}</td></tr>` : '' }
         ${ hoseRowPrint && hoseCost>0 ? `<tr><td>شلنگ</td><td>${hoseRowPrint.product} · سایز <span class="numlt">${hoseRowPrint.size}</span>" · ${hoseRowPrint.fitting} · قیمت واحد <span class="numlt">${fmt(hoseRowPrint.price)}</span> ریال/متر</td><td class="num numlt">×${hoseMeters!=null?hoseMeters:0}m</td><td class="num">${fmt(hoseCost)}</td></tr>` : '' }
-        ${ karaslingRowPrint && karaslingCost>0 ? `<tr><td>کاراسلینگ</td><td>${karaslingRowPrint.company==='110'?'مدل 110':karaslingRowPrint.company}${karaslingRowPrint.model?' · '+karaslingRowPrint.model:''} · ظرفیت <span class="numlt">${karaslingRowPrint.capacity}</span> · دهانه ریل <span class="numlt">${karaslingRailOpening}</span> · سایز ریل <span class="numlt">${karaslingRailSize}</span>${karaslingColumnTxt(karaslingRowPrint)}</td><td class="num numlt">×1</td><td class="num">${fmt(karaslingCost)}</td></tr>` : '' }
+        ${ karaslingRowPrint && karaslingCost>0 ? `<tr><td>کاراسلینگ</td><td>${karaslingRowPrint.company==='110'?'مدل 110':karaslingRowPrint.company}${karaslingRowPrint.model?' · '+karaslingRowPrint.model:''} · ظرفیت <span class="numlt">${karaslingRowPrint.capacity}</span> · دهانه ریل <span class="numlt">${karaslingRailOpening}</span> · سایز ریل <span class="numlt">${karaslingRailSize}</span>${karaslingColumnTxt(karaslingRowPrint)}${karaslingPitTxt(karaslingRowPrint)}</td><td class="num numlt">×1</td><td class="num">${fmt(karaslingCost)}</td></tr>` : '' }
         ${ (()=>{
           const oCostRow = oilCost(r, puQty);
           const oil = computeOil(r);
@@ -8520,7 +8755,7 @@ function updateResult(){
     </div>
 
     <div class="specs">
-      <div class="spec"><div class="k">حداکثر طول تراول</div><div class="v numlt">${fmt(shownTravel(r))} mm</div></div>
+      <div class="spec"><div class="k">${ (r && r._custom) ? 'حداکثر طول مسیر حرکت' : 'حداکثر طول تراول' }</div><div class="v numlt">${ effectiveMaxTravel(r)!=null ? (fmt(effectiveMaxTravel(r)) + ' mm') : '<span class="fa" style="color:#d21f1f;font-size:.85em;">— تعریف نشده؛ در باکس «تعداد اقلام» دستی وارد کنید</span>' }</div></div>
       <div class="spec"><div class="k">سرعت حرکت کابین</div><div class="v numlt">${speedText(r)}</div></div>
       <div class="spec"><div class="k">جریان پاوریونیت</div><div class="v numlt">${r.current}</div></div>
       <div class="spec spec-jp"><div class="k">⚡ سایز پاوریونیت</div><div class="v numlt">${sizeLabel}</div></div>
@@ -8540,6 +8775,7 @@ function updateResult(){
       <div class="qty-item acc-item"><label>تعداد پکیج رپچر (رپچر + شلنگ تخلیه روغن و زانویی)</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="qtyRuptureInput" value="${bfQtyDisplayVal('qtyRuptureInput', ruptureQty)}"></div>
       <div class="qty-item acc-item"><label>تعداد نفرات</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="qtyPersonsInput" value="${bfQtyDisplayVal('qtyPersonsInput', capPersons)}"></div>
       ${ `<div class="qty-item acc-item"><label>حداکثر وزن وارد بر سر جک (kg)</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="qtyStaticCapInput" value="${bfQtyDisplayVal('qtyStaticCapInput', capKg)}"></div>` }
+      ${ (r && r._custom) ? `<div class="qty-item acc-item"><label>حداکثر طول مسیر حرکت (mm)</label><input type="text" inputmode="numeric" pattern="[0-9]*" lang="en" dir="ltr" id="qtyMaxTravelInput" placeholder="دستی" value="${bfQtyDisplayVal('qtyMaxTravelInput', (qty.maxTravel!=null ? qty.maxTravel : ''))}"></div>` : '' }
       ${ isCustom ? `<div class="qty-item acc-item"><label>سرعت حرکت (m/s)</label><input type="text" inputmode="decimal" lang="en" dir="ltr" id="qtySpeedInput" value="${bfQtyDisplayVal('qtySpeedInput', (qty.speed!=null ? qty.speed : ''))}"></div>` : '' }
     </div>
 
@@ -8606,7 +8842,7 @@ function updateResult(){
           <thead><tr><th>قلم</th><th>شرح</th><th>تعداد</th><th>قیمت (ریال)</th></tr></thead>
           <tbody>
             ${ hoseRow ? `<tr><td>شلنگ</td><td>${hoseRow.product} · سایز <span class="numlt">${hoseRow.size}</span>" · ${hoseRow.fitting} · قیمت واحد <span class="numlt">${fmt(hoseRow.price)}</span> ریال/متر</td><td class="num numlt">×${hoseMeters!=null?hoseMeters:0}m</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(hoseTotal)}</span><input type="text" class="price-edit-input numlt" id="priceEditHose" value="${fmt(hoseTotal)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>` : '' }
-            ${ karaslingRowLive && karaslingTotal>0 ? `<tr><td>کاراسلینگ</td><td>${karaslingRowLive.company==='110'?'مدل 110':karaslingRowLive.company}${karaslingRowLive.model?' · '+karaslingRowLive.model:''} · ظرفیت <span class="numlt">${karaslingRowLive.capacity}</span> · دهانه ریل <span class="numlt">${karaslingRailOpening}</span> · سایز ریل <span class="numlt">${karaslingRailSize}</span>${karaslingColumnTxt(karaslingRowLive)}</td><td class="num numlt">×1</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(karaslingTotal)}</span><input type="text" class="price-edit-input numlt" id="priceEditKarasling" value="${fmt(karaslingTotal)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>` : '' }
+            ${ karaslingRowLive && karaslingTotal>0 ? `<tr><td>کاراسلینگ</td><td>${karaslingRowLive.company==='110'?'مدل 110':karaslingRowLive.company}${karaslingRowLive.model?' · '+karaslingRowLive.model:''} · ظرفیت <span class="numlt">${karaslingRowLive.capacity}</span> · دهانه ریل <span class="numlt">${karaslingRailOpening}</span> · سایز ریل <span class="numlt">${karaslingRailSize}</span>${karaslingColumnTxt(karaslingRowLive)}${karaslingPitTxt(karaslingRowLive)}</td><td class="num numlt">×1</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(karaslingTotal)}</span><input type="text" class="price-edit-input numlt" id="priceEditKarasling" value="${fmt(karaslingTotal)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>` : '' }
             ${ oilInvoiceRow(r, puQty) }
             ${ bfxTableRows() }
             <tr class="bd-sub-row"><td colspan="3">جمع متعلقات${isOff?` + ارزش افزوده (<span class="numlt">10٪</span>)`:''}</td><td class="num numlt">${fmt(accBase+accVat)}</td></tr>
@@ -8668,6 +8904,15 @@ function updateResult(){
       qtyStaticCapInput.value = qtyStaticCapInput.value.replace(/[^0-9]/g, '');
       const v = qtyStaticCapInput.value;
       qty.staticCap = (v==null || v==='') ? null : Math.max(0, Number(v)||0);
+      updateResult();
+    });
+  }
+  const qtyMaxTravelInput = document.getElementById('qtyMaxTravelInput');
+  if(qtyMaxTravelInput){
+    qtyMaxTravelInput.addEventListener('input', ()=>{
+      const v = String(qtyMaxTravelInput.value||'').replace(/[۰-۹]/g, d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[^0-9]/g, '');
+      qtyMaxTravelInput.value = v;
+      qty.maxTravel = (v==='') ? null : Number(v);
       updateResult();
     });
   }
@@ -9041,6 +9286,10 @@ function bfReconstructRecordBase(o){
     if(cands.length>1 && o.speed!=null){ const bySpeed = cands.filter(op=>String(op.speed)===String(o.speed)); if(bySpeed.length) cands = bySpeed; }
     return cands.length ? bfMakeTechRecord(row, cands[0]) : null;
   }
+  if(mode==='custom' && sel.byJackSel && sel.byJackSel.type){
+    const opts = SHAKIB_PU_PRICE_LIST.filter(x=>Math.abs(x.kw-sel.byJackSel.kw)<0.001);
+    return bfMakeByJackRecord(sel.byJackSel, opts);
+  }
   if(mode==='custom' && sel.customSel){
     const opts = SHAKIB_PU_PRICE_LIST.filter(x=>Math.abs(x.kw-sel.customSel.kw)<0.001);
     return bfMakeCustomRecord(sel.customSel, opts);
@@ -9158,7 +9407,8 @@ function bfBuildShakibInvoiceHtml(o){
           <tr><th>تعداد طبقات</th><td class="numlt">${o.floor||'—'}</td></tr>
           ${ o.persons!=null && o.persons!=='' ? `<tr><th>تعداد نفرات</th><td class="numlt">${o.persons}</td></tr>` : '' }
           ${ o.staticLoad!=null && o.staticLoad!=='' ? `<tr><th>حداکثر وزن وارد بر سر جک</th><td class="numlt">${o.staticLoad} kg</td></tr>` : (o.kg!=null && o.kg!=='' ? `<tr><th>حداکثر وزن وارد بر سر جک</th><td class="numlt">${o.kg} kg</td></tr>` : '') }
-          ${ o.travel!=null ? `<tr><th>طول تراول</th><td class="numlt">${fmt(o.travel)} mm</td></tr>` : '' }
+          ${ o.travel!=null ? `<tr><th>${ (o.selection && (o.selection.calcMode==='custom' || o.selection.calcMode==='byjack')) ? 'طول جک (کورس)' : 'طول تراول' }</th><td class="numlt">${fmt(o.travel)} mm</td></tr>` : '' }
+          ${ (o.maxTravel!=null && Number(o.maxTravel)!==Number(o.travel)) ? `<tr><th>حداکثر طول مسیر حرکت</th><td class="numlt">${fmt(o.maxTravel)} mm</td></tr>` : '' }
           <tr><th>نوع شیر</th><td>${o.valveName||'—'}</td></tr>
           <tr><th>موتور-پمپ</th><td class="numlt">${bfStripSizePrefix(o.jackSpec)||'—'}</td></tr>
           ${ o.pipeSize ? `<tr><th>سایز جک</th><td class="numlt">${bfSizeDispOrder(o)}</td></tr>` : '' }
@@ -9187,6 +9437,7 @@ function bfBuildShakibInvoiceHtml(o){
     <div class="ps-totals">
       <div class="grand"><span>مبلغ نهایی قابل پرداخت</span><span class="numlt">${fmt(o.total||0)} ریال</span></div>
     </div>
+    ${shkTaxNoteHtml(!!o.isOfficial)}
     ${o.note ? `<div class="ps-note"><div class="ps-note-title">توضیحات</div>${String(o.note).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>` : ''}
 
     <div style="text-align:right; color:#123a5c; font-weight:700; font-size:.8rem; margin:2px 0 4px; line-height:1.9;">این محصول از ${shkToFaDigits(o.warrantyYears!=null ? o.warrantyYears : 2)} سال گارانتی معتبر برخوردار است و شرایط و ضوابط آن مطابق با مفاد مندرج در کارت گارانتی اصلی می‌باشد.</div>
@@ -9539,7 +9790,11 @@ function bfGetInvoiceNo(){
    جدول‌ها درجا (in-place) عوض می‌شوند تا همهٔ بخش‌ها (محاسبه سریع/فنی/سفارشی/بر اساس جک/موتور خشک/سفارش تکی) همان قیمت را ببینند.
    ============================================================ */
 const BF_PH_OLD = {"data":[[966300000,4950000000,3735000000],[966300000,5250000000,4075000000],[986100000,5250000000,4075000000],[1096100000,5325000000,4160000000],[1096100000,5387000000,4230000000],[1157800000,6550000000,null],[1338300000,4950000000,3735000000],[1448300000,4950000000,3735000000],[1338300000,5250000000,4075000000],[1448300000,5250000000,4075000000],[1369100000,5250000000,4075000000],[1595800000,5250000000,4075000000],[1525300000,5325000000,4160000000],[1793900000,5325000000,4160000000],[1677200000,5977000000,null],[1914900000,5977000000,null],[1976550000,6550000000,null],[2146000000,6550000000,null],[1617800000,5250000000,4075000000],[1730000000,5250000000,4075000000],[1617800000,5325000000,4160000000],[1985300000,5325000000,4160000000],[1822500000,5325000000,4160000000],[1985300000,5325000000,4160000000],[2009600000,5977000000,null],[2249500000,5977000000,null],[2130600000,6550000000,null],[2314400000,6550000000,null],[2485000000,7030000000,null],[2652250000,7030000000,null],[2192200000,5325000000,4160000000],[2557600000,5977000000,null],[2192200000,5325000000,4160000000],[2557600000,5977000000,null],[2370500000,5977000000,null],[2557600000,5977000000,null],[2370500000,5977000000,null],[2557600000,5977000000,null],[2587350000,6595000000,null],[2676500000,6595000000,null],[2990100000,7030000000,null],[3160700000,7030000000,null],[2931800000,5977000000,null],[3119950000,6550000000,null],[3119950000,6550000000,null],[3119950000,6550000000,null],[3702100000,6550000000,null],[3702100000,6790000000,null],[4111500000,7030000000,null]],"pu":[[3020000000,2525000000],[3710000000,2753000000],[3260000000,2800000000],[3950000000,3020000000],[4100000000,3205000000],[4795000000,3558000000],[5526000000,4400000000],[5000000000,3784000000],[4870000000,3645000000],[4950000000,3735000000],[5545000000,4410000000],[5250000000,4075000000],[5325000000,4160000000],[5387000000,4230000000],[5968000000,4900000000],[5587000000,4465000000],[5977000000,null],[6200000000,null],[6180000000,null],[6550000000,null],[6595000000,null],[6790000000,null],[7030000000,null],[7030000000,null],[7370000000,null],[7934000000,null],[7999000000,null],[8215000000,null],[8215000000,null],[8743000000,null],[8903000000,null]],"full":{"40":{"1000":248800000,"1500":296100000,"2000":343400000,"2500":389600000,"3000":435800000,"3500":482050000,"4000":528300000,"4500":574500000,"5000":620700000},"50":{"1000":325800000,"2000":444600000,"3000":561300000,"4000":682400000,"5000":917900000,"6000":968500000},"60":{"1000":405000000,"2000":563500000,"3000":722000000,"4000":887000000,"5000":1199600000,"6000":1248000000},"70":{"2000":814400000,"3000":997100000,"4000":1177600000,"5000":1259000000,"6000":1439500000,"7000":1622200000,"8000":1804900000},"80":{"2000":966300000,"2500":1023500000,"3000":1133600000,"3500":1338300000,"4000":1448300000,"4500":1494500000,"5000":1617800000,"5500":1730000000,"6000":1837900000,"6500":1963300000,"7000":2069000000,"7500":2201000000,"8000":2304500000,"8500":2432100000,"9000":2540000000},"90":{"2000":986100000,"2500":1116000000,"3000":1232600000,"3500":1369100000,"4000":1595800000,"4500":1705800000,"5000":1822500000,"5500":1985300000,"5900":2152600000,"6500":2192200000,"7000":2245100000,"7500":2377100000,"8000":2496000000,"8500":2630200000,"9000":2746900000},"100":{"2000":1096100000,"2500":1239200000,"3000":1377900000,"3500":1525300000,"4000":1793900000,"4500":1837900000,"5000":2009600000,"5500":2249500000,"5900":2330900000,"6500":2370500000,"7000":2557600000,"7500":2652200000,"8000":2784300000,"8500":2931800000,"9000":3066000000},"110":{"2000":1157800000,"3000":1439500000,"4000":1914900000,"5000":2130600000,"6000":2498200000,"7000":2676500000,"8000":3030800000,"9000":3209100000,"10000":3499600000,"11000":3796800000,"12000":4087300000},"120":{"2000":1391100000,"3000":1807100000,"4000":2146000000,"5000":2485000000,"6000":2819500000,"7000":3160700000,"8000":3499600000,"9000":3904600000,"12000":4787200000},"130":{"2000":1435100000,"3000":1767400000,"4000":2097600000,"5000":2773300000,"6000":2940600000,"7000":3191500000,"8000":3444600000,"9000":3763700000},"140":{"3000":2311100000,"4000":2799700000,"5000":3776900000,"5900":3961800000,"7000":4265600000,"8000":4754200000,"9000":5242800000},"150":{"2000":2407900000,"3000":3112200000,"4000":3818800000,"5000":5231800000,"5900":5429900000,"7000":5942700000,"8000":6647000000,"9000":7351400000},"160":{"2000":2606000000,"3000":3272900000,"4000":4380000000,"5000":5168000000,"5900":6006600000,"7000":6382900000,"8000":7131300000,"9000":7892800000}},"by":{"40":[{"indirect":{"1000":248800000,"1500":296100000,"2000":343400000,"2500":389600000,"3000":435800000,"3500":482050000,"4000":528300000,"4500":574500000,"5000":620700000},"direct":null}],"50":[{"indirect":{"1000":325800000,"1500":385200000,"2000":444600000,"2500":502950000,"3000":561300000,"3500":621850000,"4000":682400000,"4500":800150000,"5000":917900000,"5500":943200000,"6000":968500000},"direct":{"1000":413786128,"1500":486418800,"2000":559051471,"2500":609674242,"3000":660297013,"3500":732929685,"4000":805562356,"4500":931018789,"5000":1056475221,"5500":1081786607,"6000":1107097992}}],"60":[{"indirect":{"1000":405000000,"1500":484250000,"2000":563500000,"2500":642750000,"3000":722000000,"3500":804500000,"4000":887000000,"4500":1043300000,"5000":1199600000,"5500":1223800000,"6000":1248000000},"direct":{"1000":486418800,"1500":571156917,"2000":655895033,"2500":753839090,"3000":851783147,"3500":953028689,"4000":1054274231,"4500":1199539574,"5000":1344804917,"5500":1381121253,"6000":1417437588}}],"70":[{"indirect":{"2000":814400000,"2500":905750000,"3000":997100000,"3500":1087350000,"4000":1177600000,"4500":1218300000,"5000":1259000000,"5500":1349250000,"6000":1439500000,"6500":1530850000,"7000":1622200000,"7500":1713550000,"8000":1804900000},"direct":{"2000":926616809,"2500":1044369776,"3000":1162122743,"3500":1245760365,"4000":1329397987,"4500":1385523233,"5000":1441648479,"5500":1524185606,"6000":1606722732,"6500":1700264809,"7000":1793806886,"7500":1896152923,"8000":1998498960}}],"80":[{"indirect":{"2000":966300000,"2500":1023500000,"3000":1133600000,"3500":1338300000,"4000":1448300000,"4500":1494500000,"5000":1617800000,"5500":1730000000,"6000":1837900000,"6500":1963300000,"7000":2069000000,"7500":2201000000,"8000":2304500000,"8500":2432100000,"9000":2540000000},"direct":{"2000":1082887102,"2500":1170926703,"3000":1298584126,"3500":1435045509,"4000":1580310852,"4500":1685958374,"5000":1807012826,"5500":1943474209,"6000":2051322721,"6500":2174578163,"7000":2284627666,"7500":2418888058,"8000":2495922710,"8500":2614776172,"9000":2738031615}}],"90":[{"indirect":{"2000":986100000,"2500":1116000000,"3000":1232600000,"3500":1369100000,"4000":1595800000,"4500":1705800000,"5000":1822500000,"5500":1985300000,"5900":2152600000,"6500":2192200000,"7000":2245100000,"7500":2377100000,"8000":2496000000,"8500":2630200000,"9000":2746900000},"direct":{"2000":1113700962,"2500":1258966305,"3000":1413035608,"3500":1545095011,"4000":1762993025,"4500":1881846488,"5000":2002900940,"5500":2178980144,"5900":2337451427,"6500":2392476178,"7000":2438696969,"7500":2592766272,"8000":2685207854,"8500":2834875177,"9000":2988944480}}],"100":[{"indirect":{"2000":1096100000,"2500":1239200000,"3000":1377900000,"3500":1525300000,"4000":1793900000,"4500":1837900000,"5000":2009600000,"5500":2249500000,"5900":2330900000,"6500":2370500000,"7000":2557600000,"7500":2652200000,"8000":2784300000,"8500":2931800000,"9000":3066000000},"direct":{"2000":1256765315,"2500":1393226698,"3000":1540693031,"3500":1712370254,"4000":1980891040,"4500":2024910840,"5000":2211994994,"5500":2447500929,"5900":2524535580,"6500":2561952411,"7000":2751237555,"7500":2834875177,"8000":2984542500,"8500":3136410813,"9000":3239857345}}],"110":[{"indirect":{"2000":1157800000,"2500":1298650000,"3000":1439500000,"3500":1677200000,"4000":1914900000,"4500":2022750000,"5000":2130600000,"5500":2314400000,"6000":2498200000,"6500":2587350000,"7000":2676500000,"7500":2853650000,"8000":3030800000,"8500":3119950000,"9000":3209100000,"9500":3354350000,"10000":3499600000,"10500":3648200000,"11000":3796800000,"11500":3942050000,"12000":4087300000},"direct":{"2000":1289780166,"2500":1448300000,"3000":1606722732,"3500":1862100000,"4000":2117352422,"4500":2218650000,"5000":2319843506,"5500":2512500000,"6000":2705016764,"6500":2761200000,"7000":2817267256,"7500":3013200000,"8000":3209043484,"8500":3301550000,"9000":3393926648,"9500":3534850000,"10000":3675653373,"10500":3838550000,"11000":4001399900,"11500":4192900000,"12000":4384372168}}],"120":[{"indirect":{"2000":1391100000,"2500":1599100000,"3000":1807100000,"3500":1976550000,"4000":2146000000,"4500":2315500000,"5000":2485000000,"5500":2652250000,"6000":2819500000,"6500":2990100000,"7000":3160700000,"7500":3330150000,"8000":3499600000,"8500":3702100000,"9000":3904600000,"9500":4051700000,"12000":4787200000},"direct":{"2000":1542894021,"2500":1733300000,"3000":1923665298,"3500":2109700000,"4000":2295632616,"4500":2479450000,"5000":2663197953,"5500":2855800000,"6000":3048371211,"6500":3210200000,"7000":3371916747,"7500":3534850000,"8000":3697663274,"8500":3902400000,"9000":4107047422,"9500":4273633333,"12000":5106296902}},{"indirect":{"2000":1505500000,"2500":1701400000,"3000":1897300000,"3500":2093200000,"4000":2289100000,"4500":2679750000,"5000":3070400000,"5500":3097950000,"6000":3125500000,"6500":3290550000,"7000":3455600000,"7500":3719700000,"8000":3983800000,"8500":4111500000,"9000":4239200000,"9500":4826850000,"12000":5414500000},"direct":{"2000":1655144513,"2500":1851100000,"3000":2046920741,"3500":2267100000,"4000":2487118750,"4500":2861350000,"5000":3235455365,"5500":3279500000,"6000":3323494966,"6500":3488600000,"7000":3653643473,"7500":3926600000,"8000":4199489004,"8500":4322750000,"9000":4445999889,"9500":5095300000,"12000":5744584015}}],"130":[{"indirect":{"2000":1435100000,"2500":1601250000,"3000":1767400000,"3500":1932500000,"4000":2097600000,"4500":2435450000,"5000":2773300000,"5500":2856950000,"6000":2940600000,"6500":3066050000,"7000":3191500000,"7500":3318050000,"8000":3444600000,"8500":3604150000,"9000":3763700000},"direct":{"2000":1523085110,"2500":1719000000,"3000":1914861338,"3500":2135000000,"4000":2355059347,"4500":2679750000,"5000":3004351410,"5500":3094650000,"6000":3184832594,"6500":3309250000,"7000":3433544469,"7500":3560150000,"8000":3686658324,"8500":3854000000,"9000":4021208810}},{"indirect":{"2000":1723400000,"2500":1951200000,"3000":2179000000,"3500":2426650000,"4000":2674300000,"4500":3149700000,"5000":3625100000,"5500":3661400000,"6000":3697700000,"6500":3900200000,"7000":4102700000,"7500":4340400000,"8000":4578100000,"8500":4814700000,"9000":5051300000},"direct":{"2000":1840828037,"2500":2087000000,"3000":2333049447,"3500":2637250000,"4000":2941323059,"4500":3385600000,"5000":3829722677,"5500":3882800000,"6000":3935770379,"6500":4133700000,"7000":4331548407,"7500":4567100000,"8000":4802560276,"8500":5029300000,"9000":5255964225}}],"140":[{"indirect":{"3000":2311100000,"3500":2555400000,"4000":2799700000,"4500":3288300000,"5000":3776900000,"5500":3869350000,"5900":3961800000,"6500":4113700000,"7000":4265600000,"7500":4509900000,"8000":4754200000,"8500":4998500000,"9000":5242800000},"direct":{"3000":2443098949,"3500":2707250000,"4000":2971336559,"4500":3466600000,"5000":3961782079,"5500":4060850000,"5900":4159871183,"6500":4269950000,"7000":4379970188,"7500":4677150000,"8000":4974237499,"8500":5326450000,"9000":5678554314}}],"150":[{"indirect":{"2000":2407900000,"2500":2760050000,"3000":3112200000,"3500":3465500000,"4000":3818800000,"4500":4525300000,"5000":5231800000,"5500":5330850000,"5900":5429900000,"6500":5686300000,"7000":5942700000,"7500":6294850000,"8000":6647000000,"8500":6999200000,"9000":7351400000},"direct":{"2000":2553148451,"2500":2932850000,"3000":3312490016,"3500":3661400000,"4000":4010203860,"4500":4719000000,"5000":5427641449,"5500":5520150000,"5900":5612524612,"6500":5889900000,"7000":6167174103,"7500":6524850000,"8000":6882495868,"8500":7227000000,"9000":7571405751}}],"160":[{"indirect":{"2000":2606000000,"2500":2939450000,"3000":3272900000,"3500":3826450000,"4000":4380000000,"4500":4774000000,"5000":5168000000,"5500":5587300000,"5900":6006600000,"6500":6194750000,"7000":6382900000,"7500":6757100000,"8000":7131300000,"8500":7512050000,"9000":7892800000},"direct":{"2000":2751237555,"2500":3122150000,"3000":3492971200,"3500":4041050000,"4000":4589064242,"4500":4974300000,"5000":5359410757,"5500":5772150000,"5900":6184782024,"6500":6388400000,"7000":6591965182,"7500":6971700000,"8000":7351306747,"8500":7720050000,"9000":8088638412}}]},"dry":[248800000,296100000,343400000,389600000,435800000,482050000,528300000,574500000,620700000,325800000,385200000,444600000,502950000,561300000,621850000,682400000,800150000,917900000,943200000,968500000,405000000,484250000,563500000,642750000,722000000,804500000,887000000,1043300000,1199600000,1223800000,1248000000,814400000,905750000,997100000,1087350000,1177600000,1218300000,1259000000,1349250000,1439500000,1530850000,1622200000,966300000,1023500000,1133600000,1338300000,1448300000,1494500000,1617800000,1730000000,1837900000,1963300000,2069000000,2201000000,2304500000],"chrome":{"50":16560000,"60":20000000,"70":23400000,"80":27000000,"90":30600000,"100":34000000,"110":37300000,"120":40700000,"130":54000000,"140":57600000,"150":77400000,"160":83700000,"170":90000000,"180":97200000,"190":92800000}};
-const BF_PH_STATE = { pkg:'new', acc:'new', dry:'new' };
+const BF_PH_STATE = { pkg:'new', acc:'new', dry:'new', kar:'new' };
+/* کاراسلینگ شکیب — «جدید» = لیست 1405/08/03 (همان مقادیر داخل KARASLING_GROUPS)؛ «قبلی» = نرخ‌های پیش از آن. پایه جک: جدید ۳ متری ۸۰ / ۴ متری ۱۱۵ میلیون — قبلی ۶۵ میلیون (یک قیمت). */
+const BF_PH_KAR = { old:{"هوم لیفتی پشت کوتاه": 968000000, "هوم لیفتی پشت بلند": 979000000, "HC65": 1030000000, "HC510": 1210000000, "HP500 pitless": 1210000000, "HC600": 1190000000, "HC700": 1340000000}, 'new':{"هوم لیفتی پشت کوتاه": 1070000000, "هوم لیفتی پشت بلند": 1080000000, "HC65": 1125000000, "HC510": 1350000000, "HP500 pitless": 1350000000, "HC600": 1315000000, "HC700": 1465000000} };
+const BF_PH_KAR_COL = { old:{3:65000000, 4:65000000}, 'new':{3:80000000, 4:115000000} };
+function bfPhApplyKar(which){ const S = BF_PH_KAR[which]; KARASLING_GROUPS.forEach(g=>{ if(g.company==='شکیب' && S[g.model]!=null) g.price = S[g.model]; if(g.company==='شکیب' && g.columnPrices){ g.columnPrices = Object.assign({}, BF_PH_KAR_COL[which]); g.columnPrice = g.columnPrices[4]; } }); }
 const BF_PH_ACC = {
   old:{ hose:[15000000,25000000,33000000,36000000], flow:{'3/8':45000000,'1/2':50000000,'3/4':60000000} },
   'new':{ hose:[18000000,28500000,37500000,41000000], flow:{'3/8':45000000,'1/2':50000000,'3/4':70000000} }
@@ -9623,12 +9878,14 @@ function bfPhUpdateUI(){
   if(ac) ac.innerHTML =
     '<span class="ph-chip ph-pkg">جک + پاوریونیت + کروم: '+(BF_PH_STATE.pkg==='new' ? '1405/07/12' : 'قبلی')+'</span>'+
     '<span class="ph-chip ph-pkg">شلنگ + فلو + رپچر: '+(BF_PH_STATE.acc==='new' ? '1405/07/12' : 'قبلی')+'</span>'+
-    '<span class="ph-chip ph-pkg">پاوریونیت موتور خشک: '+(BF_PH_STATE.dry==='new' ? '1405/07/13' : 'قبلی')+'</span>';
+    '<span class="ph-chip ph-pkg">پاوریونیت موتور خشک: '+(BF_PH_STATE.dry==='new' ? '1405/07/13' : 'قبلی')+'</span>'+
+    '<span class="ph-chip ph-pkg">کاراسلینگ: '+(BF_PH_STATE.kar==='new' ? '1405/08/03' : 'قبلی')+'</span>';
 }
 function bfPhApplySet(group, which){
   if(!(group in BF_PH_STATE) || BF_PH_STATE[group]===which) return;
   BF_PH_STATE[group] = which;
   if(group==='acc'){ bfPhApplyAcc(which); }
+  else if(group==='kar'){ bfPhApplyKar(which); }
   else if(group==='dry'){ bfPhApplyDry(which); }
   else {
     const S = (which==='old') ? BF_PH_OLD : BF_PH_NEW;
@@ -9835,7 +10092,7 @@ function shkUpdateSavedOrder(id){
   // ۴) پیام نتیجه
   const oldT = Number(o.total)||0;
   const diffTxt = (newTotal!=null) ? ('مبلغ نهایی: <b>'+shkFmtN(oldT)+'</b> ← <b>'+shkFmtN(newTotal)+'</b> ریال ('+(newTotal>=oldT?'+':'−')+shkFmtN(Math.abs(newTotal-oldT))+')') : '';
-  const setTxt = 'جک+پاوریونیت+کروم: '+(BF_PH_STATE.pkg==='new'?'جدید':'قبلی')+' · شلنگ/فلو/رپچر: '+(BF_PH_STATE.acc==='new'?'جدید':'قبلی')+' · موتور خشک: '+(BF_PH_STATE.dry==='new'?'جدید':'قبلی');
+  const setTxt = 'جک+پاوریونیت+کروم: '+(BF_PH_STATE.pkg==='new'?'جدید':'قبلی')+' · شلنگ/فلو/رپچر: '+(BF_PH_STATE.acc==='new'?'جدید':'قبلی')+' · موتور خشک: '+(BF_PH_STATE.dry==='new'?'جدید':'قبلی')+' · کاراسلینگ: '+(BF_PH_STATE.kar==='new'?'جدید':'قبلی');
   let html = '<b>🔄 پیش‌فاکتور جدید از روی «'+(o.customerName||'بدون نام')+(o.customerProject&&o.customerProject!=='—'?' — '+o.customerProject:'')+'» ساخته شد.</b> این فاکتور هنوز ذخیره نشده و سفارش قبلی دست‌نخورده است. شمارهٔ پیش‌فاکتور را وارد کنید.<br>نرخ‌های فعال: '+setTxt+(switched?' (به قیمت‌های جدید برگردانده شد)':'')+'<br>'+diffTxt;
   if(isSingle && changes.length) html += '<br>'+changes.length+' ردیف با قیمت جدید به‌روز شد.';
   if(!isSingle && newTotal!=null && newTotal===oldT && !review.length) html += '<br>قیمت این ترکیب نسبت به سفارش قبلی تغییری نکرده است.';
@@ -9989,14 +10246,14 @@ window.shkUpdateSavedOrder = shkUpdateSavedOrder;
     // --- کاراسلینگ
     KARASLING_GROUPS.forEach(function(g, gi){
       g.railOpenings.forEach(function(op){
-        var modes = g.columnPrice ? ['without','with'] : [null];
+        var modes = g.columnPrice ? ['without'].concat(karaslingColumnOptions(g).map(function(o){ return o.val; })) : [null];
         modes.forEach(function(mode){
           var co = g.company==='110' ? 'مدل 110' : g.company;
-          var colTxt = mode ? (mode==='with' ? ' · با قوطی زیر' : ' · بدون قوطی زیر') : '';
-          var spec = co + (g.model ? ' · ' + g.model : '') + ' · ظرفیت ' + g.capacity + ' · دهانه ریل ' + op + ' · سایز ریل ' + g.railSizes.join('/') + colTxt;
+          var colTxt = mode ? (' · ' + karaslingColumnLabelOf(g, mode)) : '';
+          var spec = co + (g.model ? ' · ' + g.model : '') + ' · ظرفیت ' + g.capacity + ' · دهانه ریل ' + op + ' · سایز ریل ' + g.railSizes.join('/') + colTxt + karaslingPitTxt(g);
           add({ cat:'kars', tag:'کاراسلینگ', name:'کاراسلینگ ' + co + (g.model ? ' ' + g.model : '') + ' — ' + g.capacity + ' — ریل ' + op + colTxt, spec:spec,
             kind:'karasling', title:'کاراسلینگ', unitLbl:'ریال / دستگاه', integer:true,
-            price:function(){ var r = KARASLING_GROUPS[gi]; if(!r) return null; return Math.round((r.price||0) + ((mode==='without') ? 0 : (r.columnPrice||0))); } });
+            price:function(){ var r = KARASLING_GROUPS[gi]; if(!r) return null; return Math.round((r.price||0) + (mode ? karaslingColumnAdd(r, mode) : (r.columnPrice||0))); } });
         });
       });
     });
@@ -10348,7 +10605,7 @@ window.shkUpdateSavedOrder = shkUpdateSavedOrder;
           invoiceNote: val('invoiceNote'), official: !!(officialToggle && officialToggle.checked),
           main: bfSnapshotShakibSelection(),
           single: { items: JSON.parse(JSON.stringify(singleCart)), discountPct: singleDiscountInput.value, isOfficial: !!singleOfficialToggle.checked,
-                    persons: singleExtra.persons, staticCap: singleExtra.staticCap, note: singleExtra.note },
+                    persons: singleExtra.persons, staticCap: singleExtra.staticCap, note: singleExtra.note, loadKg: singleExtra.loadKg, speed: singleExtra.speed, maxTravel: singleExtra.maxTravel },
           manual: bfSnapshotManualSelection(), manualNote: val('manualNote'),
           editingId: bfEditingShakibId || null, seq: bfGetInvoiceNo()
         }
@@ -10367,7 +10624,7 @@ window.shkUpdateSavedOrder = shkUpdateSavedOrder;
       // تنظیمات سفارش تکی و دستی (حتی اگر کاربر آخرین بار روی تب دیگری بوده)
       singleDiscountInput.value = s.single.discountPct || 0;
       singleOfficialToggle.checked = !!s.single.isOfficial;
-      singleExtra = { persons: s.single.persons || '', staticCap: s.single.staticCap || '', note: s.single.note || '' };
+      singleExtra = { persons: s.single.persons || '', staticCap: s.single.staticCap || '', note: s.single.note || '', loadKg: s.single.loadKg || '', speed: s.single.speed || '', maxTravel: s.single.maxTravel || '' };
       if(s.sub === 'single' || s.calcMode === 'drymotor'){ try{ renderSingleResult(); }catch(e){} }
       if(s.calcMode === 'drymotor' && !s.single.items.length) switchCalcMode('drymotor');
       const mn = document.getElementById('manualNote'); if(mn) mn.value = s.manualNote || '';
@@ -10796,6 +11053,510 @@ function bfPlBar(label,onclick){
   }catch(e){alert('ساخت اکسل انجام نشد: '+e.message)}}
   bfPlBar('دانلود لیست قیمت شکیب جک',go);
 })();
+</script>
+<script id="dryCustomScript">
+/* ============================================================
+   🌿 موتور خشک — زیرتب «🧩 محاسبه سفارشی»
+   جک: هر نوع / قطر / کورس از جدول کامل جک شکیب (همان «ست کامل»: JACK_BYJACK_TABLE و JACK_STAGE_TABLE)
+   پاوریونیت: از جدول پاوریونیت موتور خشک (DRY_PU_DATA) — نوع پمپ ← توان ← برق ← بوبین ← شیر ← فلوکنترل/رپچر
+   همهٔ ترکیب‌ها مجازند؛ هشدارها فقط روی صفحه نمایش داده می‌شوند و در پیش‌فاکتور ثبت نمی‌شوند.
+   خروجی همان ردیف‌های drymotor-jack / drymotor-pu / drymotor-flow / drymotor-rupture تب فنی است (سبد/چاپ/ذخیره مشترک).
+   ============================================================ */
+var dryCalcSub = 'tech';
+var dryC = null;
+function dcEl(id){ return document.getElementById(id); }
+function dcBlank(){ return { jtype:null, dia:null, variantIdx:null, length:null, stageCount:null, stageKey:null, rangeIdx:null, family:null, hp:null, phaseKey:null, coilType:null, valveKey:null, accessoryKey:null }; }
+dryC = dcBlank();
+function dcPh(sel, opts){ sel.innerHTML = '<option value="" disabled selected>انتخاب کنید...</option>' + opts.map(o=>'<option value="'+o.v+'">'+o.t+'</option>').join(''); }
+function dcEnable(card, sel, on){ card.classList.toggle('disabled', !on); sel.disabled = !on; if(!on) sel.innerHTML=''; }
+
+/* ---- زیرتب‌ها ---- */
+function dryApplySubTab(){
+  const tabs = dcEl('drySubTabs'); if(!tabs) return;
+  const isDry = (typeof calcMode!=='undefined' && calcMode==='drymotor');
+  tabs.style.display = isDry ? '' : 'none';
+  dcEl('dryTabTech').classList.toggle('active', dryCalcSub==='tech');
+  dcEl('dryTabCustom').classList.toggle('active', dryCalcSub==='custom');
+  singleDryMotorGrid.style.display = (isDry && dryCalcSub==='tech') ? '' : 'none';
+  dcEl('dryCustomGrid').style.display = (isDry && dryCalcSub==='custom') ? '' : 'none';
+  dcRenderWarn();
+}
+function drySetSubTab(sub){
+  if(dryCalcSub===sub) return;
+  dryCalcSub = sub;
+  try{ resetDrySelectionOnly(); }catch(e){}
+  dryApplySubTab();
+  renderSingleResult();
+}
+dcEl('dryTabTech').addEventListener('click', ()=>drySetSubTab('tech'));
+dcEl('dryTabCustom').addEventListener('click', ()=>drySetSubTab('custom'));
+
+/* ---- بازنشانی ---- */
+function dcResetFrom(step){
+  // step: 'jack' | 'family' | 'hp' | 'phase' | 'coil' | 'valve' | 'accessory'
+  const order = ['jack','family','hp','phase','coil','valve','accessory'];
+  const idx = order.indexOf(step);
+  if(idx<=0){ dryC.dia=null; dryC.variantIdx=null; dryC.length=null; dryC.stageCount=null; dryC.stageKey=null; dryC.rangeIdx=null; }
+  if(idx<=1){ dryC.family=null; dcEnable(dcEl('dcCardFamily'), dcEl('dcSelFamily'), false); }
+  if(idx<=2){ dryC.hp=null; dcEnable(dcEl('dcCardHp'), dcEl('dcSelHp'), false); }
+  if(idx<=3){ dryC.phaseKey=null; dcEnable(dcEl('dcCardPhase'), dcEl('dcSelPhase'), false); }
+  if(idx<=4){ dryC.coilType=null; dcEnable(dcEl('dcCardCoil'), dcEl('dcSelCoil'), false); }
+  if(idx<=5){ dryC.valveKey=null; dcEnable(dcEl('dcCardValve'), dcEl('dcSelValve'), false); dcEl('dcPuInfo').textContent='—'; }
+  if(idx<=6){ dryC.accessoryKey=null; dcEnable(dcEl('dcCardAccessory'), dcEl('dcSelAccessory'), false); }
+}
+function dcSetJType(t, silent){
+  dryC = dcBlank();
+  dryC.jtype = t;
+  ['Indirect','Direct','Stage'].forEach(k=>dcEl('dcBtn'+k).classList.toggle('active', t===k.toLowerCase()));
+  const stage = t==='stage';
+  ['dcCardDia','dcCardLength'].forEach(id=>dcEl(id).style.display = stage ? 'none' : '');
+  ['dcCardStageCount','dcCardStageType','dcCardStageLength'].forEach(id=>dcEl(id).style.display = stage ? '' : 'none');
+  dcEnable(dcEl('dcCardDia'), dcEl('dcSelDia'), false);
+  dcEnable(dcEl('dcCardLength'), dcEl('dcSelLength'), false);
+  dcEnable(dcEl('dcCardStageCount'), dcEl('dcSelStageCount'), false);
+  dcEnable(dcEl('dcCardStageType'), dcEl('dcSelStageType'), false);
+  dcEnable(dcEl('dcCardStageLength'), dcEl('dcSelStageLength'), false);
+  dcEl('dcJackInfo').textContent = '—';
+  dcResetFrom('family');
+  if(t==='indirect' || t==='direct'){
+    const opts = [];
+    Object.keys(JACK_BYJACK_TABLE).map(Number).sort((a,b)=>a-b).forEach(d=>{
+      const all = getByJackVariants(d);
+      all.forEach((v,vi)=>{
+        if(t==='direct' ? !v.direct : !v.indirect) return;
+        opts.push({ v: d+'|'+vi, t: 'Ø ' + d + ' mm' + (all.length>1 ? ' (ضخامت شفت ' + v.thickness + 'mm)' : (v.thickness==='توپر' ? ' (توپر)' : '')) });
+      });
+    });
+    dcPh(dcEl('dcSelDia'), opts); dcEnable(dcEl('dcCardDia'), dcEl('dcSelDia'), true); dcPh(dcEl('dcSelDia'), opts);
+  } else if(stage){
+    const s = dcEl('dcSelStageCount');
+    dcEnable(dcEl('dcCardStageCount'), s, true);
+    dcPh(s, [2,3].map(n=>({ v:n, t: faDigits(n) + ' استیج (' + stageCountLabelFa(n) + ')' })));
+  }
+  if(!silent){ dcRenderWarn(); renderSingleResult(); }
+}
+function dcResetForm(){
+  dryC = dcBlank();
+  ['Indirect','Direct','Stage'].forEach(k=>dcEl('dcBtn'+k).classList.remove('active'));
+  ['dcCardDia','dcCardLength'].forEach(id=>dcEl(id).style.display = '');
+  ['dcCardStageCount','dcCardStageType','dcCardStageLength'].forEach(id=>dcEl(id).style.display = 'none');
+  dcEnable(dcEl('dcCardDia'), dcEl('dcSelDia'), false);
+  dcEnable(dcEl('dcCardLength'), dcEl('dcSelLength'), false);
+  dcEl('dcJackInfo').textContent = '—';
+  dcResetFrom('family');
+  dcRenderWarn();
+}
+dcEl('dcBtnIndirect').addEventListener('click', ()=>dcSetJType('indirect'));
+dcEl('dcBtnDirect').addEventListener('click', ()=>dcSetJType('direct'));
+dcEl('dcBtnStage').addEventListener('click', ()=>dcSetJType('stage'));
+
+/* ---- جک تک استیج ---- */
+dcEl('dcSelDia').addEventListener('change', ()=>{
+  const p = String(dcEl('dcSelDia').value).split('|');
+  dryC.dia = Number(p[0]); dryC.variantIdx = Number(p[1]); dryC.length = null;
+  const v = getByJackVariants(dryC.dia)[dryC.variantIdx];
+  const table = v ? (dryC.jtype==='direct' ? v.direct : v.indirect) : null;
+  const lengths = table ? Object.keys(table).map(Number).sort((a,b)=>a-b) : [];
+  dcEnable(dcEl('dcCardLength'), dcEl('dcSelLength'), true);
+  dcPh(dcEl('dcSelLength'), lengths.map(l=>({ v:l, t: fmt(l) + ' mm' })));
+  dcEl('dcJackInfo').textContent = '—';
+  dcResetFrom('family');
+  dcRenderWarn(); renderSingleResult();
+});
+dcEl('dcSelLength').addEventListener('change', ()=>{
+  dryC.length = Number(dcEl('dcSelLength').value);
+  dcAfterJack();
+});
+/* ---- جک دو/سه استیج ---- */
+dcEl('dcSelStageCount').addEventListener('change', ()=>{
+  dryC.stageCount = Number(dcEl('dcSelStageCount').value); dryC.stageKey = null; dryC.rangeIdx = null; dryC.length = null;
+  dcEnable(dcEl('dcCardStageType'), dcEl('dcSelStageType'), true);
+  dcPh(dcEl('dcSelStageType'), getStageTypes(dryC.stageCount).map(t=>({ v:t, t: stageTypeLabel(getStageRanges(dryC.stageCount, t)[0]) })));
+  dcEnable(dcEl('dcCardStageLength'), dcEl('dcSelStageLength'), false);
+  dcEl('dcJackInfo').textContent = '—';
+  dcResetFrom('family');
+  dcRenderWarn(); renderSingleResult();
+});
+dcEl('dcSelStageType').addEventListener('change', ()=>{
+  dryC.stageKey = dcEl('dcSelStageType').value; dryC.rangeIdx = null; dryC.length = null;
+  const sel = dcEl('dcSelStageLength');
+  dcEnable(dcEl('dcCardStageLength'), sel, true);
+  sel.innerHTML = '<option value="" disabled selected>انتخاب کنید...</option>';
+  getStageRanges(dryC.stageCount, dryC.stageKey).forEach((r, ri)=>{
+    const grp = document.createElement('optgroup');
+    grp.label = 'بازه ' + faDigits(fmt(r.from)) + ' تا ' + faDigits(fmt(r.to)) + ' mm';
+    for(let l=r.from; l<=r.to; l+=JACK_STAGE_STEP){
+      const opt = document.createElement('option');
+      opt.value = ri + '|' + l; opt.textContent = faDigits(fmt(l)) + ' mm';
+      grp.appendChild(opt);
+    }
+    sel.appendChild(grp);
+  });
+  dcEl('dcJackInfo').textContent = '—';
+  dcResetFrom('family');
+  dcRenderWarn(); renderSingleResult();
+});
+dcEl('dcSelStageLength').addEventListener('change', ()=>{
+  const p = String(dcEl('dcSelStageLength').value).split('|');
+  dryC.rangeIdx = Number(p[0]); dryC.length = Number(p[1]);
+  dcAfterJack();
+});
+
+/* ---- قیمت و مشخصات جک انتخاب‌شده ---- */
+function dcJackHit(){
+  if(!dryC.jtype || dryC.length==null) return null;
+  if(dryC.jtype==='stage'){
+    if(dryC.stageCount==null || !dryC.stageKey || dryC.rangeIdx==null) return null;
+    const h = getStageJackPrice(dryC.stageCount, dryC.stageKey, dryC.rangeIdx, dryC.length);
+    if(!h) return null;
+    return { price:h.price, sizeStr:h.sizeDisp, title:'جک ' + stageCountLabelFa(dryC.stageCount) + ' شکیب', short:'جک ' + stageCountLabelFa(dryC.stageCount),
+             spec:'نوع ' + stageTypeLabel(h.row) + ' · کورس ' + dryC.length + ' mm · سایز ' + h.sizeDisp };
+  }
+  if(dryC.dia==null || dryC.variantIdx==null) return null;
+  const h = getByJackPrice(dryC.dia, dryC.variantIdx, dryC.jtype, dryC.length);
+  if(!h) return null;
+  const jt = dryC.jtype==='direct' ? 'مستقیم' : 'غیرمستقیم';
+  return { price:h.price, sizeStr:h.sizeStr, title:'جک ' + jt + ' تک استیج شکیب', short:'جک ' + jt + ' تک استیج',
+           spec:'سایز جک ' + String(h.sizeStr).replace(/\*/g,'×') + ' (شفت Ø' + dryC.dia + ' mm' + (h.thickness==='توپر' ? ' · توپر' : (h.thickness!=null ? ' × ضخامت ' + h.thickness + ' mm' : '')) + ') · کورس ' + dryC.length + ' mm' };
+}
+// ردیف جدول رسمی موتور خشک برای همین جک (فقط غیرمستقیم Ø40–Ø80) — برای سایز پاور/سرعت و هشدارها
+function dcOfficialRow(){
+  if(dryC.jtype!=='indirect' || dryC.dia==null || dryC.length==null) return null;
+  return DRY_MOTOR_DATA.find(r=>r.shaftSize===dryC.dia && r.stroke===dryC.length) || null;
+}
+function dcAfterJack(){
+  dcResetFrom('family');
+  const h = dcJackHit();
+  dcEl('dcJackInfo').textContent = h ? ('سایز جک: ' + String(h.sizeStr).replace(/\*/g,'×') + ' — قیمت: ' + fmt(h.price) + ' ریال') : '—';
+  if(h){
+    dcEnable(dcEl('dcCardFamily'), dcEl('dcSelFamily'), true);
+    dcPh(dcEl('dcSelFamily'), DRY_PUMP_FAMILIES.map(p=>({ v:p.key, t:p.label })));
+  }
+  dcRenderWarn(); renderSingleResult();
+}
+
+/* ---- پاوریونیت ---- */
+dcEl('dcSelFamily').addEventListener('change', ()=>{
+  dryC.family = dcEl('dcSelFamily').value;
+  dcResetFrom('hp');
+  const hps = unique(DRY_PU_DATA.filter(d=>d.family===dryC.family).map(d=>d.hp)).sort((a,b)=>a-b);
+  dcEnable(dcEl('dcCardHp'), dcEl('dcSelHp'), true);
+  dcPh(dcEl('dcSelHp'), hps.map(h=>({ v:h, t: faDigits(String(h)).replace('.', '٫') + ' اسب' })));
+  dcRenderWarn(); renderSingleResult();
+});
+dcEl('dcSelHp').addEventListener('change', ()=>{
+  dryC.hp = Number(dcEl('dcSelHp').value);
+  dcResetFrom('phase');
+  dcEnable(dcEl('dcCardPhase'), dcEl('dcSelPhase'), true);
+  dcPh(dcEl('dcSelPhase'), DRY_PUMP_PHASES.map(p=>({ v:p.key, t:p.label })));
+  dcRenderWarn(); renderSingleResult();
+});
+dcEl('dcSelPhase').addEventListener('change', ()=>{
+  dryC.phaseKey = dcEl('dcSelPhase').value;
+  dcResetFrom('coil');
+  const coils = dryPuRowsFor(dryC.family, dryC.hp).map(r=>r.coilType);
+  dcEnable(dcEl('dcCardCoil'), dcEl('dcSelCoil'), true);
+  dcPh(dcEl('dcSelCoil'), coils.map(c=>({ v:c, t: DRY_COIL_LABELS[c]||c })));
+  if(coils.length===1){ dcEl('dcSelCoil').value = coils[0]; dryC.coilType = coils[0]; dcAfterCoil(); return; }
+  dcRenderWarn(); renderSingleResult();
+});
+dcEl('dcSelCoil').addEventListener('change', ()=>{ dryC.coilType = dcEl('dcSelCoil').value; dcAfterCoil(); });
+function dcAfterCoil(){
+  dcResetFrom('valve');
+  const puRow = dryFindPuRow(dryC.family, dryC.hp, dryC.coilType);
+  const keys = puRow ? Object.keys(puRow.valves) : [];
+  dcEnable(dcEl('dcCardValve'), dcEl('dcSelValve'), true);
+  dcPh(dcEl('dcSelValve'), keys.map(k=>({ v:k, t: DRY_VALVE_LABELS[k]||k })));
+  if(keys.length===1){ dcEl('dcSelValve').value = keys[0]; dryC.valveKey = keys[0]; dcAfterValve(); return; }
+  dcRenderWarn(); renderSingleResult();
+}
+dcEl('dcSelValve').addEventListener('change', ()=>{ dryC.valveKey = dcEl('dcSelValve').value; dcAfterValve(); });
+function dcPumpObj(){ return DRY_MOTOR_PUMPS.find(p=>p.key===(dryC.family||'') + (dryC.phaseKey||'')) || null; }
+function dcModelSpeed(){
+  const row = dcOfficialRow(); if(!row || !dryC.family) return null;
+  const model = dryC.family==='screw' ? row.screwModel : row.gearModel;
+  const speed = dryC.family==='screw' ? row.screwSpeed : row.gearSpeed;
+  if(dryParseHp(model)!==dryC.hp) return null; // توان انتخابی با جدول رسمی همین جک فرق دارد → سایز/سرعت قابل استناد نیست
+  return { model, speed };
+}
+function dcAfterValve(){
+  dcResetFrom('accessory');
+  const puRow = dryFindPuRow(dryC.family, dryC.hp, dryC.coilType);
+  if(!puRow || !dryC.valveKey){ dcRenderWarn(); renderSingleResult(); return; }
+  const price = puRow.valves[dryC.valveKey]||0;
+  const pump = dcPumpObj(), ms = dcModelSpeed();
+  const amps = dryMotorAmps(dryC.hp, dryC.phaseKey);
+  let t = (pump ? pump.label : '') + ' — ' + faDigits(String(dryC.hp)).replace('.', '٫') + ' اسب' + (ms ? (' — سایز ' + ms.model + ' — سرعت ' + ms.speed + ' m/s') : '')
+        + ' — ' + DRY_COIL_LABELS[dryC.coilType] + ' — ' + DRY_VALVE_LABELS[dryC.valveKey] + (amps!=null ? (' — آمپر موتور: ' + amps + 'A') : '') + '\nقیمت: ' + fmt(price) + ' ریال';
+  const acc = dryPuAccessories(puRow, dryC.valveKey); if(acc) t += '\n' + acc.text;
+  dcEl('dcPuInfo').textContent = t;
+  const rup = dryRuptureInfoFor(dryC.valveKey);
+  const sel = dcEl('dcSelAccessory');
+  dcEnable(dcEl('dcCardAccessory'), sel, true);
+  sel.innerHTML = '<option value="flow">فلوکنترل سایز ' + puRow.flowSize + '" — قیمت: ' + fmt(puRow.flowPrice) + ' ریال</option>'
+               + '<option value="rupture">' + rup.label + ' — قیمت: ' + fmt(rup.price) + ' ریال</option>';
+  sel.value = 'flow'; dryC.accessoryKey = 'flow';
+  dcRenderWarn(); renderSingleResult();
+}
+dcEl('dcSelAccessory').addEventListener('change', ()=>{ dryC.accessoryKey = dcEl('dcSelAccessory').value; dcRenderWarn(); renderSingleResult(); });
+
+/* ---- هشدارها (فقط روی صفحه — در پیش‌فاکتور ثبت نمی‌شود) ---- */
+function dcWarnings(){
+  const w = [];
+  const h = dcJackHit(); if(!h) return w;
+  const off = dcOfficialRow();
+  if(!off) w.push('این جک در جدول رسمی موتور خشک شکیب نیست (جدول رسمی: فقط جک غیرمستقیم Ø۴۰ تا Ø۸۰ با کورس‌های مشخص) — انتخاب مجاز است، با تیم فنی بررسی شود.');
+  if(off && dryC.family && dryC.hp!=null){
+    const recModel = dryC.family==='screw' ? off.screwModel : off.gearModel;
+    const recHp = dryParseHp(recModel);
+    if(recHp!=null && recHp!==dryC.hp) w.push('توان پیشنهادی جدول رسمی برای این جک با ' + (dryC.family==='screw'?'پمپ اسکرو':'پمپ دنده‌ای') + ' ' + recHp + ' اسب (' + recModel + ') است؛ انتخاب شما ' + dryC.hp + ' اسب است.');
+  }
+  if(dryC.hp!=null && dryC.phaseKey && dryMotorAmps(dryC.hp, dryC.phaseKey)==null) w.push('برای ' + dryC.hp + ' اسب ' + (dryC.phaseKey==='1'?'تک‌فاز':'سه‌فاز') + ' مشخصات آمپر موتور تعریف نشده است.');
+  if(dryC.accessoryKey==='rupture' && !off) w.push('رپچر موتور خشک فقط سایز ۱ اینچ است؛ برای این جک سایز رپچر با تیم فنی بررسی شود.');
+  if(dryC.valveKey && !off) w.push('سایز پاوریونیت و سرعت برای این ترکیب از جدول رسمی قابل محاسبه نیست و در شرح پیش‌فاکتور درج نمی‌شود.');
+  return w;
+}
+function dcRenderWarn(){
+  const box = dcEl('dcWarnBox'); if(!box) return;
+  const show = (typeof calcMode!=='undefined' && calcMode==='drymotor' && dryCalcSub==='custom');
+  const w = show ? dcWarnings() : [];
+  box.style.display = w.length ? '' : 'none';
+  box.innerHTML = w.length ? ('⚠ هشدار فنی (فقط برای اطلاع — در پیش‌فاکتور ثبت نمی‌شود):<br>' + w.map(x=>'• ' + x).join('<br>')) : '';
+}
+
+/* ---- ساخت ردیف‌های پیش‌فاکتور — همان ساختار تب فنی ---- */
+function dryCComputeSubItems(){
+  const incJack = cbDryIncludeJack.checked, incPu = cbDryIncludePu.checked, incAccessory = cbDryIncludeAccessory.checked;
+  if(!incJack && !incPu && !incAccessory) return null;
+  const jack = dcJackHit();
+  if(incJack && !jack) return null;
+  let puRow=null, puPrice=0, rup=null;
+  const isRupture = dryC.accessoryKey==='rupture';
+  if(incPu || incAccessory){
+    if(!dryC.family || dryC.hp==null || !dryC.phaseKey || !dryC.coilType || !dryC.valveKey) return null;
+    puRow = dryFindPuRow(dryC.family, dryC.hp, dryC.coilType);
+    if(!puRow) return null;
+    puPrice = puRow.valves[dryC.valveKey] || 0;
+    if(incAccessory){ if(!dryC.accessoryKey) return null; if(isRupture) rup = dryRuptureInfoFor(dryC.valveKey); }
+  }
+  const qJack = Math.max(1, Number(dryQty.jack)||1), qPu = Math.max(1, Number(dryQty.pu)||1), qAcc = Math.max(1, Number(dryQty.acc)||1);
+  const items = [];
+  if(incJack && jack.price>0){
+    items.push({ kind:'drymotor-jack', shortLabel: jack.short, title: jack.title, spec: jack.spec, unitPrice: jack.price, qty: qJack });
+  }
+  if(incPu && puPrice>0){
+    const pump = dcPumpObj(), ms = dcModelSpeed(), acc = dryPuAccessories(puRow, dryC.valveKey);
+    const ampsTxt = dryMotorAmpsText(dryC.hp, dryC.phaseKey);
+    items.push({
+      kind:'drymotor-pu', title:'پاوریونیت موتور خشک شکیب',
+      spec: (pump ? pump.label + ' · ' : '') + dryC.hp + ' اسب بخار' + (ms ? (' · سایز پاوریونیت ' + ms.model + ' · سرعت ' + ms.speed + ' m/s') : '') + ' · ' + DRY_COIL_LABELS[dryC.coilType] + ' · ' + DRY_VALVE_LABELS[dryC.valveKey] + (ampsTxt ? (' · ' + ampsTxt) : ''),
+      unitPrice: puPrice, qty: qPu, accCode: acc ? acc.code : null, accText: acc ? acc.text : null
+    });
+  }
+  if(incAccessory){
+    const accPrice = isRupture ? (rup?rup.price:0) : (puRow?puRow.flowPrice:0);
+    if(accPrice>0) items.push({ kind: isRupture ? 'drymotor-rupture' : 'drymotor-flow', title: isRupture ? 'رپچر موتور خشک شکیب' : 'فلو کنترل',
+      spec: isRupture ? (rup.label + ' + شلنگ تخلیه روغن و زانویی') : ('سایز ' + puRow.flowSize + '"'), unitPrice: accPrice, qty: qAcc });
+  }
+  return items.length ? items : null;
+}
+dcResetForm();
+dryApplySubTab();
+</script>
+<style id="bfPhFoldCss">
+/* 📈 تاریخچه قیمت — حالت تاشو: هر گروه و هر تغییر جدا باز/بسته می‌شود */
+#bfPriceHistory .ph-group > .ph-group-title{cursor:pointer;user-select:none;flex-wrap:wrap;}
+#bfPriceHistory .ph-group > .ph-group-title::after{content:"▾";margin-inline-start:auto;font-size:12px;transition:transform .2s;}
+#bfPriceHistory .ph-group.ph-folded > .ph-group-title::after{transform:rotate(90deg);}
+#bfPriceHistory .ph-group.ph-folded > :not(.ph-group-title){display:none !important;}
+#bfPriceHistory .ph-fold-active{font-size:.72rem;font-weight:700;opacity:.8;padding:1px 8px;border-radius:999px;background:rgba(0,0,0,.05);}
+#bfPriceHistory .ph-item .ph-txt small{display:none;}
+#bfPriceHistory .ph-item.ph-open .ph-txt small{display:block;}
+#bfPriceHistory .ph-more{display:inline-flex;align-items:center;justify-content:center;margin-inline-start:8px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;border:1px solid rgba(0,0,0,.18);font-size:11px;font-weight:800;line-height:1;cursor:pointer;opacity:.75;vertical-align:middle;background:#fff;color:inherit;}
+#bfPriceHistory .ph-more:hover{opacity:1;}
+#bfPriceHistory details.ph-log-fold{border:1px dashed rgba(0,0,0,.18);border-radius:10px;padding:6px 10px;}
+#bfPriceHistory details.ph-log-fold > summary{cursor:pointer;font-size:.8rem;font-weight:800;}
+@media print{#bfPriceHistory .ph-more{display:none !important;}}
+</style>
+<script id="bfPhFoldScript">
+(function(){
+  try{
+    var root = document.getElementById('bfPriceHistory'); if(!root) return;
+
+    // ۰) ترتیب: آخرین تغییرات بالا — گروه‌ها و ردیف‌ها بر اساس جدیدترین تاریخ ۱۴xx/xx/xx داخل متنشان (نزولی، پایدار) مرتب می‌شوند
+    function phMaxDate(el){
+      var t = String(el.textContent||'').replace(/[۰-۹]/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d); }).replace(/[٠-٩]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); });
+      var m, best = 0, re = /(1[34]\d\d)\/(\d{1,2})\/(\d{1,2})/g;
+      while((m = re.exec(t))){ var v = (+m[1])*10000 + (+m[2])*100 + (+m[3]); if(v > best) best = v; }
+      return best;
+    }
+    function phSortChildren(parent, sel){
+      var kids = Array.prototype.filter.call(parent.children, function(c){ return c.matches(sel); });
+      if(kids.length < 2) return;
+      var anchor = kids[kids.length-1].nextSibling;
+      var sorted = kids.map(function(k,i){ return { k:k, i:i, d:phMaxDate(k) }; }).sort(function(a,b){ return (b.d - a.d) || (a.i - b.i); });
+      sorted.forEach(function(o){ parent.insertBefore(o.k, anchor); });
+    }
+    var phParents = [];
+    root.querySelectorAll('.ph-group, .ph-item').forEach(function(el){ if(phParents.indexOf(el.parentNode) < 0) phParents.push(el.parentNode); });
+    phParents.forEach(function(p){ phSortChildren(p, '.ph-group'); phSortChildren(p, '.ph-item'); });
+    // ۱) هر ردیف تغییر قیمت: فقط عنوان دیده می‌شود؛ جزئیات با دکمهٔ «…» باز/بسته می‌شود (انتخاب نرخ با کلیک روی خود ردیف مثل قبل)
+    root.querySelectorAll('.ph-item').forEach(function(it){
+      var sm = it.querySelector('.ph-txt small'), b = it.querySelector('.ph-txt b');
+      if(!sm || !b || it.querySelector('.ph-more')) return;
+      var t = document.createElement('span'); t.className = 'ph-more'; t.title = 'نمایش / پنهان کردن جزئیات'; t.textContent = '…';
+      t.setAttribute('role','button'); t.setAttribute('tabindex','0');
+      function tog(e){ e.preventDefault(); e.stopPropagation(); it.classList.toggle('ph-open'); t.textContent = it.classList.contains('ph-open') ? '▴' : '…'; }
+      t.addEventListener('click', tog);
+      t.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' ') tog(e); });
+      b.appendChild(t);
+    });
+    // ۲) هر گروه (برند / نوع کالا): تاشو — پیش‌فرض بسته؛ نرخ فعال کنار عنوان نمایش داده می‌شود
+    root.querySelectorAll('.ph-group').forEach(function(g){
+      var title = g.querySelector(':scope > .ph-group-title'); if(!title) return;
+      g.classList.add('ph-folded');
+      var act = document.createElement('span'); act.className = 'ph-fold-active'; title.appendChild(act);
+      function refresh(){
+        var a = g.querySelector('.ph-item.active .ph-txt b');
+        var txt = a ? Array.prototype.filter.call(a.childNodes, function(n){ return !(n.classList && n.classList.contains('ph-more')); }).map(function(n){ return n.textContent; }).join('').trim() : '';
+        act.textContent = txt ? ('فعال: ' + txt) : '';
+      }
+      title.addEventListener('click', function(){ g.classList.toggle('ph-folded'); });
+      g.querySelectorAll('.ph-item').forEach(function(it){ new MutationObserver(refresh).observe(it, { attributes:true, attributeFilter:['class'] }); });
+      refresh();
+    });
+    // ۳) یادداشت‌های گزارش تغییرات (ph-log) — همه در یک بخش تاشو
+    var logs = root.querySelectorAll('.ph-log');
+    if(logs.length){
+      var d = document.createElement('details'); d.className = 'ph-log-fold';
+      var s = document.createElement('summary'); s.textContent = '📋 گزارش تغییرات (' + logs.length + ')'; d.appendChild(s);
+      logs[0].parentNode.insertBefore(d, logs[0]);
+      logs.forEach(function(l){ d.appendChild(l); });
+    }
+  }catch(e){}
+})();
+</script>
+
+<script id="bfFpRepriceBridge">
+/* ===== [FP-UPD] پل «به‌روزرسانی قیمت» فاکتور پلاس =====
+   صفحهٔ اصلی این ابزار را در یک قاب پنهان باز می‌کند و یک «عکس فوری» از سفارش (snap) می‌فرستد؛ ابزار همان سفارش را
+   با قیمت‌های فعال خودش بازسازی و همان پیام «افزودن به فاکتور پلاس» را (به‌جای ارسال) برمی‌گرداند. هیچ چیزی ذخیره نمی‌شود. */
+(function(){
+  function capture(run){
+    let got = null; const msgs = []; const oa = window.alert, oc = window.confirm;
+    window.__bfFpCapture = function(p){ got = p; };
+    window.alert = function(m){ msgs.push(String(m)); };
+    window.confirm = function(){ return true; };
+    try{ run(); }catch(e){ msgs.push(String(e && e.message || e)); }
+    finally{ window.__bfFpCapture = null; window.alert = oa; window.confirm = oc; }
+    return { payload: got, msgs: msgs };
+  }
+  window.bfFpCaptureRun = capture;
+  window.addEventListener('message', function(e){
+    const d = e.data;
+    if(!d || !d.__bfFpReprice || typeof window.bfFpRepriceImpl !== 'function') return;
+    let res;
+    try{ res = window.bfFpRepriceImpl(d.snap) || {}; }catch(err){ res = { ok:false, notes:['خطا: ' + (err && err.message || err)] }; }
+    try{ e.source.postMessage(Object.assign({ __bfFpRepriced:true, reqId:d.reqId }, res), '*'); }catch(_){}
+  });
+  function ready(){ try{ if(window.parent && window.parent !== window) window.parent.postMessage({ __bfFpRepriceReady:true }, '*'); }catch(e){} }
+  if(document.readyState === 'complete') setTimeout(ready, 800); else window.addEventListener('load', ()=> setTimeout(ready, 800));
+})();
+
+window.bfFpRepriceImpl = function(snap){
+  if(!snap) return { ok:false, notes:['اطلاعات این سفارش برای به‌روزرسانی کافی نیست'] };
+  if(snap.category==='سفارش کاملا دستی شکیب') return { ok:false, keep:true, notes:['سفارش «کاملاً دستی» است و قیمت‌هایش را خودتان وارد کرده‌اید — بدون تغییر ماند'] };
+  const notes = []; const tmpId = 'fp_tmp_' + Date.now();
+  const tmp = Object.assign(JSON.parse(JSON.stringify(snap)), { id: tmpId });
+  const ol = bfLoadOrders;
+  bfLoadOrders = function(k){ return k===BF_SHAKIB_ORDERS_KEY ? [tmp] : ol(k); };
+  let r;
+  try{
+    r = bfFpCaptureRun(function(){
+      shkUpdateSavedOrder(tmpId);
+      const w = document.querySelector('#bfShakibUpdateBanner .upd-warn'); if(w) notes.push(w.textContent.replace(/\s+/g,' ').trim());
+      if(snap.category==='سفارش تکی شکیب'){
+        const rec = bfBuildSingleItemRecord();
+        bfAddRecordToFactorPlus(rec, 'سفارش تکی شکیب', singleCartCalc ? singleCartCalc.discountAmount : 0, singleCartCalc ? singleCartCalc.items : null);
+      } else bfAddToFactorPlus();
+    });
+  } finally { bfLoadOrders = ol; }
+  return { ok: !!r.payload, payload: r.payload, notes: notes.concat(r.msgs) };
+};
+</script>
+<style id="bfAdjGridCss">
+/* ===== [BF-AG] جدول ستونی «تعدیل / افزایش / ارزش افزوده / تخفیف» — مشترک همهٔ محصولات ===== */
+.bfag{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:16px 0 12px; direction:rtl; font-family:inherit; }
+@media(max-width:980px){ .bfag{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:520px){ .bfag{ grid-template-columns:1fr; } }
+.bfag-col{ --c:#555; --t:#f6f6f6; position:relative; border-radius:16px; background:linear-gradient(180deg,var(--t) 0%,#fff 85%); border:1.8px solid color-mix(in srgb,var(--c) 45%,#fff); box-shadow:0 2px 10px color-mix(in srgb,var(--c) 14%,transparent); overflow:hidden; display:flex; flex-direction:column; min-width:0; }
+.bfag-col::before{ content:""; height:6px; background:var(--c); display:block; }
+.bfag-adj { --c:#6b4fd1; --t:#f2efff; }
+.bfag-mark{ --c:#d63a3a; --t:#fff0f0; }
+.bfag-vat { --c:#c98600; --t:#fff8e6; }
+.bfag-disc{ --c:#13a065; --t:#eafaf2; }
+.bfag-h{ display:flex; align-items:center; gap:8px; padding:10px 12px 2px; font-weight:900; font-size:.95rem; color:var(--c); }
+.bfag-step{ width:22px; height:22px; border-radius:50%; background:var(--c); color:#fff; font-size:.72rem; display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; }
+.bfag-sub{ padding:0 12px 8px; font-size:.7rem; color:#5d6b6a; line-height:1.7; min-height:2.4em; }
+.bfag-b{ padding:4px 12px 12px; display:flex; flex-direction:column; gap:8px; flex:1; }
+.bfag-b > *{ margin:0 !important; max-width:none !important; width:auto !important; }
+.bfag-b label, .bfag-b .row > span:first-child{ font-size:.78rem !important; font-weight:800 !important; color:#2b3a39 !important; }
+.bfag-b input[type=number], .bfag-b input[type=text]{ border:2px solid color-mix(in srgb,var(--c) 55%,#fff) !important; border-radius:10px !important; font-weight:900 !important; font-size:1rem !important; color:var(--c) !important; text-align:center !important; background:#fff !important; padding:6px 8px !important; min-width:70px; }
+.bfag-b input:focus{ outline:3px solid color-mix(in srgb,var(--c) 25%,transparent) !important; }
+.bfag-b .row, .bfag-b .discount-field, .bfag-b .manual-adj-row, .bfag-b .inv-adj-group, .bfag-b .adj-field{ display:flex !important; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; background:transparent !important; border:0 !important; padding:0 !important; }
+.bfag-b .official-toggle, .bfag-b label:has(> input[type=checkbox]){ display:flex !important; align-items:flex-start; gap:8px; background:#fff; border:1.5px dashed color-mix(in srgb,var(--c) 50%,#fff) !important; border-radius:12px; padding:8px 10px !important; cursor:pointer; }
+.bfag-b input[type=checkbox]{ accent-color:var(--c); width:18px; height:18px; margin-top:2px; flex:0 0 auto; }
+.bfag-b .back-only-note{ display:none !important; }
+.bfag-b .num, .bfag-b .adj-amt{ font-weight:900; color:var(--c); }
+.bfag-b .adj-inp, .bfag-b .box, .bfag-b .adj-box{ border:0 !important; background:transparent !important; box-shadow:none !important; padding:0 !important; }
+.bfag-off{ filter:grayscale(1); opacity:.55; }
+.bfag-na{ font-size:.75rem; color:#777; text-align:center; padding:10px 0; }
+@media print{ .bfag{ display:none !important; } }
+</style>
+<script id="bfAdjGridJs">
+/* [BF-AG] کنترل‌های موجود هر ابزار (با همان رفتار و رویدادها) به ستون‌های رنگی منتقل می‌شوند.
+   ترتیب از راست: ۱ تعدیل قیمت · ۲ افزایش قیمت · ۳ ارزش افزوده · ۴ تخفیف */
+(function(){
+  const DEF = [
+    ['adj',  'تعدیل قیمت',   'مبلغ ثابت به ریال — با + یا − به جمع اضافه/کم می‌شود'],
+    ['mark', 'افزایش قیمت',  'داخلی — در پیش‌فاکتور مشتری نوشته نمی‌شود؛ داخل قیمت واحد می‌رود'],
+    ['vat',  'ارزش افزوده',  'فاکتور رسمی / ۱۰٪ مالیات بر ارزش افزوده'],
+    ['disc', 'تخفیف',        'برای مشتری — در پیش‌فاکتور نمایش داده می‌شود']
+  ];
+  window.bfAgWrap = function(id, sel){ const el = document.getElementById(id); if(!el) return null; return sel ? (el.closest(sel) || el) : el; };
+  window.bfBuildAdjGrid = function(anchor, place, cols){
+    if(!anchor || !anchor.parentNode) return null;
+    const g = document.createElement('div'); g.className = 'bfag no-print';
+    DEF.forEach(([k, t, sub], i)=>{
+      const c = document.createElement('div'); c.className = 'bfag-col bfag-' + k;
+      c.innerHTML = '<div class="bfag-h"><span class="bfag-step">' + '۱۲۳۴'[i] + '</span><span>' + ((cols.title && cols.title[k]) || t) + '</span></div><div class="bfag-sub">' + ((cols.sub && cols.sub[k]) || sub) + '</div><div class="bfag-b"></div>';
+      const b = c.querySelector('.bfag-b');
+      const nodes = (cols[k] || []).filter(Boolean).filter((n, ix, a)=> a.indexOf(n) === ix);
+      if(!nodes.length){ c.classList.add('bfag-off'); b.innerHTML = '<div class="bfag-na">در این بخش کاربرد ندارد</div>'; }
+      else nodes.forEach(n=> b.appendChild(n));
+      g.appendChild(c);
+    });
+    if(place === 'after') anchor.parentNode.insertBefore(g, anchor.nextSibling);
+    else if(place === 'prepend') anchor.insertBefore(g, anchor.firstChild);
+    else anchor.parentNode.insertBefore(g, anchor);
+    return g;
+  };
+})();
+</script>
+<script id="bfAdjGridInit">
+(function(){ try{
+  const sub = { adj:'مبلغ ثابت (ریال) — منفی مثل تخفیف در پیش‌فاکتور درج می‌شود؛ مثبت بی‌نام به جمع اضافه می‌شود' };
+  const icSet = document.getElementById('markupInput') && document.getElementById('markupInput').closest('.invoice-controls');
+  if(icSet) bfBuildAdjGrid(icSet, 'before', { sub,
+    adj:  [bfAgWrap('manualAdjAmount','.manual-adj-row')],
+    mark: [bfAgWrap('markupInput','.discount-field')],
+    vat:  [bfAgWrap('officialToggle','.official-toggle')],
+    disc: [bfAgWrap('discountInput','.discount-field'), bfAgWrap('discountAccInput','.discount-field')] });
+  [['singleDiscountInput','singleOfficialToggle'], ['manualDiscountInput','manualOfficialToggle']].forEach(([d, v])=>{
+    const el = document.getElementById(d); const ic = el && el.closest('.invoice-controls'); if(!ic) return;
+    bfBuildAdjGrid(ic, 'before', { vat:[bfAgWrap(v,'.official-toggle')], disc:[bfAgWrap(d,'.discount-field')] });
+  });
+}catch(e){ console.error('[BF-AG]', e); } })();
 </script>
 </body>
 </html>

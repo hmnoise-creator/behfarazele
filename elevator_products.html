@@ -121,7 +121,6 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="بهفراز">
 <meta name="theme-color" content="#0f3d3a">
-
 <title>محصولات آسانسور | بهفراز</title>
 <style>
 :root{--teal:#0f3d3a;--teal2:#134a45;--acc:#1e88e5;--acc2:#0d5fc0;--line:#dbe6f3;--muted:#6b7a78;--bg:#f2f6fa;--ok:#0f6e56;--bad:#c0392b}
@@ -622,6 +621,7 @@ td.tot{font-weight:800;color:var(--teal);white-space:nowrap}
   if(window.bfDraft) return;
   var PREFIX = 'bf_draft_v1|', SESSION_KEY = 'bf_operator_session_v1', MAX_AGE = 7 * 24 * 3600 * 1000;
   var A = null, baseSig = null, ready = false, timer = null, busy = false;
+  var BF_DRAFT_ENABLED = false;   // ⏸ پرسش «پیش‌فاکتور نیمه‌کاره داشتید» فعلاً غیرفعال است (برای فعال‌سازی دوباره: true)
 
   function opName(){ try{ var o = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); return (o && o.name) || ''; }catch(e){ return ''; } }
   function key(){ return PREFIX + A.product + '|' + (opName() || '_'); }
@@ -706,6 +706,7 @@ td.tot{font-weight:800;color:var(--teal);white-space:nowrap}
     /* adapter = { product, label, capture(): {state, customer, summary, editing}, restore(state), sigOmit:[...] } */
     init: function(adapter){
       if(A) return; A = adapter;
+      if(!BF_DRAFT_ENABLED) return;   // نه پیش‌نویس ذخیره می‌شود و نه پرسشی نمایش داده می‌شود
       ['input', 'change', 'click', 'keyup'].forEach(function(ev){ document.addEventListener(ev, schedule, true); });
       window.addEventListener('pagehide', persist);
       window.addEventListener('beforeunload', persist);
@@ -1080,8 +1081,8 @@ function sendToFactorPlus(){
   addAllToInvoiceSilent();
   var name=$('cName').value.trim(); if(!name){toast('نام خریدار را وارد کنید');return} if(!inv.length){toast('فاکتور خالی است');return}
   var t=totals();
-  try{parent.postMessage({__behfarazFactorPlusAdd:true,companyName:name,projectName:$('cProject').value.trim(),sourceType:'elevator',sourceLabel:'محصولات آسانسور',sourceIcon:'🛗',
-    discount:t.pct,items:inv.map(function(it){return {description:it.name+(it.spec?' — '+it.spec:''),qty:it.qty,total:it.qty*it.unit,kind:'elevator'}})},'*');toast('به فاکتور پلاس این مشتری اضافه شد ✓')}catch(e){toast('ارسال ممکن نشد')}
+  try{parent.postMessage({__behfarazFactorPlusAdd:true,companyName:name,projectName:$('cProject').value.trim(),sourceType:'elevator',sourceLabel:'محصولات آسانسور',sourceIcon:'🛗',official:!!$('cVat').checked,
+    discount:t.pct,items:inv.map(function(it){return {description:it.name+(it.spec?' — '+it.spec:''),qty:it.qty,total:it.qty*it.unit,kind:'elevator',title:it.name,specs:it.spec?String(it.spec).split(/\s*[·|،]\s*/).filter(Boolean).map(function(v){return {k:'',v:v}}):[]}})},'*');toast('به فاکتور پلاس این مشتری اضافه شد ✓')}catch(e){toast('ارسال ممکن نشد')}
 }
 
 /* ============ شماره پیش‌فاکتور پیش‌فرض (تاریخ شمسی امروز) ============ */

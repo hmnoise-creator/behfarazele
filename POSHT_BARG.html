@@ -113,6 +113,7 @@
   };
 })();
 </script>
+
 <script>
 /* BF-SERVER-ORDERS: فهرست پیش‌فاکتورها دیگر داخل localStorage مرورگر ذخیره نمی‌شود.
    علت مشکل قبلی: هر مرورگر «همهٔ سفارش‌های همهٔ کاربران» را (با عکس کامل HTML هر فاکتور) در localStorage
@@ -385,6 +386,7 @@
   if(window.bfDraft) return;
   var PREFIX = 'bf_draft_v1|', SESSION_KEY = 'bf_operator_session_v1', MAX_AGE = 7 * 24 * 3600 * 1000;
   var A = null, baseSig = null, ready = false, timer = null, busy = false;
+  var BF_DRAFT_ENABLED = false;   // ⏸ پرسش «پیش‌فاکتور نیمه‌کاره داشتید» فعلاً غیرفعال است (برای فعال‌سازی دوباره: true)
 
   function opName(){ try{ var o = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); return (o && o.name) || ''; }catch(e){ return ''; } }
   function key(){ return PREFIX + A.product + '|' + (opName() || '_'); }
@@ -469,6 +471,7 @@
     /* adapter = { product, label, capture(): {state, customer, summary, editing}, restore(state), sigOmit:[...] } */
     init: function(adapter){
       if(A) return; A = adapter;
+      if(!BF_DRAFT_ENABLED) return;   // نه پیش‌نویس ذخیره می‌شود و نه پرسشی نمایش داده می‌شود
       ['input', 'change', 'click', 'keyup'].forEach(function(ev){ document.addEventListener(ev, schedule, true); });
       window.addEventListener('pagehide', persist);
       window.addEventListener('beforeunload', persist);
@@ -1479,6 +1482,7 @@ table.pi-totals-table tr.totals-final th,table.pi-totals-table tr.totals-final t
 })();
 </script>
 
+<style>@media print{ #bfOperatorBadge{ display:none !important; } }</style>
 <style id="bfMobileFix">
 /* [BF-MOBILE] نمایش درست روی آیفون / موبایل: هیچ بخشی از صفحه از عرض گوشی بیرون نزند و نیازی به کشیدن صفحه به کنار نباشد.
    فقط روی صفحهٔ نمایش (screen) اعمال می‌شود؛ روی چاپ و PDF پیش‌فاکتور هیچ اثری ندارد. */
@@ -1636,6 +1640,7 @@ table.pi-totals-table tr.totals-final th,table.pi-totals-table tr.totals-final t
           <label style="font-size:12px;font-weight:700;">تخفیف (%)</label>
           <input type="number" id="discountPercent" value="0" min="0" max="100" style="width:60px;padding:5px;border-radius:6px;border:1px solid var(--line);text-align:center;">
         </div>
+        <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer;" title="۱۰٪ ارزش افزوده روی مبلغ نهایی (پس از تخفیف/تعدیل)"><input type="checkbox" id="vatCheckPanel"> افزودن ۱۰٪ ارزش افزوده</label>
         <div class="inv-adj-group" title="فقط در «پشت برگ» چاپ می‌شود — در پیش‌فاکتور مشتری نمایش داده نمی‌شود">
           <div style="display:flex;align-items:center;gap:8px;">
             <label style="font-size:12px;font-weight:700;">درصد افزایش (%)</label>
@@ -1654,18 +1659,7 @@ table.pi-totals-table tr.totals-final th,table.pi-totals-table tr.totals-final t
           </div>
           <span class="back-only-note">فقط پشت برگ</span>
         </div>
-        <div class="inv-adj-group" title="فقط در «پشت برگ» چاپ می‌شود — در پیش‌فاکتور مشتری نمایش داده نمی‌شود">
-          <div style="display:flex;align-items:center;gap:6px;">
-            <label style="font-size:12px;font-weight:700;">تعدیل دستی ۲</label>
-            <div class="manual-adj-toggle">
-              <button type="button" id="manualAdj2MinusBtn" class="manual-adj-sign sign-minus" data-sign="-1" title="کسر از جمع کل">−</button>
-              <button type="button" id="manualAdj2PlusBtn" class="manual-adj-sign sign-plus active" data-sign="1" title="افزودن به جمع کل">+</button>
-            </div>
-            <input type="text" inputmode="numeric" id="manualAdj2Amount" value="" placeholder="مبلغ" style="width:100px;padding:5px;border-radius:6px;border:1px solid var(--line);text-align:center;">
-          </div>
-          <span class="back-only-note">فقط پشت برگ</span>
-        </div>
-      </div>
+              </div>
       <div class="inv-footer-print-row">
         <button class="print-btn" id="printBackBtn" style="background:#555;">🖨 چاپ پشت برگ</button>
         <button class="print-btn" id="printInvoiceBtn">🖨 چاپ پیش‌فاکتور</button>
@@ -1773,9 +1767,11 @@ table.pi-totals-table tr.totals-final th,table.pi-totals-table tr.totals-final t
         <tr class="totals-discount"><th>تخفیف</th><td id="pDiscountLine">—</td></tr>
         <tr class="totals-manual-discount" id="pManualAdjDiscountRow" style="display:none;"><th>تخفیف تعدیل قیمت</th><td id="pManualAdjDiscountLine">—</td></tr>
         <tr class="totals-grand"><th>جمع کل</th><td><span id="pTotal">۰</span> ریال</td></tr>
+        <tr class="totals-vat" id="pVatRow" style="display:none;"><th>ارزش افزوده (۱۰٪)</th><td><span id="pVatLine">۰</span> ریال</td></tr>
         <tr class="totals-final"><th>مبلغ نهایی</th><td><span id="pFinalTotal">۰</span> ریال</td></tr>
       </tbody>
     </table>
+    <div id="pTaxNote" style="margin-top:8px;padding:6px 12px;border:1px dashed #777;border-radius:6px;text-align:center;font-weight:800;font-size:12.5px;page-break-inside:avoid;"></div>
 
     <div id="pTagCardSection" style="display:none;margin-top:10px;">
       <div style="font-weight:800;font-size:13px;margin:6px 0 4px;">تگ / کارت (Tag / Card)</div>
@@ -1829,9 +1825,11 @@ table.pi-totals-table tr.totals-final th,table.pi-totals-table tr.totals-final t
         <tr class="totals-increase"><th>افزایش</th><td id="pIncreaseLineBack">—</td></tr>
         <tr class="totals-manual"><th>تعدیل دستی</th><td id="pManualAdjLineBack">—</td></tr>
         <tr class="totals-grand"><th>جمع کل</th><td><span id="pTotalBack">۰</span> ریال</td></tr>
+        <tr class="totals-vat" id="pVatRowBack" style="display:none;"><th>ارزش افزوده (۱۰٪)</th><td><span id="pVatLineBack">۰</span> ریال</td></tr>
         <tr class="totals-final"><th>مبلغ نهایی (با تخفیف)</th><td><span id="pFinalTotalBack">۰</span> ریال</td></tr>
       </tbody>
     </table>
+    <div id="pTaxNoteBack" style="margin-top:8px;padding:6px 12px;border:1px dashed #777;border-radius:6px;text-align:center;font-weight:800;font-size:12.5px;page-break-inside:avoid;"></div>
 
     <div id="pTagCardSectionBack" style="display:none;margin-top:10px;">
       <div style="font-weight:800;font-size:13px;margin:6px 0 4px;">تگ / کارت (Tag / Card)</div>
@@ -5691,7 +5689,8 @@ function renderInvoice(skipCategoryRefresh){
   const increasePercent = parseFloat(document.getElementById('increasePercent').value) || 0;
   const increaseAmount = total * increasePercent / 100;
   const manualAdjValue = getManualAdjTotal();
-  const finalTotal = total - discount + increaseAmount + manualAdjValue;
+  const finalTotal0 = total - discount + increaseAmount + manualAdjValue;
+  const finalTotal = finalTotal0 + bfPanelVat(finalTotal0);
   document.getElementById('invoiceTotal').textContent = fmt(finalTotal);
   
   // Re-render category to update ticks
@@ -5780,12 +5779,11 @@ document.getElementById('clearInvoiceBtn').onclick=()=>{
   hideEditBanner();
   // پاک کردن درصد تخفیف
   document.getElementById('discountPercent').value = 0;
+  bfPanelSetVat(false); renderInvoice();
   // پاک کردن درصد افزایش و تعدیل دستی
   document.getElementById('increasePercent').value = 0;
   document.getElementById('manualAdjAmount').value = '';
   setManualAdjSign(-1, '');
-  document.getElementById('manualAdj2Amount').value = '';
-  setManualAdjSign(1, '2');
   // پاک کردن مشخصات مشتری
   document.getElementById('custName').value = '';
   document.getElementById('custProject').value = '';
@@ -5797,9 +5795,20 @@ document.getElementById('clearInvoiceBtn').onclick=()=>{
 };
 
 document.getElementById('discountPercent').oninput = renderInvoice;
+// ---- ارزش افزوده ۱۰٪ (پیش‌فرض: بدون تیک) — روی مبلغ نهایی پس از تخفیف و تعدیل‌ها محاسبه می‌شود ----
+function bfPanelVatOn(){ const e = document.getElementById('vatCheckPanel'); return !!(e && e.checked); }
+function bfPanelVat(base){ return bfPanelVatOn() ? Math.round((Number(base)||0) * 0.10) : 0; }
+function bfPanelSetVat(v){ const e = document.getElementById('vatCheckPanel'); if(e) e.checked = !!v; }
+document.getElementById('vatCheckPanel').addEventListener('change', renderInvoice);
 
 /* ---- درصد افزایش و تعدیل دستی (فقط پشت‌برگ) ---- */
-// دو باکس مستقل تعدیل دستی: n='' (اولی) و n='2' (دومی) — هرکدام علامت (+/−) و مبلغ خودش را دارد
+// فقط یک باکس تعدیل دستی (n='') — رکوردهای قدیمی که «تعدیل ۲» داشتند هنگام بارگذاری در همین یک باکس ادغام می‌شوند
+function bfFoldManualAdj(o){
+  const net = ((Number(o.manualAdjSign)===1)?1:-1)*(Number(o.manualAdjAmount)||0)
+            + ((Number(o.manualAdj2Sign)===-1)?-1:1)*(Number(o.manualAdj2Amount)||0);
+  document.getElementById('manualAdjAmount').value = net ? formatFxDisplay(Math.abs(net)) : '';
+  setManualAdjSign(net>0 ? 1 : (net<0 ? -1 : (Number(o.manualAdjSign)===1?1:-1)), '');
+}
 function getManualAdjSign(n){
   const plusBtn = document.getElementById('manualAdj'+(n||'')+'PlusBtn');
   return (plusBtn && plusBtn.classList.contains('active')) ? 1 : -1;
@@ -5811,27 +5820,28 @@ function getManualAdjAmount(n){
 function setManualAdjSign(sign, n){
   const minusBtn = document.getElementById('manualAdj'+(n||'')+'MinusBtn');
   const plusBtn = document.getElementById('manualAdj'+(n||'')+'PlusBtn');
+  if(!minusBtn || !plusBtn) return;
   if(sign === 1){ plusBtn.classList.add('active'); minusBtn.classList.remove('active'); }
   else { minusBtn.classList.add('active'); plusBtn.classList.remove('active'); }
 }
 // جمع جبری هر دو تعدیل (مثبت = افزایش، منفی = کاهش)
 function getManualAdjTotal(){
-  return getManualAdjSign('')*getManualAdjAmount('') + getManualAdjSign('2')*getManualAdjAmount('2');
+  return getManualAdjSign('')*getManualAdjAmount('');
 }
 // مجموع مبالغ «کاهشی» (تخفیف دستی) — برای نمایش در پیش‌فاکتور مشتری
 function getManualAdjNegAbs(){
   let t = 0;
-  ['', '2'].forEach(n=>{ if(getManualAdjSign(n)<0) t += getManualAdjAmount(n); });
+  [''].forEach(n=>{ if(getManualAdjSign(n)<0) t += getManualAdjAmount(n); });
   return t;
 }
 // متن نمایشی پشت‌برگ: هر تعدیل ناصفر با علامت خودش
 function getManualAdjBackText(){
   const parts = [];
-  ['', '2'].forEach(n=>{ const a = getManualAdjAmount(n); if(a>0) parts.push((getManualAdjSign(n)>0?'+ ':'- ') + fmt(a) + ' ریال'); });
+  [''].forEach(n=>{ const a = getManualAdjAmount(n); if(a>0) parts.push((getManualAdjSign(n)>0?'+ ':'- ') + fmt(a) + ' ریال'); });
   return parts.join('  ،  ');
 }
 document.getElementById('increasePercent').oninput = renderInvoice;
-['', '2'].forEach(n=>{
+[''].forEach(n=>{
   document.getElementById('manualAdj'+n+'MinusBtn').onclick = ()=>{ setManualAdjSign(-1, n); renderInvoice(); };
   document.getElementById('manualAdj'+n+'PlusBtn').onclick = ()=>{ setManualAdjSign(1, n); renderInvoice(); };
   document.getElementById('manualAdj'+n+'Amount').oninput = ()=>{
@@ -6033,10 +6043,9 @@ function bfShowOperatorBadge(){
     // تعریف نشده باشد، بج در چاپ اصلاً نمایش داده نمی‌شود. بعد از چاپ، نام واقعی برمی‌گردد.
     window.addEventListener('beforeprint', function(){
       const cur = bfGetOperator();
-      const label = bfOperatorPrintLabel(cur ? cur.name : '');
+      // به درخواست: هیچ عنوان/نام اپراتوری (مدیر فروش، واحد فروش و ...) در هیچ چاپی (پیش‌فاکتور و پشت برگ) نمایش داده نمی‌شود
       badge.dataset.onscreenText = badge.textContent;
-      if(label){ badge.textContent = '👤 ' + label; badge.style.visibility = 'visible'; }
-      else{ badge.textContent = ''; badge.style.visibility = 'hidden'; }
+      badge.textContent = ''; badge.style.visibility = 'hidden';
     });
     window.addEventListener('afterprint', function(){
       if(badge.dataset.onscreenText != null) badge.textContent = badge.dataset.onscreenText;
@@ -6227,9 +6236,19 @@ function bfAddToFactorPlus(){
     __behfarazFactorPlusAdd: true,
     sourceType: 'panel', sourceLabel: 'پنل آسانسور', sourceIcon: '🎛️',
     companyName, projectName, items: itemsForFP, qty: invoice.length,
-    total: preDiscountTotal, discount: effectivePct
+    total: preDiscountTotal, discount: effectivePct,
+    official: bfPanelVatOn(),
+    snap: (function(){ try{
+      const g = id => { const e = document.getElementById(id); return e ? e.value : ''; };
+      return { id:'fpsnap_' + Date.now(), customerName:g('custName'), customerProject:g('custProject'), customerPhone:g('custPhone'), customerAddress:g('custAddress'),
+        customerSocial:g('custSocial'), customerNotes:g('custNotes'), customerType: bfGetCustomerType(),
+        discountPercent: parseFloat(g('discountPercent'))||0, vatEnabled: bfPanelVatOn(), increasePercent: parseFloat(g('increasePercent'))||0,
+        manualAdjSign: getManualAdjSign(''), manualAdjAmount: getManualAdjAmount(''), 
+        invoice: JSON.parse(JSON.stringify(invoice)) };
+    }catch(e){ return null; } })()
   };
   try{
+    if(window.__bfFpCapture){ window.__bfFpCapture(payload); return; }
     if(window.parent && window.parent !== window){ window.parent.postMessage(payload, '*'); bfToast('➕ به فاکتور پلاس افزوده شد', 'ok'); }
     else alert('این ابزار باید از داخل «صفحه اصلی بهفراز» باز شود تا افزودن به فاکتور پلاس کار کند.');
   }catch(e){}
@@ -6316,7 +6335,8 @@ function bfOrderFinalTotal(o){
   const inc  = raw * (Number(o.increasePercent)||0) / 100;
   const adj1 = (Number(o.manualAdjSign)||-1) * (Number(o.manualAdjAmount)||0);
   const adj2 = (Number(o.manualAdj2Sign)||-1) * (Number(o.manualAdj2Amount)||0);
-  return raw - disc + inc + adj1 + adj2;
+  const f0 = raw - disc + inc + adj1 + adj2;
+  return f0 + (o.vatEnabled ? Math.round(f0 * 0.10) : 0);
 }
 
 /* ==== خروجی اکسل (حسابداری) — فایل .xlsx بدون نیاز به کتابخانه/اینترنت ==== */
@@ -6521,7 +6541,9 @@ function bfExportOrderExcel(id){
   });
   const disc = raw*(Number(o.discountPercent)||0)/100, inc = raw*(Number(o.increasePercent)||0)/100;
   const adj1=(Number(o.manualAdjSign)||-1)*(Number(o.manualAdjAmount)||0), adj2=(Number(o.manualAdj2Sign)||-1)*(Number(o.manualAdj2Amount)||0);
-  const final = raw - disc + inc + adj1 + adj2;
+  const final0 = raw - disc + inc + adj1 + adj2;
+  const vatX = o.vatEnabled ? Math.round(final0 * 0.10) : 0;
+  const final = final0 + vatX;
   const sum = [[H('مورد'),H('مبلغ / مقدار')],
     ['شماره پیش‌فاکتور', o.preInvoiceNo||''], ['تاریخ ثبت', o.dateStr||''], ['ثبت‌کننده', o.createdByOperator||''],
     ['نام مشتری', o.customerName||''], ['نام پروژه', o.customerProject||''], ['شماره تماس', o.customerPhone||''],
@@ -6529,7 +6551,7 @@ function bfExportOrderExcel(id){
     ['جمع کل ردیف‌ها (ریال)', raw],
     ['درصد تخفیف', Number(o.discountPercent)||0], ['مبلغ تخفیف (ریال)', -disc],
     ['درصد افزایش', Number(o.increasePercent)||0], ['مبلغ افزایش (ریال)', inc],
-    ['تعدیل دستی ۱ (ریال)', adj1], ['تعدیل دستی ۲ (ریال)', adj2],
+    ['تعدیل دستی (ریال)', adj1+adj2], ['ارزش افزوده ۱۰٪ (ریال)', vatX],
     [{v:'مبلغ نهایی (ریال)',s:3}, {v:final,s:5}]];
   const files=[
     {name:'[Content_Types].xml', data:'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'},
@@ -6673,12 +6695,10 @@ function saveCurrentOrder(silent){
         customerNotes: document.getElementById('custNotes').value,
         customerType: bfGetCustomerType(),
         preInvoiceNo: getFullPreInvoiceNo(),
-        discountPercent: parseFloat(document.getElementById('discountPercent').value) || 0,
+        discountPercent: parseFloat(document.getElementById('discountPercent').value) || 0, vatEnabled: bfPanelVatOn(),
         increasePercent: parseFloat(document.getElementById('increasePercent').value) || 0,
         manualAdjSign: getManualAdjSign(''),
         manualAdjAmount: getManualAdjAmount(''),
-        manualAdj2Sign: getManualAdjSign('2'),
-        manualAdj2Amount: getManualAdjAmount('2'),
         invoice: JSON.parse(JSON.stringify(invoice)),
         total,
         ts: now.getTime(),
@@ -6715,12 +6735,10 @@ function saveCurrentOrder(silent){
     customerNotes: document.getElementById('custNotes').value,
     customerType: bfGetCustomerType(),
     preInvoiceNo: getFullPreInvoiceNo(),
-    discountPercent: parseFloat(document.getElementById('discountPercent').value) || 0,
+    discountPercent: parseFloat(document.getElementById('discountPercent').value) || 0, vatEnabled: bfPanelVatOn(),
     increasePercent: parseFloat(document.getElementById('increasePercent').value) || 0,
     manualAdjSign: getManualAdjSign(''),
     manualAdjAmount: getManualAdjAmount(''),
-    manualAdj2Sign: getManualAdjSign('2'),
-    manualAdj2Amount: getManualAdjAmount('2'),
     invoice: JSON.parse(JSON.stringify(invoice)),
     total
   };
@@ -6764,11 +6782,9 @@ function loadSavedOrder(id, enterEditMode){
     }
   }
   document.getElementById('discountPercent').value = o.discountPercent || 0;
+  bfPanelSetVat(o.vatEnabled);
   document.getElementById('increasePercent').value = o.increasePercent || 0;
-  document.getElementById('manualAdjAmount').value = o.manualAdjAmount ? formatFxDisplay(o.manualAdjAmount) : '';
-  setManualAdjSign(o.manualAdjSign === 1 ? 1 : -1, '');
-  document.getElementById('manualAdj2Amount').value = o.manualAdj2Amount ? formatFxDisplay(o.manualAdj2Amount) : '';
-  setManualAdjSign(o.manualAdj2Sign === -1 ? -1 : 1, '2');
+  bfFoldManualAdj(o);
   invoice = JSON.parse(JSON.stringify(o.invoice));
   addedKeys.clear();
   invoice.forEach(it=>{ if(it._addKey) addedKeys.add(it._addKey); });
@@ -6809,11 +6825,9 @@ function duplicateSavedOrder(id){
   initPreInvoicePrefix();
   document.getElementById('preInvoiceDay').value = ''; // نسخهٔ جدید: شمارهٔ سیستمی تازه هنگام ذخیره/چاپ گرفته می‌شود
   document.getElementById('discountPercent').value = o.discountPercent || 0;
+  bfPanelSetVat(o.vatEnabled);
   document.getElementById('increasePercent').value = o.increasePercent || 0;
-  document.getElementById('manualAdjAmount').value = o.manualAdjAmount ? formatFxDisplay(o.manualAdjAmount) : '';
-  setManualAdjSign(o.manualAdjSign === 1 ? 1 : -1, '');
-  document.getElementById('manualAdj2Amount').value = o.manualAdj2Amount ? formatFxDisplay(o.manualAdj2Amount) : '';
-  setManualAdjSign(o.manualAdj2Sign === -1 ? -1 : 1, '2');
+  bfFoldManualAdj(o);
   invoice = JSON.parse(JSON.stringify(o.invoice));
   addedKeys.clear();
   invoice.forEach(it=>{ if(it._addKey) addedKeys.add(it._addKey); });
@@ -6952,12 +6966,11 @@ function bfUpdateSavedOrder(id){
   initPreInvoicePrefix();
   document.getElementById('preInvoiceDay').value = '';
   document.getElementById('discountPercent').value = o.discountPercent || 0;
+  bfPanelSetVat(o.vatEnabled);
   document.getElementById('increasePercent').value = o.increasePercent || 0;
   const hadManualAdj = (o.manualAdjAmount>0) || (o.manualAdj2Amount>0);
   document.getElementById('manualAdjAmount').value = '';
   setManualAdjSign(-1, '');
-  document.getElementById('manualAdj2Amount').value = '';
-  setManualAdjSign(1, '2');
 
   addedKeys.clear();
   invoice = [];
@@ -7425,7 +7438,12 @@ function populatePrintSheet(suffix){
   const increaseAmount = total * increasePercent / 100;
   // تخفیف، درصد افزایش و تعدیل دستی همیشه در «مبلغ نهایی» اعمال می‌شوند —
   // اما جزئیات (درصد/مبلغ افزایش و تعدیل دستی) فقط در پشت‌برگ نمایش داده می‌شود؛ در پیش‌فاکتور مشتری این دو فقط داخل قیمت «کابین»، «طبقه» و «مبلغ نهایی» بی‌صدا اعمال شده‌اند
-  const finalTotal = total - discount + increaseAmount + manualAdjValue;
+  const finalTotal0 = total - discount + increaseAmount + manualAdjValue;
+  const vatAmountP = bfPanelVat(finalTotal0);
+  const finalTotal = finalTotal0 + vatAmountP;
+  if(el('pVatRow')) el('pVatRow').style.display = vatAmountP>0 ? '' : 'none';
+  if(el('pVatLine')) el('pVatLine').textContent = fmt(vatAmountP);
+  if(el('pTaxNote')) el('pTaxNote').textContent = bfPanelVatOn() ? 'پیش‌فاکتور فوق با محاسبه مالیات بر ارزش افزوده می‌باشد.' : 'پیش‌فاکتور فوق بدون محاسبه مالیات بر ارزش افزوده می‌باشد.';
   // در پیش‌فاکتور، «جمع کل» با قیمت‌های نمایشیِ کابین و طبقه (شامل افزایش/تعدیل دستی) هماهنگ می‌شود؛ در پشت‌برگ همان جمع خام باقی می‌ماند
   const displayTotal = isBackSheet ? total : (total + increaseAmount + manualAdjValue);
   el('pTotal').textContent = fmt(displayTotal);
@@ -8369,7 +8387,7 @@ function bfRowReadyBanner(undo, msg){
       category:'پنل آسانسور', customerName:g('custName'), customerProject:g('custProject'), customerPhone:g('custPhone'), customerAddress:g('custAddress'),
       customerSocial:g('custSocial'), customerNotes:g('custNotes'), customerType: typeof bfGetCustomerType==='function' ? bfGetCustomerType() : '',
       preInvoiceNo: typeof getFullPreInvoiceNo==='function' ? getFullPreInvoiceNo() : '',
-      discountPercent: parseFloat(g('discountPercent'))||0, increasePercent: parseFloat(g('increasePercent'))||0,
+      discountPercent: parseFloat(g('discountPercent'))||0, vatEnabled: (typeof bfPanelVatOn==='function' ? bfPanelVatOn() : false), increasePercent: parseFloat(g('increasePercent'))||0,
       invoice: JSON.parse(JSON.stringify(opts[0].lines)), total: opts[0].total,
       compare: { kind: KIND(), options: opts, slots: clone(c.slots), active: c.active }, cmpHtml: html, invoiceHtml: html
     };
@@ -8563,7 +8581,7 @@ function bfRowReadyBanner(undo, msg){
 (function(){
   if(!window.bfDraft) return;
   const CUST = ['custName','custProject','custPhone','custAddress','custSocial','custNotes','custTypePartner','custTypeEmployer','preInvoiceDay'];
-  const TOTALS = ['discountPercent','increasePercent','manualAdjAmount','manualAdj2Amount'];
+  const TOTALS = ['discountPercent','increasePercent','manualAdjAmount','vatCheckPanel'];
   function sectionsOf(cat){
     const g = window.__bfDraftGetters || {}, out = {};
     Object.keys(g).forEach(k=>{
@@ -8587,7 +8605,7 @@ function bfRowReadyBanner(undo, msg){
           sections: sectionsOf(currentCat),
           invoice: JSON.parse(JSON.stringify(invoice)),
           cust: cust, totals: bfDraft.readFields(TOTALS),
-          adj1: getManualAdjSign(''), adj2: getManualAdjSign('2'),
+          adj1: getManualAdjSign(''),
           bfx: bfxSnapshot(), editingId: editingOrderId || null, seq: seq,
           cmp: window.bfCmpExport ? window.bfCmpExport() : null
         }
@@ -8597,7 +8615,7 @@ function bfRowReadyBanner(undo, msg){
       bfDraft.writeFields(CUST, Object.assign({}, s.cust, { preInvoiceDay: s.seq }), true);
       bfDraft.writeFields(TOTALS, s.totals, true);
       setManualAdjSign(s.adj1 === 1 ? 1 : -1, '');
-      setManualAdjSign(s.adj2 === -1 ? -1 : 1, '2');
+      if(s.totals && s.totals.manualAdj2Amount){ bfFoldManualAdj({ manualAdjSign:s.adj1, manualAdjAmount:parseFxValue(s.totals.manualAdjAmount||''), manualAdj2Sign:s.adj2, manualAdj2Amount:parseFxValue(s.totals.manualAdj2Amount) }); }
       invoice = JSON.parse(JSON.stringify(s.invoice || []));
       addedKeys.clear();
       invoice.forEach(it=>{ if(it._addKey) addedKeys.add(it._addKey); });
@@ -9654,5 +9672,186 @@ bfAutoSeqInit({product:'panel',seqEl:function(){return document.getElementById('
 })();
 </script>
 
+<style id="bfPhFoldCss">
+/* 📈 تاریخچه قیمت — حالت تاشو: هر گروه و هر تغییر جدا باز/بسته می‌شود */
+#bfPriceHistory .ph-group > .ph-group-title{cursor:pointer;user-select:none;flex-wrap:wrap;}
+#bfPriceHistory .ph-group > .ph-group-title::after{content:"▾";margin-inline-start:auto;font-size:12px;transition:transform .2s;}
+#bfPriceHistory .ph-group.ph-folded > .ph-group-title::after{transform:rotate(90deg);}
+#bfPriceHistory .ph-group.ph-folded > :not(.ph-group-title){display:none !important;}
+#bfPriceHistory .ph-fold-active{font-size:.72rem;font-weight:700;opacity:.8;padding:1px 8px;border-radius:999px;background:rgba(0,0,0,.05);}
+#bfPriceHistory .ph-item .ph-txt small{display:none;}
+#bfPriceHistory .ph-item.ph-open .ph-txt small{display:block;}
+#bfPriceHistory .ph-more{display:inline-flex;align-items:center;justify-content:center;margin-inline-start:8px;min-width:22px;height:22px;padding:0 6px;border-radius:999px;border:1px solid rgba(0,0,0,.18);font-size:11px;font-weight:800;line-height:1;cursor:pointer;opacity:.75;vertical-align:middle;background:#fff;color:inherit;}
+#bfPriceHistory .ph-more:hover{opacity:1;}
+#bfPriceHistory details.ph-log-fold{border:1px dashed rgba(0,0,0,.18);border-radius:10px;padding:6px 10px;}
+#bfPriceHistory details.ph-log-fold > summary{cursor:pointer;font-size:.8rem;font-weight:800;}
+@media print{#bfPriceHistory .ph-more{display:none !important;}}
+</style>
+<script id="bfPhFoldScript">
+(function(){
+  try{
+    var root = document.getElementById('bfPriceHistory'); if(!root) return;
+
+    // ۰) ترتیب: آخرین تغییرات بالا — گروه‌ها و ردیف‌ها بر اساس جدیدترین تاریخ ۱۴xx/xx/xx داخل متنشان (نزولی، پایدار) مرتب می‌شوند
+    function phMaxDate(el){
+      var t = String(el.textContent||'').replace(/[۰-۹]/g, function(d){ return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d); }).replace(/[٠-٩]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); });
+      var m, best = 0, re = /(1[34]\d\d)\/(\d{1,2})\/(\d{1,2})/g;
+      while((m = re.exec(t))){ var v = (+m[1])*10000 + (+m[2])*100 + (+m[3]); if(v > best) best = v; }
+      return best;
+    }
+    function phSortChildren(parent, sel){
+      var kids = Array.prototype.filter.call(parent.children, function(c){ return c.matches(sel); });
+      if(kids.length < 2) return;
+      var anchor = kids[kids.length-1].nextSibling;
+      var sorted = kids.map(function(k,i){ return { k:k, i:i, d:phMaxDate(k) }; }).sort(function(a,b){ return (b.d - a.d) || (a.i - b.i); });
+      sorted.forEach(function(o){ parent.insertBefore(o.k, anchor); });
+    }
+    var phParents = [];
+    root.querySelectorAll('.ph-group, .ph-item').forEach(function(el){ if(phParents.indexOf(el.parentNode) < 0) phParents.push(el.parentNode); });
+    phParents.forEach(function(p){ phSortChildren(p, '.ph-group'); phSortChildren(p, '.ph-item'); });
+    // ۱) هر ردیف تغییر قیمت: فقط عنوان دیده می‌شود؛ جزئیات با دکمهٔ «…» باز/بسته می‌شود (انتخاب نرخ با کلیک روی خود ردیف مثل قبل)
+    root.querySelectorAll('.ph-item').forEach(function(it){
+      var sm = it.querySelector('.ph-txt small'), b = it.querySelector('.ph-txt b');
+      if(!sm || !b || it.querySelector('.ph-more')) return;
+      var t = document.createElement('span'); t.className = 'ph-more'; t.title = 'نمایش / پنهان کردن جزئیات'; t.textContent = '…';
+      t.setAttribute('role','button'); t.setAttribute('tabindex','0');
+      function tog(e){ e.preventDefault(); e.stopPropagation(); it.classList.toggle('ph-open'); t.textContent = it.classList.contains('ph-open') ? '▴' : '…'; }
+      t.addEventListener('click', tog);
+      t.addEventListener('keydown', function(e){ if(e.key==='Enter' || e.key===' ') tog(e); });
+      b.appendChild(t);
+    });
+    // ۲) هر گروه (برند / نوع کالا): تاشو — پیش‌فرض بسته؛ نرخ فعال کنار عنوان نمایش داده می‌شود
+    root.querySelectorAll('.ph-group').forEach(function(g){
+      var title = g.querySelector(':scope > .ph-group-title'); if(!title) return;
+      g.classList.add('ph-folded');
+      var act = document.createElement('span'); act.className = 'ph-fold-active'; title.appendChild(act);
+      function refresh(){
+        var a = g.querySelector('.ph-item.active .ph-txt b');
+        var txt = a ? Array.prototype.filter.call(a.childNodes, function(n){ return !(n.classList && n.classList.contains('ph-more')); }).map(function(n){ return n.textContent; }).join('').trim() : '';
+        act.textContent = txt ? ('فعال: ' + txt) : '';
+      }
+      title.addEventListener('click', function(){ g.classList.toggle('ph-folded'); });
+      g.querySelectorAll('.ph-item').forEach(function(it){ new MutationObserver(refresh).observe(it, { attributes:true, attributeFilter:['class'] }); });
+      refresh();
+    });
+    // ۳) یادداشت‌های گزارش تغییرات (ph-log) — همه در یک بخش تاشو
+    var logs = root.querySelectorAll('.ph-log');
+    if(logs.length){
+      var d = document.createElement('details'); d.className = 'ph-log-fold';
+      var s = document.createElement('summary'); s.textContent = '📋 گزارش تغییرات (' + logs.length + ')'; d.appendChild(s);
+      logs[0].parentNode.insertBefore(d, logs[0]);
+      logs.forEach(function(l){ d.appendChild(l); });
+    }
+  }catch(e){}
+})();
+</script>
+
+<script id="bfFpRepriceBridge">
+/* ===== [FP-UPD] پل «به‌روزرسانی قیمت» فاکتور پلاس =====
+   صفحهٔ اصلی این ابزار را در یک قاب پنهان باز می‌کند و یک «عکس فوری» از سفارش (snap) می‌فرستد؛ ابزار همان سفارش را
+   با قیمت‌های فعال خودش بازسازی و همان پیام «افزودن به فاکتور پلاس» را (به‌جای ارسال) برمی‌گرداند. هیچ چیزی ذخیره نمی‌شود. */
+(function(){
+  function capture(run){
+    let got = null; const msgs = []; const oa = window.alert, oc = window.confirm;
+    window.__bfFpCapture = function(p){ got = p; };
+    window.alert = function(m){ msgs.push(String(m)); };
+    window.confirm = function(){ return true; };
+    try{ run(); }catch(e){ msgs.push(String(e && e.message || e)); }
+    finally{ window.__bfFpCapture = null; window.alert = oa; window.confirm = oc; }
+    return { payload: got, msgs: msgs };
+  }
+  window.bfFpCaptureRun = capture;
+  window.addEventListener('message', function(e){
+    const d = e.data;
+    if(!d || !d.__bfFpReprice || typeof window.bfFpRepriceImpl !== 'function') return;
+    let res;
+    try{ res = window.bfFpRepriceImpl(d.snap) || {}; }catch(err){ res = { ok:false, notes:['خطا: ' + (err && err.message || err)] }; }
+    try{ e.source.postMessage(Object.assign({ __bfFpRepriced:true, reqId:d.reqId }, res), '*'); }catch(_){}
+  });
+  function ready(){ try{ if(window.parent && window.parent !== window) window.parent.postMessage({ __bfFpRepriceReady:true }, '*'); }catch(e){} }
+  if(document.readyState === 'complete') setTimeout(ready, 800); else window.addEventListener('load', ()=> setTimeout(ready, 800));
+})();
+
+window.bfFpRepriceImpl = function(snap){
+  if(!snap || !Array.isArray(snap.invoice)) return { ok:false, notes:['اطلاعات این سفارش برای به‌روزرسانی کافی نیست'] };
+  const ol = loadSavedOrders; const s2 = JSON.parse(JSON.stringify(snap));
+  loadSavedOrders = function(){ return [s2]; };
+  let r;
+  try{ r = bfFpCaptureRun(function(){ invoice = []; bfUpdateSavedOrder(s2.id); bfAddToFactorPlus(); }); }
+  finally { loadSavedOrders = ol; }
+  return { ok: !!r.payload, payload: r.payload, notes: r.msgs };
+};
+</script>
+<style id="bfAdjGridCss">
+/* ===== [BF-AG] جدول ستونی «تعدیل / افزایش / ارزش افزوده / تخفیف» — مشترک همهٔ محصولات ===== */
+.bfag{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:16px 0 12px; direction:rtl; font-family:inherit; }
+@media(max-width:980px){ .bfag{ grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:520px){ .bfag{ grid-template-columns:1fr; } }
+.bfag-col{ --c:#555; --t:#f6f6f6; position:relative; border-radius:16px; background:linear-gradient(180deg,var(--t) 0%,#fff 85%); border:1.8px solid color-mix(in srgb,var(--c) 45%,#fff); box-shadow:0 2px 10px color-mix(in srgb,var(--c) 14%,transparent); overflow:hidden; display:flex; flex-direction:column; min-width:0; }
+.bfag-col::before{ content:""; height:6px; background:var(--c); display:block; }
+.bfag-adj { --c:#6b4fd1; --t:#f2efff; }
+.bfag-mark{ --c:#d63a3a; --t:#fff0f0; }
+.bfag-vat { --c:#c98600; --t:#fff8e6; }
+.bfag-disc{ --c:#13a065; --t:#eafaf2; }
+.bfag-h{ display:flex; align-items:center; gap:8px; padding:10px 12px 2px; font-weight:900; font-size:.95rem; color:var(--c); }
+.bfag-step{ width:22px; height:22px; border-radius:50%; background:var(--c); color:#fff; font-size:.72rem; display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; }
+.bfag-sub{ padding:0 12px 8px; font-size:.7rem; color:#5d6b6a; line-height:1.7; min-height:2.4em; }
+.bfag-b{ padding:4px 12px 12px; display:flex; flex-direction:column; gap:8px; flex:1; }
+.bfag-b > *{ margin:0 !important; max-width:none !important; width:auto !important; }
+.bfag-b label, .bfag-b .row > span:first-child{ font-size:.78rem !important; font-weight:800 !important; color:#2b3a39 !important; }
+.bfag-b input[type=number], .bfag-b input[type=text]{ border:2px solid color-mix(in srgb,var(--c) 55%,#fff) !important; border-radius:10px !important; font-weight:900 !important; font-size:1rem !important; color:var(--c) !important; text-align:center !important; background:#fff !important; padding:6px 8px !important; min-width:70px; }
+.bfag-b input:focus{ outline:3px solid color-mix(in srgb,var(--c) 25%,transparent) !important; }
+.bfag-b .row, .bfag-b .discount-field, .bfag-b .manual-adj-row, .bfag-b .inv-adj-group, .bfag-b .adj-field{ display:flex !important; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; background:transparent !important; border:0 !important; padding:0 !important; }
+.bfag-b .official-toggle, .bfag-b label:has(> input[type=checkbox]){ display:flex !important; align-items:flex-start; gap:8px; background:#fff; border:1.5px dashed color-mix(in srgb,var(--c) 50%,#fff) !important; border-radius:12px; padding:8px 10px !important; cursor:pointer; }
+.bfag-b input[type=checkbox]{ accent-color:var(--c); width:18px; height:18px; margin-top:2px; flex:0 0 auto; }
+.bfag-b .back-only-note{ display:none !important; }
+.bfag-b .num, .bfag-b .adj-amt{ font-weight:900; color:var(--c); }
+.bfag-b .adj-inp, .bfag-b .box, .bfag-b .adj-box{ border:0 !important; background:transparent !important; box-shadow:none !important; padding:0 !important; }
+.bfag-off{ filter:grayscale(1); opacity:.55; }
+.bfag-na{ font-size:.75rem; color:#777; text-align:center; padding:10px 0; }
+@media print{ .bfag{ display:none !important; } }
+</style>
+<script id="bfAdjGridJs">
+/* [BF-AG] کنترل‌های موجود هر ابزار (با همان رفتار و رویدادها) به ستون‌های رنگی منتقل می‌شوند.
+   ترتیب از راست: ۱ تعدیل قیمت · ۲ افزایش قیمت · ۳ ارزش افزوده · ۴ تخفیف */
+(function(){
+  const DEF = [
+    ['adj',  'تعدیل قیمت',   'مبلغ ثابت به ریال — با + یا − به جمع اضافه/کم می‌شود'],
+    ['mark', 'افزایش قیمت',  'داخلی — در پیش‌فاکتور مشتری نوشته نمی‌شود؛ داخل قیمت واحد می‌رود'],
+    ['vat',  'ارزش افزوده',  'فاکتور رسمی / ۱۰٪ مالیات بر ارزش افزوده'],
+    ['disc', 'تخفیف',        'برای مشتری — در پیش‌فاکتور نمایش داده می‌شود']
+  ];
+  window.bfAgWrap = function(id, sel){ const el = document.getElementById(id); if(!el) return null; return sel ? (el.closest(sel) || el) : el; };
+  window.bfBuildAdjGrid = function(anchor, place, cols){
+    if(!anchor || !anchor.parentNode) return null;
+    const g = document.createElement('div'); g.className = 'bfag no-print';
+    DEF.forEach(([k, t, sub], i)=>{
+      const c = document.createElement('div'); c.className = 'bfag-col bfag-' + k;
+      c.innerHTML = '<div class="bfag-h"><span class="bfag-step">' + '۱۲۳۴'[i] + '</span><span>' + ((cols.title && cols.title[k]) || t) + '</span></div><div class="bfag-sub">' + ((cols.sub && cols.sub[k]) || sub) + '</div><div class="bfag-b"></div>';
+      const b = c.querySelector('.bfag-b');
+      const nodes = (cols[k] || []).filter(Boolean).filter((n, ix, a)=> a.indexOf(n) === ix);
+      if(!nodes.length){ c.classList.add('bfag-off'); b.innerHTML = '<div class="bfag-na">در این بخش کاربرد ندارد</div>'; }
+      else nodes.forEach(n=> b.appendChild(n));
+      g.appendChild(c);
+    });
+    if(place === 'after') anchor.parentNode.insertBefore(g, anchor.nextSibling);
+    else if(place === 'prepend') anchor.insertBefore(g, anchor.firstChild);
+    else anchor.parentNode.insertBefore(g, anchor);
+    return g;
+  };
+})();
+</script>
+<script id="bfAdjGridInit">
+(function(){ try{
+  const footer = document.querySelector('.inv-footer-row'); if(!footer) return;
+  const dp = document.getElementById('discountPercent');
+  bfBuildAdjGrid(footer, 'after', {
+    adj:  [bfAgWrap('manualAdjAmount','.inv-adj-group')],
+    mark: [bfAgWrap('increasePercent','.inv-adj-group')],
+    vat:  [bfAgWrap('vatCheckPanel','label')],
+    disc: [dp ? dp.parentNode : null],
+    sub:  { adj:'دو تعدیل مستقل (+/−) به ریال — فقط در پشت برگ نوشته می‌شود', mark:'فقط در پشت برگ نوشته می‌شود؛ بی‌صدا داخل قیمت‌ها می‌رود' } });
+}catch(e){ console.error('[BF-AG]', e); } })();
+</script>
 </body>
 </html>

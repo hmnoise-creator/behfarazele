@@ -1473,6 +1473,7 @@
   .bj-path span.done{border-color:#13a065;color:#0f7a4e;background:rgba(19,160,101,.07);}
   .bj-path span.now{border-color:var(--cyan-400);color:var(--cyan-400);box-shadow:0 0 0 3px rgba(20,140,135,.12);}
   .bj-note{margin-bottom:18px;}
+  .bj-opts button .bj-cnt{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;opacity:.7;margin-top:1px;}
   @media print{ #customByJack{display:none !important;} }
 </style>
 <style id="bfMobileFix">
@@ -1842,16 +1843,15 @@
           <label><span class="num">1</span>نوع جک</label>
           <div class="bj-opts" id="bjTypeOpts">
             <button type="button" data-v="indirect">غیر مستقیم<small>سیستم ۲:۱ — رایج‌ترین</small></button>
-            <button type="button" data-v="direct">مستقیم<small>سیستم ۱:۱ — زیر کابین / کنار</small></button>
-            <button type="button" data-v="stage">جک دو استیج<small>کورس بلند با ارتفاع جمع‌شدهٔ کم</small></button>
-            <button type="button" data-v="telescopic">تلسکوپی<small>چندمرحله‌ای ویژه</small></button>
+            <button type="button" data-v="direct">مستقیم<small>سیستم ۱:۱ — از زیر / از بغل</small></button>
+            <button type="button" data-v="telescopic">تلسکوپی (CT2)<small>ویژه — چاله / ارتفاع کم</small></button>
           </div>
         </div>
-        <div class="card disabled" id="bjCardStageKind" style="display:none;">
-          <label><span class="num">2</span>سیستم جک دو استیج</label>
-          <div class="bj-opts" id="bjStageKindOpts">
-            <button type="button" data-v="indirect">غیر مستقیم دو استیج</button>
-            <button type="button" data-v="direct">مستقیم دو استیج</button>
+        <div class="card disabled" id="bjCardPieces">
+          <label><span class="num">2</span>جک یک تکه یا دو تکه</label>
+          <div class="bj-opts" id="bjPiecesOpts">
+            <button type="button" data-v="1">یک تکه<small>طول‌های معمول — یکپارچه</small></button>
+            <button type="button" data-v="2">دو تکه<small>طول بلند — دو قطعه، اتصال در محل</small></button>
           </div>
         </div>
         <div class="card disabled" id="bjCardDia">
@@ -1867,7 +1867,7 @@
           <select id="bjSelCourse" disabled></select>
         </div>
         <div class="card disabled" id="bjCardLoc" style="display:none;">
-          <label><span class="num">5</span>محل نصب جک</label>
+          <label><span class="num">5</span>محل نصب / مدل جک</label>
           <select id="bjSelLoc" disabled></select>
         </div>
         <div class="card disabled" id="bjCardMotor">
@@ -1881,7 +1881,7 @@
         </div>
       </div>
       <div class="tech-note bj-note">
-        <b>راهنما:</b> این بخش برای سفارش مستقیم از <b>لیست کامل جک‌های ویتور (امارلیفت)</b> است — نوع جک ← قطر ← ضخامت ← طول جک ← موتور ← نوع پاوریونیت (HM / HE). سرعت هر موتور برای همین جک خودکار حساب می‌شود (غیرمستقیم ۲:۱ / مستقیم ۱:۱) و گزینه‌های ⭐ برای آسانسور مسکونی مناسب‌ترند. قیمت جک و پاوریونیت مستقیماً از لیست قیمت فعال ویتور خوانده می‌شود.
+        <b>راهنما:</b> این بخش برای سفارش مستقیم از <b>لیست کامل جک‌های ویتور (امارلیفت)</b> — مطابق لیست قیمت اکسل ویتور (۱۴۰۵/۰۷/۱۱) — است: نوع جک (مستقیم / غیرمستقیم / تلسکوپی) ← یک تکه / دو تکه ← قطر ← ضخامت ← طول جک ← موتور ← نوع پاوریونیت (HM / HE). همهٔ جک‌های ویتور «تک مرحله‌ای» هستند؛ «دو تکه» یعنی جک بلندی که در دو قطعه ساخته و در محل به هم وصل می‌شود. سرعت هر موتور برای همین جک خودکار حساب می‌شود (غیرمستقیم ۲:۱ / مستقیم ۱:۱) و گزینه‌های ⭐ برای آسانسور مسکونی مناسب‌ترند.
       </div>
     </div>
 
@@ -4967,26 +4967,61 @@ function updateResult3(){
 }
 
 // ===================== 📐 سفارش بر اساس جک (ویتور) — هم‌ساختار تب «سفارش بر اساس جک» شکیب =====================
-// نوع جک (غیرمستقیم / مستقیم / دو استیج / تلسکوپی) ← قطر ← ضخامت ← طول (کورس) ← [محل نصب] ← موتور (با سرعت محاسبه‌شده) ← نوع پاوریونیت (HM/HE)
-// منبع جک: JACK_SINGLE_TABLE (کاتالوگ کامل ویتور، با قیمت فعال تاریخچهٔ قیمت) — منبع پاوریونیت: PU_TABLE.
+// نوع جک (غیرمستقیم / مستقیم / تلسکوپی) ← یک تکه / دو تکه ← قطر ← ضخامت ← طول (کورس) ← [محل نصب/مدل] ← موتور (با سرعت محاسبه‌شده) ← نوع پاوریونیت (HM/HE)
+// همهٔ جک‌های ویتور «تک مرحله‌ای» هستند؛ ستون stage در JACK_SINGLE_TABLE در واقع «یک تکه (single) / دو تکه (double)» است.
+// منبع جک: JACK_SINGLE_TABLE (با قیمت فعال تاریخچهٔ قیمت) + اصلاحات لیست قیمت اکسل ویتور ۱۴۰۵/۰۷/۱۱ (فقط برای همین تب):
+//   • ۴ جک که در اکسل «غیرمستقیم» ثبت شده‌اند ولی در جدول سیستم «مستقیم» بودند → اینجا غیرمستقیم
+//   • ۵ جک که فقط در اکسل هستند → با قیمت اکسل اضافه شدند
+// منبع پاوریونیت: PU_TABLE.
 // نتیجه در همان state3 مسیر «کاتالوگ هوشمند» نوشته می‌شود (state3.bj) تا نمایش، قیمت، چاپ، ذخیره، ویرایش،
 // فاکتور پلاس و به‌روزرسانی قیمت بدون هیچ کد جداگانه‌ای برای این تب هم کار کند.
-var bjState = { type:null, stageKind:null, diameter:null, thickness:null, course:null, location:null, speedKey:null, puType:'hm' };
-const BJ_TYPE_FA = { indirect:'غیر مستقیم', direct:'مستقیم', stage:'دو استیج', telescopic:'تلسکوپی' };
+var bjState = { type:null, pieces:null, diameter:null, thickness:null, course:null, location:null, speedKey:null, puType:'hm' };
+const BJ_TYPE_FA = { indirect:'غیر مستقیم', direct:'مستقیم', telescopic:'تلسکوپی' };
+const BJ_EXCEL_TYPE_FIX = [   // [قطر, ضخامت, کورس, یک/دو تکه, محل نصب] → نوع درست طبق اکسل
+  [120, 5,   4000,  'single', 'از بغل', 'indirect'],
+  [130, 10,  7700,  'single', 'از بغل', 'indirect'],
+  [130, 10,  10700, 'double', 'از بغل', 'indirect'],
+  [120, 7.5, 9400,  'double', 'از بغل', 'indirect']
+];
+const BJ_UNTYPED_NOTE = 'نوع (مستقیم/غیرمستقیم) در لیست ویتور درج نشده — قبل از سفارش استعلام شود';
+const BJ_EXCEL_EXTRA = [      // فقط در اکسل ویتور (قیمت نهایی اکسل)
+  {types:['indirect','direct'], pieces:1, diameter:130, thickness:5,   course:4500, location:'از بغل', variant:'', note:BJ_UNTYPED_NOTE, price:5962000000},
+  {types:['indirect','direct'], pieces:1, diameter:80,  thickness:5,   course:2800, location:'از بغل', variant:'', note:BJ_UNTYPED_NOTE, price:3691000000},
+  {types:['indirect'],          pieces:1, diameter:130, thickness:5,   course:2000, location:'از بغل', variant:'', note:'', price:5041000000},
+  {types:['indirect'],          pieces:1, diameter:90,  thickness:5,   course:4000, location:'از بغل', variant:'رپچر ولو بالا', note:'', price:5264000000},
+  {types:['direct'],            pieces:1, diameter:80,  thickness:7.5, course:7700, location:'از زیر', variant:'', note:'', price:5620000000}
+];
+var BJ_CATALOG = null;
+function bjCatalog(){
+  if(BJ_CATALOG) return BJ_CATALOG;
+  const out = [];
+  JACK_SINGLE_TABLE.forEach(src=>{
+    let type = src.type;
+    const fx = BJ_EXCEL_TYPE_FIX.find(f=>f[0]===src.diameter && Number(f[1])===Number(src.thickness) && f[2]===src.course && f[3]===src.stage && f[4]===src.location);
+    if(fx) type = fx[5];
+    const row = { type, pieces: src.type==='telescopic' ? null : (src.stage==='double' ? 2 : 1), diameter:src.diameter, thickness:src.thickness, course:src.course,
+                  location: src.location==='نامشخص' ? '' : (src.location||''), variant:'', note: fx ? 'نوع طبق لیست اکسل ویتور اصلاح شد' : '', excel:false };
+    Object.defineProperty(row, 'price', { get(){ return src.price; }, enumerable:true });   // قیمت زنده (تاریخچهٔ قیمت)
+    out.push(row);
+  });
+  BJ_EXCEL_EXTRA.forEach(x=>x.types.forEach(t=>out.push({ type:t, pieces:x.pieces, diameter:x.diameter, thickness:x.thickness, course:x.course, location:x.location, variant:x.variant, note:x.note, excel:true, price:x.price })));
+  BJ_CATALOG = out;
+  return out;
+}
+function bjLocKey(r){ return (r.location||'') + (r.variant ? ' · ' + r.variant : ''); }
 function bjFmtThk(t){ return t==null ? '—' : String(t); }
 function bjRowsAll(){
   const t = bjState.type;
   if(!t) return [];
-  if(t==='telescopic') return JACK_SINGLE_TABLE.filter(r=>r.type==='telescopic');
-  if(t==='stage') return bjState.stageKind ? JACK_SINGLE_TABLE.filter(r=>r.type===bjState.stageKind && r.stage==='double') : [];
-  return JACK_SINGLE_TABLE.filter(r=>r.type===t && r.stage==='single');
+  if(t==='telescopic') return bjCatalog().filter(r=>r.type==='telescopic');
+  return bjState.pieces ? bjCatalog().filter(r=>r.type===t && r.pieces===Number(bjState.pieces)) : [];
 }
 function bjRowsUpTo(level){
   let rows = bjRowsAll();
   if(level>=1 && bjState.diameter!=null) rows = rows.filter(r=>r.diameter===bjState.diameter);
   if(level>=2 && bjState.thickness!=null) rows = rows.filter(r=>String(r.thickness)===String(bjState.thickness));
   if(level>=3 && bjState.course!=null) rows = rows.filter(r=>r.course===bjState.course);
-  if(level>=4 && bjState.location!=null) rows = rows.filter(r=>(r.location||'')===bjState.location);
+  if(level>=4 && bjState.location!=null) rows = rows.filter(r=>bjLocKey(r)===bjState.location);
   return rows;
 }
 function bjRow(){
@@ -5002,16 +5037,18 @@ function bjSpeed(dia, liters){
   return Math.round((liters/60000) / area * k * 100) / 100;
 }
 function bjTypeLabel(b){
-  const st = bjState, row = b && b.row;
-  let t = st.type==='stage' ? (BJ_TYPE_FA[st.stageKind] + ' دو استیج') : (st.type==='telescopic' ? 'تلسکوپی' : (BJ_TYPE_FA[st.type] + ' تک استیج'));
-  if(row && row.location && row.location!=='نامشخص') t += ' · نصب ' + row.location;
+  const row = (b && b.row) || {};
+  const type = row.type || bjState.type, pcs = row.pieces || bjState.pieces;
+  let t = type==='telescopic' ? 'تلسکوپی CT2' : (BJ_TYPE_FA[type] + ' ' + (Number(pcs)===2 ? 'دو تکه' : 'یک تکه'));
+  if(row.location) t += ' · نصب ' + row.location;
+  if(row.variant) t += ' · ' + row.variant;
   return t;
 }
 function bjMotorList(){
   const row = bjRow(); if(!row) return [];
   const out = [];
   const tbl = JACK_TABLE2.find(r=>r.diameter===row.diameter && String(r.stages)===String(row.thickness) && r.course===row.course);
-  const techKeys = (bjState.type==='indirect' && tbl) ? tbl.speedOptions.map(o=>o.key) : [];
+  const techKeys = (bjState.type==='indirect' && Number(bjState.pieces)===1 && tbl) ? tbl.speedOptions.map(o=>o.key) : [];
   Object.keys(PU_TABLE).forEach(key=>{
     const e = PU_TABLE[key];
     const any = ['hm','heAssembly','heItaly'].some(t=>e[t] && e[t].price!=null);
@@ -5043,12 +5080,21 @@ function bjRender(){
   const st = bjState;
   if(!bjEl('bjGrid')) return;
   bjEl('bjTypeOpts').querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.v===st.type));
-  const isStage = st.type==='stage', isTele = st.type==='telescopic';
-  bjEl('bjCardStageKind').style.display = isStage ? '' : 'none';
-  bjCard('bjCardStageKind', isStage);
-  bjEl('bjStageKindOpts').querySelectorAll('button').forEach(b=>{
-    b.classList.toggle('active', b.dataset.v===st.stageKind);
-    b.disabled = !JACK_SINGLE_TABLE.some(r=>r.type===b.dataset.v && r.stage==='double');
+  const isTele = st.type==='telescopic';
+  bjEl('bjTypeOpts').querySelectorAll('button').forEach(b=>{
+    const n = bjCatalog().filter(r=>r.type===b.dataset.v).length;
+    let c = b.querySelector('.bj-cnt'); if(!c){ c = document.createElement('span'); c.className = 'bj-cnt'; b.appendChild(c); }
+    c.textContent = n + ' مدل';
+  });
+  bjEl('bjCardPieces').style.display = isTele ? 'none' : '';
+  const piecesOn = !!st.type && !isTele;
+  bjCard('bjCardPieces', piecesOn);
+  bjEl('bjPiecesOpts').querySelectorAll('button').forEach(b=>{
+    const n = st.type ? bjCatalog().filter(r=>r.type===st.type && r.pieces===Number(b.dataset.v)).length : 0;
+    b.disabled = !n;
+    b.classList.toggle('active', String(st.pieces)===b.dataset.v);
+    let c = b.querySelector('.bj-cnt'); if(!c){ c = document.createElement('span'); c.className = 'bj-cnt'; b.appendChild(c); }
+    c.textContent = st.type ? n + ' مدل' : '';
   });
   // قطر
   const rows0 = bjRowsAll();
@@ -5082,12 +5128,12 @@ function bjRender(){
   selCourse.disabled = !courseOn; bjCard('bjCardCourse', courseOn);
   // محل نصب — فقط وقتی برای همان طول دو گزینه با قیمت متفاوت وجود دارد
   const rows3 = bjRowsUpTo(3);
-  const locs = unique(rows3.map(r=>r.location||''));
+  const locs = unique(rows3.map(r=>bjLocKey(r)));
   const needLoc = st.course!=null && locs.length>1;
   if(st.course!=null && !needLoc) st.location = locs.length ? locs[0] : '';
   bjEl('bjCardLoc').style.display = needLoc ? '' : 'none';
   const selLoc = bjEl('bjSelLoc');
-  bjFillSelect(selLoc, needLoc ? locs.map(l=>{ const r = rows3.find(x=>(x.location||'')===l); return { v:l, t:(l||'نامشخص') + '   —   ' + (r && r.price!=null ? fmt(r.price) + ' ریال' : 'تماس') }; }) : [], needLoc ? st.location : null);
+  bjFillSelect(selLoc, needLoc ? locs.map(l=>{ const r = rows3.find(x=>bjLocKey(x)===l); return { v:l, t:(l||'نامشخص') + '  (' + (r && r.price!=null ? (r.price/1e9).toFixed(2) + ' میلیارد ریال' : 'تماس') + ')' }; }) : [], needLoc ? st.location : null);
   selLoc.disabled = !needLoc; bjCard('bjCardLoc', needLoc);
   // موتور — همراه سرعت محاسبه‌شده
   const row = bjRow();
@@ -5106,9 +5152,10 @@ function bjRender(){
       note.innerHTML = 'سرعت برای جک Ø' + row.diameter + ' و سیستم ' + (bjRatio()===2 ? '۲:۱ (غیرمستقیم)' : '۱:۱ (مستقیم)') + ' حساب شده است؛ موتورهای بالاتر از ۱ m/s برای آسانسور هیدرولیک حذف شده‌اند.';
     } else {
       groups.push({ group:'موتورها (به ترتیب توان)', items: motors.sort((a,b)=>a.kw-b.kw||a.liters-b.liters).map(m=>({v:m.key, t:lab(m)})) });
-      note.innerHTML = '⚠ سرعت جک‌های دو استیج / تلسکوپی به ساختار داخلی جک بستگی دارد — موتور را با واحد فنی تأیید کنید.';
+      note.innerHTML = '⚠ سرعت جک تلسکوپی (CT2) به ساختار داخلی جک بستگی دارد — موتور را با واحد فنی تأیید کنید.';
     }
     if(st.speedKey && !motors.some(m=>m.key===st.speedKey)) st.speedKey = null;
+    if(row.note) note.innerHTML = '<b style="color:#c0392b;">⚠ ' + row.note + '</b><br>' + note.innerHTML;
   } else { note.innerHTML = ''; }
   bjFillSelect(selMotor, groups, st.speedKey);
   selMotor.disabled = !row; bjCard('bjCardMotor', !!row);
@@ -5132,7 +5179,8 @@ function bjRender(){
   bjCard('bjCardPu', puOn);
   // مسیر انتخاب (breadcrumb)
   const steps = [
-    ['نوع', st.type ? (st.type==='stage' ? (st.stageKind ? BJ_TYPE_FA[st.stageKind] + ' دو استیج' : 'دو استیج') : BJ_TYPE_FA[st.type]) : null],
+    ['نوع', st.type ? BJ_TYPE_FA[st.type] : null],
+    ['تکه', isTele ? (st.type ? 'CT2' : null) : (st.pieces ? (Number(st.pieces)===2 ? 'دو تکه' : 'یک تکه') : null)],
     ['قطر', st.diameter!=null ? 'Ø' + st.diameter : null],
     ['ضخامت', isTele ? (st.diameter!=null ? '—' : null) : (st.thickness!=null && st.thickness!=='null' ? st.thickness + 'mm' : (st.thickness==='null' ? '—' : null))],
     ['طول', st.course!=null ? fmt(st.course) + 'mm' : null],
@@ -5172,14 +5220,14 @@ function bjSyntheticRow(){
 }
 function bjChange(level, patch){
   // level: سطحی که عوض شده — همهٔ انتخاب‌های بعد از آن پاک می‌شوند
-  const order = ['type','stageKind','diameter','thickness','course','location','speedKey'];
+  const order = ['type','pieces','diameter','thickness','course','location','speedKey'];
   const idx = order.indexOf(level);
   order.slice(idx+1).forEach(k=>{ bjState[k] = null; });
   Object.assign(bjState, patch);
   bjRender(); bjApply();
 }
 function bjResetAll(){
-  bjState = { type:null, stageKind:null, diameter:null, thickness:null, course:null, location:null, speedKey:null, puType:'hm' };
+  bjState = { type:null, pieces:null, diameter:null, thickness:null, course:null, location:null, speedKey:null, puType:'hm' };
   try{ bjRender(); }catch(e){}
 }
 function bjResetState3(){
@@ -5198,13 +5246,16 @@ function bjSyncTabs(){
   modeBtnCustom.classList.toggle('active', activeMode==='custom' && !isBJ);
 }
 function bjRestore(b){
-  bjState = Object.assign({ type:null, stageKind:null, diameter:null, thickness:null, course:null, location:null, speedKey:null, puType:'hm' }, b || {});
+  b = Object.assign({}, b || {});
+  if(b.type==='stage'){ b.type = b.stageKind || 'indirect'; b.pieces = 2; }   // سازگاری با نسخهٔ اولیهٔ همین تب
+  delete b.stageKind;
+  bjState = Object.assign({ type:null, pieces:null, diameter:null, thickness:null, course:null, location:null, speedKey:null, puType:'hm' }, b);
   bjRender(); bjApply();
 }
 (function bjBind(){
   if(!bjEl('bjGrid')) return;
   bjEl('bjTypeOpts').addEventListener('click', e=>{ const b = e.target.closest('button'); if(b) bjChange('type', { type:b.dataset.v }); });
-  bjEl('bjStageKindOpts').addEventListener('click', e=>{ const b = e.target.closest('button'); if(b && !b.disabled) bjChange('stageKind', { stageKind:b.dataset.v }); });
+  bjEl('bjPiecesOpts').addEventListener('click', e=>{ const b = e.target.closest('button'); if(b && !b.disabled) bjChange('pieces', { pieces:Number(b.dataset.v) }); });
   bjEl('bjSelDia').addEventListener('change', e=>bjChange('diameter', { diameter:Number(e.target.value) }));
   bjEl('bjSelThk').addEventListener('change', e=>bjChange('thickness', { thickness:e.target.value }));
   bjEl('bjSelCourse').addEventListener('change', e=>bjChange('course', { course:Number(e.target.value) }));

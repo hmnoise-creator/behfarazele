@@ -1476,6 +1476,49 @@
   .bj-opts button .bj-cnt{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;opacity:.7;margin-top:1px;}
   @media print{ #customByJack{display:none !important;} }
 </style>
+<style id="bfModeSwitchCss">
+/* ===== [BF-MODE-SWITCH] گرافیک جدید سوییچ حالت‌ها (تب‌های اصلی ویتور + زیرتب‌ها) ===== */
+.mode-switch{
+  display:flex;gap:8px;padding:8px;margin-bottom:18px;border-radius:16px;
+  background:linear-gradient(135deg,rgba(19,74,69,.07),rgba(15,110,107,.03));
+  border:1.5px solid rgba(19,74,69,.18);
+  box-shadow:0 6px 18px rgba(15,61,58,.08), inset 0 1px 0 rgba(255,255,255,.7);
+}
+.mode-switch .mode-btn{
+  position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  padding:12px 12px 13px;border-radius:12px;cursor:pointer;
+  background:#fff;color:#21403d;border:1.5px solid #d6e4e1;
+  box-shadow:0 1px 2px rgba(15,61,58,.06);
+  font-family:'Vazirmatn',sans-serif;font-weight:800;font-size:13.5px;line-height:1.5;
+  transition:transform .15s, box-shadow .15s, border-color .15s, background .15s;
+}
+.mode-switch .mode-btn small{display:block;font-weight:500;font-size:10.5px;color:#6b8580;margin-top:0;opacity:1;line-height:1.6;}
+.mode-switch .mode-btn:hover{border-color:#13a39b;transform:translateY(-1px);box-shadow:0 6px 14px rgba(15,61,58,.13);}
+.mode-switch .mode-btn:focus-visible{outline:2px solid #f2b705;outline-offset:2px;}
+.mode-switch .mode-btn.active{
+  background:linear-gradient(135deg,#134a45 0%,#0f6e6b 100%);color:#fff;border-color:transparent;
+  box-shadow:0 8px 18px rgba(15,61,58,.28), inset 0 -3px 0 #f2b705;transform:translateY(-1px);
+}
+.mode-switch .mode-btn.active small{color:rgba(255,255,255,.82);}
+/* آیکون تب‌های اصلی */
+#modeBtnClassic::before,#modeBtnPrecise::before,#modeBtnCustom::before,#modeBtnByJack::before{
+  display:grid;place-items:center;width:30px;height:30px;border-radius:9px;font-size:16px;margin-bottom:2px;
+  background:rgba(19,74,69,.08);transition:background .15s;
+}
+#modeBtnClassic::before{content:'⚡';}
+#modeBtnPrecise::before{content:'🎯';}
+#modeBtnCustom::before{content:'🧩';}
+#modeBtnByJack::before{content:'📐';}
+.mode-switch .mode-btn.active::before{background:rgba(255,255,255,.16);}
+/* نوار تب‌های اصلی کمی برجسته‌تر */
+.wrap > .mode-switch, body > .mode-switch{padding:9px;}
+@media (max-width:760px){
+  .mode-switch{display:grid;grid-template-columns:1fr 1fr;}
+  .mode-switch .mode-btn{padding:10px 8px 11px;font-size:12.5px;}
+  .mode-switch .mode-btn small{font-size:10px;}
+}
+@media print{ .mode-switch{display:none !important;} }
+</style>
 <style id="bfMobileFix">
 /* [BF-MOBILE] نمایش درست روی آیفون / موبایل: هیچ بخشی از صفحه از عرض گوشی بیرون نزند و نیازی به کشیدن صفحه به کنار نباشد.
    فقط روی صفحهٔ نمایش (screen) اعمال می‌شود؛ روی چاپ و PDF پیش‌فاکتور هیچ اثری ندارد. */
@@ -1610,7 +1653,7 @@
     <button type="button" class="mode-btn active" id="modeBtnClassic">محاسبه سریع<small>(تراول استاندارد)</small></button>
     <button type="button" class="mode-btn" id="modeBtnPrecise">محاسبه فنی<small>بر اساس تراول و سرعت</small></button>
     <button type="button" class="mode-btn" id="modeBtnCustom">جک و پاور سفارشی<small>کاتالوگ هوشمند یا کاملاً دستی</small></button>
-    <button type="button" class="mode-btn" id="modeBtnByJack">📐 سفارش بر اساس جک<small>از کاتالوگ کامل جک ویتور — مستقیم / غیرمستقیم / استیج</small></button>
+    <button type="button" class="mode-btn" id="modeBtnByJack">سفارش بر اساس جک<small>کاتالوگ کامل جک ویتور — یک تکه / دو تکه</small></button>
   </div>
 
   <div id="modeClassic">

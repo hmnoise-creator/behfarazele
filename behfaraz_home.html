@@ -2401,6 +2401,8 @@ function bfMoltenMetal(host, user){
   // خیلی قدیمی‌تر که این فیلد را ندارند، به بازسازی عمومی قبلی برمی‌گردیم.
   function bfPrintForwardedOrder(row, note, fromOperator){
     const p = row.payload || {};
+    // نام فایل PDF = «نام مشتری - نام پروژه»
+    try{ bfPdfSetTitle(bfPickCustomerName(row.customer_name, p.customerCompany, p.customerName, p.name), bfPickCustomerName(row.project_name, p.customerProject, p.project)); }catch(e){}
     if(p.invoiceHtml){
       const noteHtml0 = note ? `<div style="margin-bottom:14px;padding:8px 10px;border:1.5px dashed #a6875a;border-radius:9px;font-size:.8rem;"><b>📝 یادداشت ${fromOperator ? 'از '+fromOperator : ''}:</b> ${note}</div>` : '';
       let holder0 = document.getElementById('fpPrintHolder');
@@ -4500,6 +4502,8 @@ function bfMoltenMetal(host, user){
   function fpPrintFactor(factorId){
     const f = fpLoad().find(x=>x.id===factorId);
     if(!f) return;
+    // نام فایل PDF = «نام مشتری - نام پروژه(ها)»
+    try{ bfPdfSetTitle(f.companyDisplay, (f.projects||[]).filter(Boolean).join(' و ')); }catch(e){}
     const t = fpFactorTotals(f);
     // تعدیل دستی به‌صورت ردیف جدا چاپ نمی‌شود؛ به‌نسبت سهم هر قلم بین ردیف‌ها پخش و در قیمت همان ردیف لحاظ می‌شود
     const itemsNetForSplit = f.items.reduce((s,it)=> s + fpNetAmount(it.total, it.discount), 0);
@@ -5031,6 +5035,42 @@ bfAutoSeqInit({product:'factorplus',seqEl:function(){return null},buttons:null})
   var _am=bfApplyMgmtAccess;bfApplyMgmtAccess=function(){var r=_am.apply(this,arguments);try{apply();window.bfLoadPerms()}catch(e){}return r};
   setTimeout(function(){window.bfLoadPerms()},300);
   setInterval(function(){if(!document.hidden)window.bfLoadPerms()},120000);
+})();
+</script>
+<script id="bfPdfNameJs">
+/* ===== [BF-PDF-NAME] نام پیش‌فرض فایل PDF در همهٔ چاپ‌ها = «نام مشتری - نام پروژه» =====
+   مرورگر هنگام «ذخیره به PDF» عنوان صفحه (document.title) را نام فایل پیشنهاد می‌کند.
+   ۱) هر جا چاپ از روی فرم است: عنوان صفحه همیشه هم‌زمان با تایپ نام مشتری/پروژه به‌روز نگه داشته می‌شود
+      (پس لحظهٔ چاپ — حتی بدون تأخیر — نام درست آماده است و مشکل زمان‌بندی کروم پیش نمی‌آید).
+   ۲) بازچاپ یک سفارش ذخیره‌شده: همان کد چاپ، نام مشتری/پروژهٔ خود آن سفارش را می‌گذارد.
+   بازگشت: همین بلوک را پاک کنید. */
+(function(){
+  var ORIG = document.title;
+  function clean(v){ v = (v==null ? '' : String(v)).replace(/\s+/g,' ').trim(); return (v==='—'||v==='-'||v==='–') ? '' : v; }
+  window.bfPdfName = function(cust, proj){
+    var a = [clean(cust), clean(proj)].filter(Boolean);
+    return a.length ? a.join(' - ').replace(/[\\/:*?"<>|]/g,'-') : '';
+  };
+  window.bfPdfSetTitle = function(cust, proj, suffix){
+    var n = window.bfPdfName(cust, proj);
+    if(!n) return false;
+    document.title = n + (suffix ? ' - ' + suffix : '');
+    return true;
+  };
+  function val(id){ var el = document.getElementById(id); return el ? el.value : ''; }
+  var FIELDS = [];
+  window.bfPdfLive = function(){
+    if(!FIELDS.length){ document.title = ORIG; return; }
+    var n = window.bfPdfName('', '');
+    document.title = n || ORIG;
+  };
+  function onEv(e){ var t = e.target; if(t && FIELDS.indexOf(t.id) >= 0) window.bfPdfLive(); }
+  document.addEventListener('input', onEv, true);
+  document.addEventListener('change', onEv, true);
+  // پیش از هر کلیک (مثلاً دکمهٔ چاپ) عنوان از روی فرم تازه می‌شود؛ کد چاپ سفارش ذخیره‌شده بعداً عنوان خودش را می‌گذارد
+  document.addEventListener('click', function(){ try{ window.bfPdfLive(); }catch(e){} }, true);
+  window.addEventListener('afterprint', function(){ setTimeout(function(){ try{ window.bfPdfLive(); }catch(e){} }, 0); });
+  try{ window.bfPdfLive(); }catch(e){}
 })();
 </script>
 </body>

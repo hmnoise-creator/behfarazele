@@ -2282,6 +2282,8 @@ function buildMotorSpecCardHTML(t, tableId, title, brand, schematicKey){
 
 // چاپ/ذخیره PDF مستقل یک جدول مشخصات فنی — با دیالوگ چاپ خود مرورگر (بدون نیاز به کتابخانه یا اینترنت)
 function printMotorSpec(containerId, title, brand, fileTitle){
+  // اگر نام مشتری/پروژه وارد شده، نام فایل PDF مشخصات فنی هم «نام مشتری - نام پروژه» است
+  try{ const pn = window.bfPdfName && window.bfPdfName((document.getElementById('custName')||{}).value, (document.getElementById('custProject')||{}).value); if(pn) fileTitle = pn; }catch(e){}
   const src = document.getElementById(containerId);
   if(!src) return;
   document.getElementById('printStageTitle').textContent = title;
@@ -2998,13 +3000,12 @@ const ORIGINAL_DOC_TITLE = document.title;
 function bfSanitizeFileTitle(s){
   return String(s||'').replace(/[\\/:*?"<>|]/g,'-').replace(/\s+/g,' ').trim();
 }
-// نام پیش‌فرض پیش‌فاکتور: «نام مشتری/شرکت - نام پروژه - شماره پیش‌فاکتور»
+// نام پیش‌فرض پیش‌فاکتور: «نام مشتری/شرکت - نام پروژه»
 function bfBuildInvoiceFileTitle(data){
   if(!data) return ORIGINAL_DOC_TITLE;
   const name = data.name && data.name!=='-' ? data.name : '';
   const project = data.project && data.project!=='-' ? data.project : '';
-  const no = data.preInvoiceNo || '';
-  const parts = [name, project, no].filter(Boolean);
+  const parts = [name, project].filter(Boolean);   // نام فایل PDF = «نام مشتری - نام پروژه»
   return bfSanitizeFileTitle(parts.length ? parts.join(' - ') : ORIGINAL_DOC_TITLE);
 }
 // نام پیش‌فرض مشخصات فنی: «ظرفیت نفره - نوع موتور - سرعت متر» مثلاً «26 نفره بشکه‌ای سرعت 1 متر»
@@ -5615,6 +5616,42 @@ window.bfFpRepriceImpl = function(snap){
   }
   function init(){ mount('resultCard','gentel'); mount('resultCardDyna','dyna'); mount('huberResultCard','huber'); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+<script id="bfPdfNameJs">
+/* ===== [BF-PDF-NAME] نام پیش‌فرض فایل PDF در همهٔ چاپ‌ها = «نام مشتری - نام پروژه» =====
+   مرورگر هنگام «ذخیره به PDF» عنوان صفحه (document.title) را نام فایل پیشنهاد می‌کند.
+   ۱) هر جا چاپ از روی فرم است: عنوان صفحه همیشه هم‌زمان با تایپ نام مشتری/پروژه به‌روز نگه داشته می‌شود
+      (پس لحظهٔ چاپ — حتی بدون تأخیر — نام درست آماده است و مشکل زمان‌بندی کروم پیش نمی‌آید).
+   ۲) بازچاپ یک سفارش ذخیره‌شده: همان کد چاپ، نام مشتری/پروژهٔ خود آن سفارش را می‌گذارد.
+   بازگشت: همین بلوک را پاک کنید. */
+(function(){
+  var ORIG = document.title;
+  function clean(v){ v = (v==null ? '' : String(v)).replace(/\s+/g,' ').trim(); return (v==='—'||v==='-'||v==='–') ? '' : v; }
+  window.bfPdfName = function(cust, proj){
+    var a = [clean(cust), clean(proj)].filter(Boolean);
+    return a.length ? a.join(' - ').replace(/[\\/:*?"<>|]/g,'-') : '';
+  };
+  window.bfPdfSetTitle = function(cust, proj, suffix){
+    var n = window.bfPdfName(cust, proj);
+    if(!n) return false;
+    document.title = n + (suffix ? ' - ' + suffix : '');
+    return true;
+  };
+  function val(id){ var el = document.getElementById(id); return el ? el.value : ''; }
+  var FIELDS = ['custName','custProject'];
+  window.bfPdfLive = function(){
+    if(!FIELDS.length) return;
+    var n = window.bfPdfName(val('custName'), val('custProject'));
+    document.title = n || ORIG;
+  };
+  function onEv(e){ var t = e.target; if(t && FIELDS.indexOf(t.id) >= 0) window.bfPdfLive(); }
+  document.addEventListener('input', onEv, true);
+  document.addEventListener('change', onEv, true);
+  // پیش از هر کلیک (مثلاً دکمهٔ چاپ) عنوان از روی فرم تازه می‌شود؛ کد چاپ سفارش ذخیره‌شده بعداً عنوان خودش را می‌گذارد
+  document.addEventListener('click', function(){ try{ window.bfPdfLive(); }catch(e){} }, true);
+  window.addEventListener('afterprint', function(){ setTimeout(function(){ try{ window.bfPdfLive(); }catch(e){} }, 0); });
+  try{ window.bfPdfLive(); }catch(e){}
 })();
 </script>
 </body>

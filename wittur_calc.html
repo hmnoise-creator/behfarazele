@@ -1459,6 +1459,22 @@
 </script>
 
 <style id="bfNoOpPrint">@media print{ #bfOperatorBadge{ display:none !important; } }</style>
+<style id="bfByJackCss">
+  .bj-opts{display:flex;flex-direction:column;gap:7px;}
+  .bj-opts button{border:1.5px solid var(--line);background:var(--panel-2);color:var(--text);border-radius:10px;padding:9px 10px;font-family:'Vazirmatn',sans-serif;font-weight:800;font-size:13px;cursor:pointer;text-align:center;line-height:1.5;transition:.15s;}
+  .bj-opts button small{display:block;font-weight:500;font-size:10.5px;opacity:.75;}
+  .bj-opts button:hover{border-color:var(--cyan-400);}
+  .bj-opts button.active{background:linear-gradient(135deg,var(--cyan-400),#0f6e6b);color:#fff;border-color:transparent;}
+  .bj-opts button:disabled{opacity:.45;cursor:not-allowed;}
+  .bj-pu button .bj-pr{display:block;font-family:'JetBrains Mono',monospace;font-size:11.5px;margin-top:2px;opacity:.95;}
+  .bj-pu button .bj-best{display:inline-block;background:#13a065;color:#fff;border-radius:6px;padding:0 6px;font-size:10px;margin-inline-start:4px;}
+  .bj-path{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;}
+  .bj-path span{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 11px;font-size:11.5px;font-weight:700;color:var(--text-dim);}
+  .bj-path span.done{border-color:#13a065;color:#0f7a4e;background:rgba(19,160,101,.07);}
+  .bj-path span.now{border-color:var(--cyan-400);color:var(--cyan-400);box-shadow:0 0 0 3px rgba(20,140,135,.12);}
+  .bj-note{margin-bottom:18px;}
+  @media print{ #customByJack{display:none !important;} }
+</style>
 <style id="bfMobileFix">
 /* [BF-MOBILE] نمایش درست روی آیفون / موبایل: هیچ بخشی از صفحه از عرض گوشی بیرون نزند و نیازی به کشیدن صفحه به کنار نباشد.
    فقط روی صفحهٔ نمایش (screen) اعمال می‌شود؛ روی چاپ و PDF پیش‌فاکتور هیچ اثری ندارد. */
@@ -1593,6 +1609,7 @@
     <button type="button" class="mode-btn active" id="modeBtnClassic">محاسبه سریع<small>(تراول استاندارد)</small></button>
     <button type="button" class="mode-btn" id="modeBtnPrecise">محاسبه فنی<small>بر اساس تراول و سرعت</small></button>
     <button type="button" class="mode-btn" id="modeBtnCustom">جک و پاور سفارشی<small>کاتالوگ هوشمند یا کاملاً دستی</small></button>
+    <button type="button" class="mode-btn" id="modeBtnByJack">📐 سفارش بر اساس جک<small>از کاتالوگ کامل جک ویتور — مستقیم / غیرمستقیم / استیج</small></button>
   </div>
 
   <div id="modeClassic">
@@ -1815,6 +1832,57 @@
         <div class="pu-note">با تعویض نوع پاوریونیت، قیمت به‌صورت آنی بازمحاسبه می‌شود.</div>
       </div>
     </div>
+    </div>
+
+    <!-- ================= 📐 سفارش بر اساس جک (ویتور) — هم‌ساختار تب شکیب؛ منبع: JACK_SINGLE_TABLE + PU_TABLE ================= -->
+    <div id="customByJack" style="display:none;">
+      <div class="bj-path" id="bjPath"></div>
+      <div class="grid grid5" id="bjGrid">
+        <div class="card" id="bjCardType">
+          <label><span class="num">1</span>نوع جک</label>
+          <div class="bj-opts" id="bjTypeOpts">
+            <button type="button" data-v="indirect">غیر مستقیم<small>سیستم ۲:۱ — رایج‌ترین</small></button>
+            <button type="button" data-v="direct">مستقیم<small>سیستم ۱:۱ — زیر کابین / کنار</small></button>
+            <button type="button" data-v="stage">جک دو استیج<small>کورس بلند با ارتفاع جمع‌شدهٔ کم</small></button>
+            <button type="button" data-v="telescopic">تلسکوپی<small>چندمرحله‌ای ویژه</small></button>
+          </div>
+        </div>
+        <div class="card disabled" id="bjCardStageKind" style="display:none;">
+          <label><span class="num">2</span>سیستم جک دو استیج</label>
+          <div class="bj-opts" id="bjStageKindOpts">
+            <button type="button" data-v="indirect">غیر مستقیم دو استیج</button>
+            <button type="button" data-v="direct">مستقیم دو استیج</button>
+          </div>
+        </div>
+        <div class="card disabled" id="bjCardDia">
+          <label><span class="num">2</span>قطر شفت جک</label>
+          <select id="bjSelDia" disabled></select>
+        </div>
+        <div class="card disabled" id="bjCardThk">
+          <label><span class="num">3</span>ضخامت جداره</label>
+          <select id="bjSelThk" disabled></select>
+        </div>
+        <div class="card disabled" id="bjCardCourse">
+          <label><span class="num">4</span>طول جک (کورس)</label>
+          <select id="bjSelCourse" disabled></select>
+        </div>
+        <div class="card disabled" id="bjCardLoc" style="display:none;">
+          <label><span class="num">5</span>محل نصب جک</label>
+          <select id="bjSelLoc" disabled></select>
+        </div>
+        <div class="card disabled" id="bjCardMotor">
+          <label><span class="num">5</span>موتور و پمپ (kW / لیتر) — سرعت کابین</label>
+          <select id="bjSelMotor" disabled></select>
+          <div class="pu-note" id="bjMotorNote"></div>
+        </div>
+        <div class="card disabled" id="bjCardPu">
+          <label><span class="num">6</span>نوع پاوریونیت</label>
+          <div class="bj-opts bj-pu" id="bjPuOpts"></div>
+        </div>
+      </div>
+      <div class="tech-note bj-note">
+        <b>راهنما:</b> این بخش برای سفارش مستقیم از <b>لیست کامل جک‌های ویتور (امارلیفت)</b> است — نوع جک ← قطر ← ضخامت ← طول جک ← موتور ← نوع پاوریونیت (HM / HE). سرعت هر موتور برای همین جک خودکار حساب می‌شود (غیرمستقیم ۲:۱ / مستقیم ۱:۱) و گزینه‌های ⭐ برای آسانسور مسکونی مناسب‌ترند. قیمت جک و پاوریونیت مستقیماً از لیست قیمت فعال ویتور خوانده می‌شود.
+      </div>
     </div>
 
     <div id="customManual" style="display:none;">
@@ -4081,7 +4149,7 @@ function updateResult(){
       <table>
         <thead><tr><th>قلم</th><th>شرح</th><th>تعداد</th><th>قیمت (ریال)</th></tr></thead>
         <tbody>
-          <tr><td>جک هیدرولیک</td><td>غیرمستقیم · سایز <b style="color:#ef4444;" class="numlt">${r.jackSize}</b></td><td class="num numlt">×${r.jackQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.jackPrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditJack" value="${fmt(r.jackPrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>
+          <tr><td>جک هیدرولیک</td><td>${r.jackTypeLabel || 'غیرمستقیم'} · سایز <b style="color:#ef4444;" class="numlt">${r.jackSize}</b></td><td class="num numlt">×${r.jackQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.jackPrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditJack" value="${fmt(r.jackPrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>
           <tr><td>پاوریونیت</td><td>${puLabel} · موتور-پمپ <b style="color:#ef4444;" class="numlt">${r.kw}-${r.liters}</b>${ r.amp ? ' · '+r.amp : '' }${r.tank?' · tank <span class="numlt">'+r.tank+'</span>':''}</td><td class="num numlt">×${r.puQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.puPrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditPu" value="${fmt(r.puPrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>
           ${ r.wireApplied ? `<tr><td>درخت سیم</td><td>مربوط به مدل ${puLabel} · <span class="numlt">${r.kw}-${r.liters}</span></td><td class="num numlt">×${r.wireQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.wirePrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditWire" value="${fmt(r.wirePrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>` : '' }
           ${ oilInvoiceRow(r) }
@@ -4445,7 +4513,7 @@ function updateResult2(){
       <table>
         <thead><tr><th>قلم</th><th>شرح</th><th>تعداد</th><th>قیمت (ریال)</th></tr></thead>
         <tbody>
-          <tr><td>جک هیدرولیک</td><td>غیرمستقیم · سایز <b style="color:#ef4444;" class="numlt">${r.jackSize}</b></td><td class="num numlt">×${r.jackQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.jackPrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditJack2" value="${fmt(r.jackPrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>
+          <tr><td>جک هیدرولیک</td><td>${r.jackTypeLabel || 'غیرمستقیم'} · سایز <b style="color:#ef4444;" class="numlt">${r.jackSize}</b></td><td class="num numlt">×${r.jackQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.jackPrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditJack2" value="${fmt(r.jackPrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>
           <tr><td>پاوریونیت</td><td>${puLabel} · موتور-پمپ <b style="color:#ef4444;" class="numlt">${r.kw}-${r.liters}</b>${ r.amp ? ' · '+r.amp : '' }${r.tank?' · tank <span class="numlt">'+r.tank+'</span>':''}</td><td class="num numlt">×${r.puQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.puPrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditPu2" value="${fmt(r.puPrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>
           ${ r.wireApplied ? `<tr><td>درخت سیم</td><td>مربوط به مدل ${puLabel} · <span class="numlt">${r.kw}-${r.liters}</span></td><td class="num numlt">×${r.wireQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.wirePrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditWire2" value="${fmt(r.wirePrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>` : '' }
           ${ oilInvoiceRow(r) }
@@ -4663,6 +4731,7 @@ selCourse3.addEventListener('change', ()=>{
 });
 
 function findJackDims3(){
+  if(state3.bj && state3.bj.row) return bjSyntheticRow();
   return JACK_TABLE2.find(r=>r.diameter===state3.diameter && String(r.stages)===String(state3.stage) && r.course===state3.course);
 }
 
@@ -4698,7 +4767,7 @@ function findRecord3(){
   if(!base) return null;
   const speedOpt0 = base.speedOptions.find(o=>o.key===state3.speedKey);
   if(!speedOpt0) return null;
-  const bT3 = bfWBoostTo(speedOpt0.key, 'custom');   // 🚀 BOOST CABIN (جک و پاور سفارشی)
+  const bT3 = state3.bj ? null : bfWBoostTo(speedOpt0.key, 'custom');   // 🚀 BOOST CABIN (جک و پاور سفارشی) — در «سفارش بر اساس جک» موتور را خود کاربر انتخاب می‌کند
   const speedOpt = bT3 ? Object.assign({}, speedOpt0, { key:bT3, kw:bT3.split('-')[0], liters:bT3.split('-')[1], _boostFrom:speedOpt0.key }) : speedOpt0;
   const puEntry = bT3 ? bfWEntry(bT3) : (PU_TABLE[speedOpt.key] || null);
   const typeData = puEntry ? puEntry[state3.puType] : null;
@@ -4723,6 +4792,7 @@ function findRecord3(){
     jackQty, puQty, wireQty
   };
   if(speedOpt._boostFrom){ rec3._boostFrom = speedOpt._boostFrom; rec3._boostTo = speedOpt.key; }
+  if(state3.bj && state3.bj.row){ rec3.jackTypeLabel = bjTypeLabel(state3.bj); rec3._byJack = true; rec3.jackLocation = state3.bj.row.location || ''; }
   rec3.staticLoad = resolveStaticLoadForDims('customSmart', rec3, state3.diameter, state3.stage, base.course);
   rec3.speedRaw = resolveSpeedRaw('customSmart', rec3, speedOpt.speed);
   rec3.speed = rec3.speedRaw!=null ? rec3.speedRaw+'m/s' : null;
@@ -4733,7 +4803,7 @@ function findRecord3(){
 function updateResult3(){
   if(!state3.diameter || !state3.stage || !state3.course || !state3.speedKey){
     resultEl.className = 'result empty';
-    resultEl.innerHTML = 'مراحل بخش «انتخاب هوشمند از کاتالوگ» را کامل کنید تا مشخصات فنی و قیمت نهایی نمایش داده شود.';
+    resultEl.innerHTML = (customSubMode==='byjack') ? '📐 مراحل «سفارش بر اساس جک» را کامل کنید: نوع جک ← قطر ← ضخامت ← طول ← موتور ← نوع پاوریونیت.' : 'مراحل بخش «انتخاب هوشمند از کاتالوگ» را کامل کنید تا مشخصات فنی و قیمت نهایی نمایش داده شود.';
     printBtn.disabled = true; saveInvoiceBtn.disabled = true;
     refreshFinalPrice();
     return;
@@ -4765,7 +4835,7 @@ function updateResult3(){
   resultEl.innerHTML = `
     <div class="result-head">
       <div>
-        <div class="result-title">جک و پاوریونیت سفارشی (کاتالوگ) · کورس <span class="numlt">${fmt(r.course)}mm</span></div>
+        <div class="result-title">${ r._byJack ? '📐 سفارش بر اساس جک · ' + r.jackTypeLabel : 'جک و پاوریونیت سفارشی (کاتالوگ)' } · کورس <span class="numlt">${fmt(r.course)}mm</span></div>
       </div>
       <div class="price-badge">
         <div class="lbl">قیمت کل</div>
@@ -4775,7 +4845,8 @@ function updateResult3(){
 
     <div class="specs">
       <div class="spec"><div class="k">قطر شفت جک</div><div class="v numlt">${state3.diameter} mm</div></div>
-      <div class="spec"><div class="k">ضخامت</div><div class="v numlt">${state3.stage} mm</div></div>
+      <div class="spec"><div class="k">ضخامت</div><div class="v numlt">${ (state3.bj && state3.bj.row && state3.bj.row.thickness==null) ? '—' : state3.stage + ' mm' }</div></div>
+      ${ r._byJack ? '<div class="spec"><div class="k">نوع جک</div><div class="v fa">' + r.jackTypeLabel + '</div></div>' : '' }
       <div class="spec"><div class="k">طول کورس جک</div><div class="v numlt">${fmt(r.course)} mm</div></div>
       <div class="spec"><div class="k">شیر کنترل</div><div class="v fa">${puLabel}</div></div>
       <div class="spec spec-jp"><div class="k">🔩 سایز جک هیدرولیک</div><div class="v numlt">${r.jackSize}</div></div>
@@ -4815,7 +4886,7 @@ function updateResult3(){
       <table>
         <thead><tr><th>قلم</th><th>شرح</th><th>تعداد</th><th>قیمت (ریال)</th></tr></thead>
         <tbody>
-          <tr><td>جک هیدرولیک</td><td>غیرمستقیم · سایز <b style="color:#ef4444;" class="numlt">${r.jackSize}</b></td><td class="num numlt">×${r.jackQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.jackPrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditJack3" value="${fmt(r.jackPrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>
+          <tr><td>جک هیدرولیک</td><td>${r.jackTypeLabel || 'غیرمستقیم'} · سایز <b style="color:#ef4444;" class="numlt">${r.jackSize}</b></td><td class="num numlt">×${r.jackQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.jackPrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditJack3" value="${fmt(r.jackPrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>
           <tr><td>پاوریونیت</td><td>${puLabel} · موتور-پمپ <b style="color:#ef4444;" class="numlt">${r.kw}-${r.liters}</b>${ r.amp ? ' · '+r.amp : '' }${r.tank?' · tank <span class="numlt">'+r.tank+'</span>':''}</td><td class="num numlt">×${r.puQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.puPrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditPu3" value="${fmt(r.puPrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>
           ${ r.wireApplied ? `<tr><td>درخت سیم</td><td>مربوط به مدل ${puLabel} · <span class="numlt">${r.kw}-${r.liters}</span></td><td class="num numlt">×${r.wireQty}</td><td class="num"><div class="price-cell"><span class="price-display numlt">${fmt(r.wirePrice)}</span><input type="text" class="price-edit-input numlt" id="priceEditWire3" value="${fmt(r.wirePrice)}"><button type="button" class="price-edit-pencil" title="ویرایش دستی قیمت">✏️</button></div></td></tr>` : '' }
           ${ oilInvoiceRow(r) }
@@ -4894,6 +4965,254 @@ function updateResult3(){
   refreshFinalPrice();
   bfxRender(updateResult3);
 }
+
+// ===================== 📐 سفارش بر اساس جک (ویتور) — هم‌ساختار تب «سفارش بر اساس جک» شکیب =====================
+// نوع جک (غیرمستقیم / مستقیم / دو استیج / تلسکوپی) ← قطر ← ضخامت ← طول (کورس) ← [محل نصب] ← موتور (با سرعت محاسبه‌شده) ← نوع پاوریونیت (HM/HE)
+// منبع جک: JACK_SINGLE_TABLE (کاتالوگ کامل ویتور، با قیمت فعال تاریخچهٔ قیمت) — منبع پاوریونیت: PU_TABLE.
+// نتیجه در همان state3 مسیر «کاتالوگ هوشمند» نوشته می‌شود (state3.bj) تا نمایش، قیمت، چاپ، ذخیره، ویرایش،
+// فاکتور پلاس و به‌روزرسانی قیمت بدون هیچ کد جداگانه‌ای برای این تب هم کار کند.
+var bjState = { type:null, stageKind:null, diameter:null, thickness:null, course:null, location:null, speedKey:null, puType:'hm' };
+const BJ_TYPE_FA = { indirect:'غیر مستقیم', direct:'مستقیم', stage:'دو استیج', telescopic:'تلسکوپی' };
+function bjFmtThk(t){ return t==null ? '—' : String(t); }
+function bjRowsAll(){
+  const t = bjState.type;
+  if(!t) return [];
+  if(t==='telescopic') return JACK_SINGLE_TABLE.filter(r=>r.type==='telescopic');
+  if(t==='stage') return bjState.stageKind ? JACK_SINGLE_TABLE.filter(r=>r.type===bjState.stageKind && r.stage==='double') : [];
+  return JACK_SINGLE_TABLE.filter(r=>r.type===t && r.stage==='single');
+}
+function bjRowsUpTo(level){
+  let rows = bjRowsAll();
+  if(level>=1 && bjState.diameter!=null) rows = rows.filter(r=>r.diameter===bjState.diameter);
+  if(level>=2 && bjState.thickness!=null) rows = rows.filter(r=>String(r.thickness)===String(bjState.thickness));
+  if(level>=3 && bjState.course!=null) rows = rows.filter(r=>r.course===bjState.course);
+  if(level>=4 && bjState.location!=null) rows = rows.filter(r=>(r.location||'')===bjState.location);
+  return rows;
+}
+function bjRow(){
+  if(bjState.diameter==null || bjState.thickness==null || bjState.course==null) return null;
+  const rows = bjRowsUpTo(4);
+  return (bjState.location!=null || rows.length===1) ? (rows[0]||null) : null;
+}
+function bjRatio(){ const t = bjState.type; return t==='indirect' ? 2 : (t==='direct' ? 1 : null); }
+// سرعت کابین (m/s) = دبی پمپ ÷ سطح مقطع شفت × نسبت آویز (۲:۱ غیرمستقیم / ۱:۱ مستقیم)
+function bjSpeed(dia, liters){
+  const k = bjRatio(); if(!k || !dia || !liters) return null;
+  const area = Math.PI * Math.pow(dia/1000, 2) / 4;
+  return Math.round((liters/60000) / area * k * 100) / 100;
+}
+function bjTypeLabel(b){
+  const st = bjState, row = b && b.row;
+  let t = st.type==='stage' ? (BJ_TYPE_FA[st.stageKind] + ' دو استیج') : (st.type==='telescopic' ? 'تلسکوپی' : (BJ_TYPE_FA[st.type] + ' تک استیج'));
+  if(row && row.location && row.location!=='نامشخص') t += ' · نصب ' + row.location;
+  return t;
+}
+function bjMotorList(){
+  const row = bjRow(); if(!row) return [];
+  const out = [];
+  const tbl = JACK_TABLE2.find(r=>r.diameter===row.diameter && String(r.stages)===String(row.thickness) && r.course===row.course);
+  const techKeys = (bjState.type==='indirect' && tbl) ? tbl.speedOptions.map(o=>o.key) : [];
+  Object.keys(PU_TABLE).forEach(key=>{
+    const e = PU_TABLE[key];
+    const any = ['hm','heAssembly','heItaly'].some(t=>e[t] && e[t].price!=null);
+    if(!any) return;
+    const kw = parseFloat(key.split('-')[0]), liters = parseFloat(key.split('-')[1]);
+    out.push({ key, kw, liters, tank:e.tank, speed: bjSpeed(row.diameter, liters), tech: techKeys.indexOf(key)>=0 });
+  });
+  return out;
+}
+function bjEl(id){ return document.getElementById(id); }
+function bjCard(id, on){ const c = bjEl(id); if(c) c.classList.toggle('disabled', !on); }
+function bjFillSelect(sel, opts, value){
+  sel.innerHTML = '';
+  placeholderOpt(sel);
+  opts.forEach(o=>{
+    if(o.group){ const g = document.createElement('optgroup'); g.label = o.group; o.items.forEach(it=>{ const op = document.createElement('option'); op.value = it.v; op.textContent = it.t; g.appendChild(op); }); sel.appendChild(g); }
+    else { const op = document.createElement('option'); op.value = o.v; op.textContent = o.t; sel.appendChild(op); }
+  });
+  if(value!=null && value!==''){ sel.value = String(value); if(sel.value!==String(value)) sel.selectedIndex = 0; }
+}
+function bjRenumber(){
+  let n = 0;
+  Array.prototype.forEach.call(bjEl('bjGrid').children, c=>{
+    if(!c.classList.contains('card') || c.style.display==='none') return;
+    n++; const sp = c.querySelector('label .num'); if(sp) sp.textContent = String(n);
+  });
+}
+function bjRender(){
+  const st = bjState;
+  if(!bjEl('bjGrid')) return;
+  bjEl('bjTypeOpts').querySelectorAll('button').forEach(b=>b.classList.toggle('active', b.dataset.v===st.type));
+  const isStage = st.type==='stage', isTele = st.type==='telescopic';
+  bjEl('bjCardStageKind').style.display = isStage ? '' : 'none';
+  bjCard('bjCardStageKind', isStage);
+  bjEl('bjStageKindOpts').querySelectorAll('button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.v===st.stageKind);
+    b.disabled = !JACK_SINGLE_TABLE.some(r=>r.type===b.dataset.v && r.stage==='double');
+  });
+  // قطر
+  const rows0 = bjRowsAll();
+  const selDia = bjEl('bjSelDia');
+  const diaOn = rows0.length>0;
+  bjFillSelect(selDia, unique(rows0.map(r=>r.diameter)).sort((a,b)=>a-b).map(d=>{
+    const n = rows0.filter(r=>r.diameter===d).length;
+    return { v:d, t:'Ø ' + d + ' mm   (' + n + ' طول موجود)' };
+  }), st.diameter);
+  selDia.disabled = !diaOn; bjCard('bjCardDia', diaOn);
+  // ضخامت (برای تلسکوپی ضخامت ثبت نشده → خودکار)
+  const rows1 = bjRowsUpTo(1);
+  const thks = unique(rows1.map(r=>String(r.thickness)));
+  if(st.diameter!=null && thks.length===1 && st.thickness==null) st.thickness = thks[0];
+  bjEl('bjCardThk').style.display = isTele ? 'none' : '';
+  const selThk = bjEl('bjSelThk');
+  const thkOn = st.diameter!=null && !isTele;
+  bjFillSelect(selThk, thks.map(t=>({ v:t, t: (t==='null' ? '—' : t + ' mm') })), st.thickness);
+  selThk.disabled = !thkOn; bjCard('bjCardThk', thkOn);
+  // طول (کورس) — همراه قیمت جک
+  const rows2 = bjRowsUpTo(2);
+  const selCourse = bjEl('bjSelCourse');
+  const courseOn = st.diameter!=null && st.thickness!=null;
+  const courses = unique(rows2.map(r=>r.course)).sort((a,b)=>a-b);
+  bjFillSelect(selCourse, courseOn ? courses.map(c=>{
+    const ps = rows2.filter(r=>r.course===c).map(r=>r.price).filter(p=>p!=null);
+    const bn = v => (v/1e9).toFixed(2);
+    const pTxt = ps.length ? (Math.min.apply(null, ps)===Math.max.apply(null, ps) ? bn(ps[0]) : 'از ' + bn(Math.min.apply(null, ps))) + ' میلیارد ریال' : 'تماس با فروش';
+    return { v:c, t: fmt(c) + ' mm  (' + pTxt + ')' };
+  }) : [], st.course);
+  selCourse.disabled = !courseOn; bjCard('bjCardCourse', courseOn);
+  // محل نصب — فقط وقتی برای همان طول دو گزینه با قیمت متفاوت وجود دارد
+  const rows3 = bjRowsUpTo(3);
+  const locs = unique(rows3.map(r=>r.location||''));
+  const needLoc = st.course!=null && locs.length>1;
+  if(st.course!=null && !needLoc) st.location = locs.length ? locs[0] : '';
+  bjEl('bjCardLoc').style.display = needLoc ? '' : 'none';
+  const selLoc = bjEl('bjSelLoc');
+  bjFillSelect(selLoc, needLoc ? locs.map(l=>{ const r = rows3.find(x=>(x.location||'')===l); return { v:l, t:(l||'نامشخص') + '   —   ' + (r && r.price!=null ? fmt(r.price) + ' ریال' : 'تماس') }; }) : [], needLoc ? st.location : null);
+  selLoc.disabled = !needLoc; bjCard('bjCardLoc', needLoc);
+  // موتور — همراه سرعت محاسبه‌شده
+  const row = bjRow();
+  const selMotor = bjEl('bjSelMotor'), note = bjEl('bjMotorNote');
+  const motors = row ? bjMotorList() : [];
+  let groups = [];
+  if(row){
+    const lab = m => m.kw + ' kW / ' + m.liters + ' L' + (m.speed!=null ? '   ≈ ' + m.speed.toFixed(2) + ' m/s' : '') + (m.tech ? '   ✅ جدول فنی ویتور' : '');
+    if(bjRatio()){
+      const ok = motors.filter(m=>m.speed!=null && m.speed>=0.15 && m.speed<=1.0).sort((a,b)=>b.speed-a.speed);
+      const best = ok.filter(m=>m.speed>=0.4 && m.speed<=0.7), slow = ok.filter(m=>m.speed<0.4), fast = ok.filter(m=>m.speed>0.7);
+      if(best.length) groups.push({ group:'⭐ پیشنهادی — سرعت ۰٫۴ تا ۰٫۷ m/s (مسکونی)', items: best.map(m=>({v:m.key, t:'⭐ ' + lab(m)})) });
+      if(fast.length) groups.push({ group:'⚡ سریع — ۰٫۷ تا ۱ m/s (پرترافیک)', items: fast.map(m=>({v:m.key, t:lab(m)})) });
+      if(slow.length) groups.push({ group:'🐢 کند — کمتر از ۰٫۴ m/s (باربر / ظرفیت بالا)', items: slow.map(m=>({v:m.key, t:lab(m)})) });
+      if(!groups.length) groups.push({ group:'همهٔ موتورها', items: motors.sort((a,b)=>a.kw-b.kw||a.liters-b.liters).map(m=>({v:m.key, t:lab(m)})) });
+      note.innerHTML = 'سرعت برای جک Ø' + row.diameter + ' و سیستم ' + (bjRatio()===2 ? '۲:۱ (غیرمستقیم)' : '۱:۱ (مستقیم)') + ' حساب شده است؛ موتورهای بالاتر از ۱ m/s برای آسانسور هیدرولیک حذف شده‌اند.';
+    } else {
+      groups.push({ group:'موتورها (به ترتیب توان)', items: motors.sort((a,b)=>a.kw-b.kw||a.liters-b.liters).map(m=>({v:m.key, t:lab(m)})) });
+      note.innerHTML = '⚠ سرعت جک‌های دو استیج / تلسکوپی به ساختار داخلی جک بستگی دارد — موتور را با واحد فنی تأیید کنید.';
+    }
+    if(st.speedKey && !motors.some(m=>m.key===st.speedKey)) st.speedKey = null;
+  } else { note.innerHTML = ''; }
+  bjFillSelect(selMotor, groups, st.speedKey);
+  selMotor.disabled = !row; bjCard('bjCardMotor', !!row);
+  // نوع پاوریونیت — سه دکمه با قیمت زنده
+  const puWrap = bjEl('bjPuOpts');
+  const puOn = !!(row && st.speedKey);
+  if(puOn){
+    const e = PU_TABLE[st.speedKey] || {};
+    const prices = { hm:(e.hm||{}).price, heAssembly:(e.heAssembly||{}).price, heItaly:(e.heItaly||{}).price };
+    const avail = Object.keys(prices).filter(t=>prices[t]!=null);
+    if(!avail.includes(st.puType)) st.puType = avail[0] || 'hm';
+    // «به‌صرفه» = کمترین جمع پاوریونیت + درخت سیم همان مدل (اگر درخت سیم در پیش‌فاکتور درج می‌شود)
+    const withWire = t => prices[t] + ((state3.includeWire !== false && e[t] && e[t].wire!=null) ? e[t].wire : 0);
+    const cheapest = avail.length>1 ? avail.reduce((a,b)=>withWire(a)<=withWire(b)?a:b) : null;
+    puWrap.innerHTML = [['hm','HM','شیر مکانیکی Soft Plus'],['heAssembly','HE Hevos','تحت لیسانس ایتالیا'],['heItaly','HE Hevos','ساخت ایتالیا']].map(([t,a,b])=>
+      '<button type="button" data-v="' + t + '"' + (prices[t]==null ? ' disabled' : '') + ' class="' + (st.puType===t && prices[t]!=null ? 'active' : '') + '">' + a + (cheapest===t ? '<span class="bj-best">به‌صرفه</span>' : '') +
+      '<small>' + b + '</small><span class="bj-pr">' + (prices[t]!=null ? fmt(prices[t]) + ' ریال' : 'تماس با فروش') + '</span></button>').join('');
+  } else {
+    puWrap.innerHTML = '<div class="pu-note">ابتدا موتور را انتخاب کنید.</div>';
+  }
+  bjCard('bjCardPu', puOn);
+  // مسیر انتخاب (breadcrumb)
+  const steps = [
+    ['نوع', st.type ? (st.type==='stage' ? (st.stageKind ? BJ_TYPE_FA[st.stageKind] + ' دو استیج' : 'دو استیج') : BJ_TYPE_FA[st.type]) : null],
+    ['قطر', st.diameter!=null ? 'Ø' + st.diameter : null],
+    ['ضخامت', isTele ? (st.diameter!=null ? '—' : null) : (st.thickness!=null && st.thickness!=='null' ? st.thickness + 'mm' : (st.thickness==='null' ? '—' : null))],
+    ['طول', st.course!=null ? fmt(st.course) + 'mm' : null],
+    ['موتور', st.speedKey ? st.speedKey.replace('-', 'kW-') + 'L' : null],
+    ['پاور', puOn ? (PU_LABELS[st.puType]||st.puType) : null],
+    ['قیمت', (row && st.speedKey) ? '✓' : null]
+  ];
+  let nowSet = false;
+  bjEl('bjPath').innerHTML = steps.map(([k,v])=>{
+    if(v!=null) return '<span class="done">' + k + ': ' + v + '</span>';
+    if(!nowSet){ nowSet = true; return '<span class="now">' + k + ' ←</span>'; }
+    return '<span>' + k + '</span>';
+  }).join('');
+  bjRenumber();
+}
+function bjApply(){
+  const row = bjRow();
+  priceOverride3 = {};
+  if(row && bjState.speedKey){
+    state3.bj = { row, speedKey: bjState.speedKey };
+    state3.diameter = row.diameter;
+    state3.stage = row.thickness!=null ? String(row.thickness) : '—';
+    state3.course = row.course;
+    state3.speedKey = bjState.speedKey;
+    state3.puType = bjState.puType || 'hm';
+  } else {
+    state3.bj = { row:null };
+    state3.diameter = null; state3.stage = null; state3.course = null; state3.speedKey = null;
+  }
+  if(activeMode==='custom' && customSubMode==='byjack') updateResult3();
+}
+function bjSyntheticRow(){
+  const row = state3.bj.row, key = state3.bj.speedKey || state3.speedKey;
+  const kw = key ? key.split('-')[0] : null, liters = key ? key.split('-')[1] : null;
+  return { diameter: row.diameter, stages: row.thickness!=null ? String(row.thickness) : '—', course: row.course, jackPrice: row.price,
+           speedOptions: key ? [{ key, kw, liters, speed: bjSpeed(row.diameter, Number(liters)) }] : [] };
+}
+function bjChange(level, patch){
+  // level: سطحی که عوض شده — همهٔ انتخاب‌های بعد از آن پاک می‌شوند
+  const order = ['type','stageKind','diameter','thickness','course','location','speedKey'];
+  const idx = order.indexOf(level);
+  order.slice(idx+1).forEach(k=>{ bjState[k] = null; });
+  Object.assign(bjState, patch);
+  bjRender(); bjApply();
+}
+function bjResetAll(){
+  bjState = { type:null, stageKind:null, diameter:null, thickness:null, course:null, location:null, speedKey:null, puType:'hm' };
+  try{ bjRender(); }catch(e){}
+}
+function bjResetState3(){
+  state3.bj = null; state3.diameter = null; state3.stage = null; state3.course = null; state3.speedKey = null;
+  priceOverride3 = {};
+  try{
+    selDia3.value = '';
+    [[selStage3,cardStage3],[selCourse3,cardCourse3],[selMotor3,cardMotor3]].forEach(([s,c])=>{ s.innerHTML=''; s.disabled = true; c.classList.add('disabled'); });
+    selPU3.disabled = true; cardPU3.classList.add('disabled');
+  }catch(e){}
+}
+function bjSyncTabs(){
+  const b = document.getElementById('modeBtnByJack'); if(!b) return;
+  const isBJ = activeMode==='custom' && customSubMode==='byjack';
+  b.classList.toggle('active', isBJ);
+  modeBtnCustom.classList.toggle('active', activeMode==='custom' && !isBJ);
+}
+function bjRestore(b){
+  bjState = Object.assign({ type:null, stageKind:null, diameter:null, thickness:null, course:null, location:null, speedKey:null, puType:'hm' }, b || {});
+  bjRender(); bjApply();
+}
+(function bjBind(){
+  if(!bjEl('bjGrid')) return;
+  bjEl('bjTypeOpts').addEventListener('click', e=>{ const b = e.target.closest('button'); if(b) bjChange('type', { type:b.dataset.v }); });
+  bjEl('bjStageKindOpts').addEventListener('click', e=>{ const b = e.target.closest('button'); if(b && !b.disabled) bjChange('stageKind', { stageKind:b.dataset.v }); });
+  bjEl('bjSelDia').addEventListener('change', e=>bjChange('diameter', { diameter:Number(e.target.value) }));
+  bjEl('bjSelThk').addEventListener('change', e=>bjChange('thickness', { thickness:e.target.value }));
+  bjEl('bjSelCourse').addEventListener('change', e=>bjChange('course', { course:Number(e.target.value) }));
+  bjEl('bjSelLoc').addEventListener('change', e=>bjChange('location', { location:e.target.value }));
+  bjEl('bjSelMotor').addEventListener('change', e=>bjChange('speedKey', { speedKey:e.target.value }));
+  bjEl('bjPuOpts').addEventListener('click', e=>{ const b = e.target.closest('button'); if(b && !b.disabled){ bjState.puType = b.dataset.v; bjRender(); bjApply(); } });
+  bjRender();
+})();
 
 // ---------- بخش ۲: کاملاً دستی (سایز سفارشی، خارج از کاتالوگ) ----------
 function readManualInputs(){
@@ -6224,13 +6543,18 @@ function formatOilRateInput(el){
 }
 
 function setCustomSubMode(sub){
+  const wasByJack = (customSubMode==='byjack'), isByJack = (sub==='byjack');
+  if(wasByJack !== isByJack){ bjResetState3(); if(!isByJack) bjResetAll(); }
   customSubMode = sub;
+  bjSyncTabs();
   customSubBtnSingle.classList.toggle('active', sub==='single');
   customSubBtnSmart.classList.toggle('active', sub==='smart');
   customSubBtnManual.classList.toggle('active', sub==='manual');
   customSingleEl.style.display = sub==='single' ? '' : 'none';
   customSmartEl.style.display = sub==='smart' ? '' : 'none';
   customManualEl.style.display = sub==='manual' ? '' : 'none';
+  const bjEl = document.getElementById('customByJack'); if(bjEl) bjEl.style.display = isByJack ? '' : 'none';
+  const subSw = modeCustomEl.querySelector('.mode-switch'); if(subSw) subSw.style.display = isByJack ? 'none' : '';
   updateResultCustom();
   renderSingleCartPanel();
 }
@@ -6254,6 +6578,7 @@ function setMode(mode){
   modeBtnClassic.classList.toggle('active', mode==='classic');
   modeBtnPrecise.classList.toggle('active', mode==='precise');
   modeBtnCustom.classList.toggle('active', mode==='custom');
+  bjSyncTabs();
   modeClassicEl.style.display = mode==='classic' ? '' : 'none';
   modePreciseEl.style.display = mode==='precise' ? '' : 'none';
   modeCustomEl.style.display = mode==='custom' ? '' : 'none';
@@ -6265,7 +6590,8 @@ function setMode(mode){
 }
 modeBtnClassic.addEventListener('click', ()=>setMode('classic'));
 modeBtnPrecise.addEventListener('click', ()=>setMode('precise'));
-modeBtnCustom.addEventListener('click', ()=>setMode('custom'));
+modeBtnCustom.addEventListener('click', ()=>{ if(customSubMode==='byjack') setCustomSubMode('smart'); setMode('custom'); });
+document.getElementById('modeBtnByJack').addEventListener('click', ()=>{ setMode('custom'); setCustomSubMode('byjack'); });
 
 // ===================== DISCOUNT / VAT =====================
 const discountInput = document.getElementById('discountInput');
@@ -6482,6 +6808,7 @@ function bfSnapshotWitturSelection(){
     classic: { floor: state.floor, persons: state.persons, travel: state.travel, travelVariant: state.travelVariant||0, puType: state.puType, includeWire: state.includeWire },
     precise: { persons: state2.persons, travel: state2.travel, speedKey: state2.speedKey, puType: state2.puType, includeWire: state2.includeWire },
     customSmart: { diameter: state3.diameter, stage: state3.stage, course: state3.course, speedKey: state3.speedKey, puType: state3.puType, includeWire: state3.includeWire },
+    byJack: customSubMode==='byjack' ? Object.assign({}, bjState) : null,
     customManual: { scope: state4.scope||'all', shaft: state4.shaft, thickness: state4.thickness, course: state4.course, kw: state4.kw, liters: state4.liters, tank: state4.tank,
       puType: state4.puType, jackType: state4.jackType, jackPriceManual: state4.jackPriceManual, puPriceManual: state4.puPriceManual, wirePriceManual: state4.wirePriceManual,
       includeWire: state4.includeWire, qtyJack: state4.qtyJack, qtyPu: state4.qtyPu, qtyWire: state4.qtyWire },
@@ -6668,6 +6995,12 @@ function bfRestoreWitturSelection(o){
         const qj = document.getElementById('qtyJackInput5'); if(qj && c.qtyJack){ qj.value = c.qtyJack; state5.qtyJack = c.qtyJack; }
       }
       updateResult5();
+    } else if(sel.customSubMode === 'byjack'){
+      if(sel.qty){ qty.jack = sel.qty.jack||1; qty.pu = sel.qty.pu||1; qty.wire = sel.qty.wire||1; }
+      state3.includeWire = !(sel.customSmart && sel.customSmart.includeWire === false);
+      bjRestore(sel.byJack || {});
+      if(sel.priceOverride3) Object.assign(priceOverride3, sel.priceOverride3);
+      updateResult3();
     } else {
       const c = sel.customSmart || {};
       if(sel.qty){ qty.jack = sel.qty.jack||1; qty.pu = sel.qty.pu||1; qty.wire = sel.qty.wire||1; }

@@ -4601,6 +4601,9 @@ var _eu=editUnit;editUnit=function(id){var r=_eu.apply(this,arguments);var u=uMa
 var _el=editLotGroup;editLotGroup=function(key){var r=_el.apply(this,arguments);var l=DB.lots.filter(function(x){return x.key===key})[0];if(l)editDrop(l.cat);return r};window.editLotGroup=editLotGroup;
 window.bfRenderFin=renderFin;window.bfApplyStk=function(){try{applyStkView()}catch(e){}};
 try{finDB();renderSheet()}catch(e){console.error(e)}
+/* [BF-SUPLOCK] دسترسی ماژول قفل تأمین‌کننده به توابع داخلی همین بخش */
+window.__bfOrd={view:function(){return stkView},ro:function(){return ro()},render:function(){renderShkWh()},
+  rsw:function(f){renderShkWh=f(renderShkWh)},mm:function(f){moveModal=f(moveModal);window.bfMoveModal=moveModal},ns:function(f){needSer=f(needSer)},ds:function(f){doSave=f(doSave)}};
 })();
 </script>
 
@@ -5609,6 +5612,160 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
   body.bf-shk .pick-head .qs{display:block !important}
   #qsInput{width:100%}
 </style>
+
+<!-- ===== [BF-SUPLOCK] هر کالا فقط در انبار تأمین‌کنندهٔ خودش + [BF-MPACK] پک خدماتی جنتلرایز/هوبر + [BF-WJBOX] سریال جعبه متعلقات جک ویتور =====
+     ۱) سبد سفارش به تأمین‌کننده‌ای که با آن شروع شد قفل است؛ تغییر تأمین‌کننده با کالای داخل سبد = یا خالی کردن سبد یا انصراف.
+        قبل از افزودن به سبد و قبل از ثبت نهایی، برند کالا با تأمین‌کننده چک می‌شود (شکیب/بلین/داینا ← شکیب جک · ویتور/هوبر/جنتلرایز ← آسانسور ۱۱۰).
+        در «انبار شکیب» و «انبار آسانسور ۱۱۰» کالاهایی که قبلاً اشتباهی ثبت شده‌اند با هشدار قرمز نشان داده می‌شوند (+ اصلاح یک‌کلیکی).
+     ۲) موتور جنتلرایز: انتخاب پک خدماتی (موتورخانه‌دار دیسکی / بدون موتورخانه درامی × سه بازهٔ ظرفیت) — هر کدام و هر تعداد.
+        موتور هوبر: گزینهٔ «پک خدمات - درخت سیم هوبر».
+     ۳) انتقال جک ویتور از انبار ۱۱۰ به انبار بهفراز: جعبه متعلقات جک هم سریال اجباری دارد و سریال جک خودکار برایش کپی می‌شود (قابل تغییر). -->
+<style>
+.bfsl-warn{border:1.5px solid #fca5a5;background:#fef2f2;color:#991b1b;border-radius:12px;padding:10px 12px;margin:0 0 12px;font-size:.84rem;line-height:1.9}
+.bfsl-warn b{color:#7f1d1d}
+.bfsl-warn .btn{margin-inline-start:6px}
+.bfsl-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;border-top:1px dashed #fecaca;padding-top:6px;margin-top:6px}
+.bfjb-hint{font-size:.74rem;color:#0f766e;margin-top:3px}
+.bfjb-hint.man{color:#b45309}
+</style>
+<script>
+(function(){
+  'use strict';
+  var SH_='شکیب جک', A1_='آسانسور 110';
+  function has(s,w){return norm(s||'').indexOf(norm(w))>=0}
+  /* تأمین‌کنندهٔ واقعی یک کالا بر اساس برند/نام (خالی = نامشخص؛ چک نمی‌شود) */
+  function supOf(cat,f){f=f||{};var b=f.brand||'',n=f.name||'',m=f.model||'';
+    if(cat==='jack'||cat==='pu'){if(has(b,'شکیب')||has(b,'بلین'))return SH_;if(has(b,'ویتور')||has(b,'110')||has(b,'امار'))return A1_;return ''}
+    if(cat==='motor'){if(has(b,'داینا')||/^WTD/i.test(m))return SH_;if(has(b,'هوبر')||has(b,'جنتلرایز')||/^WT[12]-|^T\d/i.test(m))return A1_;return ''}
+    if(cat==='acc'||cat==='parts'){var t=b+' '+n;if(has(t,'ویتور')||has(t,'هوبر')||has(t,'جنتلرایز'))return A1_;if(has(t,'شکیب')||has(t,'بلین')||has(t,'داینا'))return SH_;return ''}
+    return ''}
+  window.bfSupOfItem=supOf;
+  function isMain(s){return s===SH_||s===A1_}
+  function lineName(l){try{var i=xInfo(l.cat,l.f||{},l.rid);return i.title+(i.sub?' — '+i.sub:'')}catch(e){return (l.f&&(l.f.name||l.f.size||l.f.model))||''}}
+
+  /* ---------- ۱-الف) قفل سبد روی تأمین‌کننده ---------- */
+  var stageSup=canonSup(curSup());
+  var _osc=onSupChange;
+  onSupChange=function(){
+    var now=canonSup(curSup());
+    if(inStaged.length&&stageSup&&now!==stageSup){
+      if(confirm('🧾 سبد سفارش '+fa(inStaged.filter(function(l){return !l.child}).length)+' کالای «'+stageSup+'» دارد.\n\nهر کالا باید فقط در انبار تأمین‌کنندهٔ خودش ثبت شود؛ با تغییر تأمین‌کننده به «'+(now||'—')+'» سبد خالی می‌شود.\n\nسبد خالی شود؟ (انصراف = همان «'+stageSup+'» بماند)')){
+        inStaged=[];try{renderInStaged()}catch(e){}
+      }else{$('iSup').value=stageSup;now=stageSup;toast('تأمین‌کننده «'+stageSup+'» ماند — اول همین سفارش را ثبت یا سبد را خالی کنید')}
+    }
+    var r=_osc.apply(this,arguments);
+    if(!inStaged.length)stageSup=canonSup(curSup());
+    return r};
+  window.onSupChange=onSupChange;
+
+  /* ---------- ۱-ب) چک برند هنگام «افزودن به سبد» ---------- */
+  var _add=inAdd;
+  inAdd=function(){
+    var cur=canonSup(curSup());
+    if(isMain(cur)&&(inCat==='jack'||inCat==='pu'||inCat==='motor')){
+      var bi=$('inEditor')&&$('inEditor').querySelector('input[data-lf=brand]');var bv=(bi&&bi.value.trim())||inVals.brand||'';
+      var mi=$('inEditor')&&$('inEditor').querySelector('input[data-lf=model]');var mv=(mi&&mi.value.trim())||inVals.model||'';
+      var want=supOf(inCat,{brand:bv,model:mv});
+      if(want&&want!==cur){showMsg('inMsg','⛔ «'+(bv||mv)+'» کالای «'+want+'» است و در سفارش «'+cur+'» ثبت نمی‌شود — هر کالا فقط در انبار تأمین‌کنندهٔ خودش'+(bi?'':''));if(bi){bi.classList.add('err');bi.focus()}return}
+    }
+    var n0=inStaged.length,r=_add.apply(this,arguments);
+    if(inStaged.length>n0){if(!stageSup||n0===0)stageSup=cur;inStaged.slice(n0).forEach(function(l){l.sup=cur})}
+    return r};
+  window.inAdd=inAdd;
+  try{var ba=$('btnAddLine');if(ba&&ba.onclick)ba.onclick=function(){return inAdd()}}catch(e){}
+
+  /* ---------- ۱-ج) چک نهایی هنگام ثبت سفارش ---------- */
+  window.__bfOrd.ds(function(_save){return function(m){
+    var bad=[];inStaged.forEach(function(l){if(l.child)return;var w=supOf(l.cat,l.f);if(w&&isMain(m.sup)&&w!==m.sup)bad.push('• '+lineName(l)+' ← «'+w+'»');if(l.sup&&l.sup!==m.sup)bad.push('• '+lineName(l)+' (در سبد «'+l.sup+'» اضافه شده)')});
+    if(bad.length){alert('⛔ این سفارش برای «'+m.sup+'» ثبت نمی‌شود — این کالاها مربوط به تأمین‌کنندهٔ دیگری‌اند:\n\n'+bad.slice(0,12).join('\n')+'\n\nآن‌ها را از سبد حذف کنید و در سفارش تأمین‌کنندهٔ خودشان ثبت کنید.');return}
+    var r=_save.apply(this,arguments);if(!inStaged.length)stageSup=canonSup(curSup());return r}});
+
+  /* ---------- ۱-د) هشدار و اصلاح کالاهای قبلاً اشتباه‌ثبت‌شده در انبار شکیب / ۱۱۰ ---------- */
+  function mismatches(W){var want=W==='a110'?A1_:SH_,R={};
+    DB.units.concat(DB.lots).forEach(function(o){if(!o.f||o.f.wh!==W||o.status==='void'||(o.rem!=null&&o.rem<=0&&o.status!=='in'))return;if(o.serial==null&&!(o.rem>0))return;
+      var s=supOf(o.cat,o.f);if(s&&s!==want){(R[o.rid]=R[o.rid]||[]).push(o)}});
+    return R}
+  function fixOrder(rid,W){
+    var rm=rMap(),r=rm[rid];if(!r)return;var to=W==='a110'?'shakib':'a110',toSup=to==='a110'?A1_:SH_;
+    var all=DB.units.concat(DB.lots).filter(function(o){return o.rid===rid&&o.f&&o.f.wh===W&&o.status!=='void'});
+    var mains=all.filter(function(o){return supOf(o.cat,o.f)});
+    var wrong=mains.filter(function(o){return supOf(o.cat,o.f)===toSup});
+    if(wrong.length!==mains.length){alert('این سفارش هم کالای «'+(W==='a110'?A1_:SH_)+'» دارد و هم کالای «'+toSup+'» — اصلاح خودکار ممکن نیست.\nکالای اشتباه را با «✏️ ویرایش مدل» اصلاح کنید یا سفارش را حذف و درست ثبت کنید.');return}
+    if(!confirm('سفارش '+fa(r.no||'')+(r.invNo?' (فاکتور '+fa(r.invNo)+')':'')+' به «'+toSup+'» منتقل شود؟\n\n• تأمین‌کنندهٔ سفارش: '+canonSup(r.supplier)+' ← '+toSup+'\n• '+fa(all.length)+' ردیف از «'+(W==='a110'?'انبار آسانسور ۱۱۰':'انبار شکیب')+'» به «'+(to==='a110'?'انبار آسانسور ۱۱۰':'انبار شکیب')+'» می‌رود\n• حساب مالی هم با همان تأمین‌کننده جدید حساب می‌شود'))return;
+    var why=prompt('علت اصلاح (در تاریخچه ثبت می‌شود):','ثبت اشتباه در تأمین‌کنندهٔ دیگر');if(why==null)return;
+    all.forEach(function(o){o.f.wh=to;if(o.key!=null&&typeof lotKey==='function'&&o.serial==null)o.key=lotKey(o.cat,o.f,o.unit)});
+    var old=r.supplier;r.supplier=toSup;r.kind=to==='shakib'?'shk':'ord';
+    addLog('اصلاح تأمین‌کننده','سفارش '+(r.no||'—')+(r.invNo?' · فاکتور '+r.invNo:'')+' · از «'+canonSup(old)+'» به «'+toSup+'» · '+fa(all.length)+' ردیف · علت: '+(why||'—'));
+    save();toast('✓ سفارش به «'+toSup+'» منتقل شد');try{window.__bfOrd.render()}catch(e){}}
+  window.__bfOrd.rsw(function(_rsw){return function(){var r=_rsw.apply(this,arguments);var stkView=window.__bfOrd.view(),ro=window.__bfOrd.ro;
+    try{var W=stkView==='a110'?'a110':'shakib',M=mismatches(W),ids=Object.keys(M),p=$('shkWh');if(!ids.length||!p)return r;var rm=rMap();
+      var h='<div class="bfsl-warn">⚠️ <b>'+fa(ids.length)+' سفارش در «'+(W==='a110'?'انبار آسانسور ۱۱۰':'انبار شکیب')+'» کالای تأمین‌کنندهٔ دیگر دارد</b> — هر کالا باید فقط در انبار تأمین‌کنندهٔ خودش باشد.'+
+        ids.map(function(id){var o=rm[id]||{},L=M[id];return '<div class="bfsl-row">🧾 سفارش '+esc(fa(o.no||'—'))+(o.invNo?' · فاکتور '+esc(fa(o.invNo)):'')+' · '+esc(fdate(o.date))+' : '+L.slice(0,4).map(function(x){return '<b>'+esc(lineName(x))+'</b>'}).join('، ')+(L.length>4?' و '+fa(L.length-4)+' ردیف دیگر':'')+
+          (ro()?'':'<button type="button" class="btn sm" data-bfslfix="'+esc(id)+'">🔧 انتقال این سفارش به «'+(W==='a110'?'انبار شکیب':'انبار آسانسور ۱۱۰')+'»</button>')+'</div>'}).join('')+'</div>';
+      p.insertAdjacentHTML('afterbegin',h)}catch(e){console.warn('[SUPLOCK]',e)}
+    return r}});
+  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-bfslfix]');if(!b)return;e.preventDefault();e.stopPropagation();fixOrder(b.dataset.bfslfix,window.__bfOrd.view()==='a110'?'a110':'shakib')},true);
+
+  /* ---------- ۲) پک خدماتی جنتلرایز + پک خدمات هوبر ---------- */
+  var GP=[['موتورخانه‌دار (دیسکی)','450 kg'],['موتورخانه‌دار (دیسکی)','600 تا 800 kg'],['موتورخانه‌دار (دیسکی)','1000 تا 1600 kg'],
+          ['بدون موتورخانه (درامی)','450 kg'],['بدون موتورخانه (درامی)','600 تا 800 kg'],['بدون موتورخانه (درامی)','1000 تا 1600 kg']];
+  KITS.gpack={t:'پک خدماتی جنتلرایز — هر پکی که همراه این موتور است تیک بزنید و تعداد را بنویسید',for:'موتور',brand:'جنتلرایز',
+    items:GP.map(function(p){return {n:'پک خدماتی جنتلرایز '+p[0]+' '+p[1],grp:p[0]}})};
+  KITS.hpack={t:'پک خدمات هوبر — اگر همراه این موتور است تیک بزنید',for:'موتور',brand:'هوبر',items:[{n:'پک خدمات - درخت سیم هوبر'}]};
+  function motBrand(){var bi=$('inEditor')&&$('inEditor').querySelector('input[data-lf=brand]');var b=(bi&&bi.value)||inVals.brand||'';
+    if(!b&&inTile==='motorG')b='جنتلرایز';if(!b&&inTile==='motorH')b='هوبر';return b}
+  var _kf=kitFor;
+  kitFor=function(cat,v){
+    if(cat==='motor'&&curTab==='in'){var cs=canonSup(curSup()),b=(v&&v.brand)||motBrand();
+      if(cs===A1_||(typeof bfMiscSup==='function'&&bfMiscSup())){if(has(b,'جنتلرایز')||/^WT[12]-/i.test((v&&v.model)||''))return 'gpack';if(has(b,'هوبر')||/^T\d/i.test((v&&v.model)||''))return 'hpack'}}
+    return _kf.apply(this,arguments)};
+  window.kitFor=kitFor;
+  var _kr=kitRecommended;
+  kitRecommended=function(k){
+    if(k==='hpack')return ['پک خدمات - درخت سیم هوبر'];
+    if(k!=='gpack')return _kr.apply(this,arguments);
+    var m=String(inVals.model||''),t=String(inVals.mtype||''),kg=+((m.match(/(\d{3,4})\s*kg/i)||[])[1]||0);
+    var disk=/^WT1/i.test(m)||/دیسک/.test(t),drum=/^WT2/i.test(m)||/بشکه|درام/.test(t);if(!disk&&!drum)return [];
+    var rg=kg===450?'450 kg':(kg>=600&&kg<=800)?'600 تا 800 kg':(kg>=1000&&kg<=1600)?'1000 تا 1600 kg':'';if(!rg)return [];
+    return ['پک خدماتی جنتلرایز '+(disk?'موتورخانه‌دار (دیسکی)':'بدون موتورخانه (درامی)')+' '+rg]};
+  window.kitRecommended=kitRecommended;
+  /* تغییر برند/مدل/نوع موتور ← فهرست پک به‌روز شود */
+  document.addEventListener('input',function(e){var t=e.target;if(!t||!t.matches||inCat!=='motor'||!t.matches('#inEditor input[data-lf=model],#inEditor input[data-lf=brand]'))return;
+    inVals[t.dataset.lf]=t.value;clearTimeout(window.__bfMp);window.__bfMp=setTimeout(function(){try{renderKit()}catch(_){}},250)},true);
+  document.addEventListener('click',function(e){if(inCat!=='motor'||!e.target.closest||!e.target.closest('#inEditor'))return;setTimeout(function(){try{renderKit()}catch(_){}},60)});
+
+  /* ---------- ۳) جعبه متعلقات جک ویتور: سریال اجباری در انتقال + کپی خودکار سریال جک ---------- */
+  var BOXN='جعبه متعلقات جک ویتور';
+  function isBox(o){return o&&o.cat==='acc'&&has((o.f||{}).name,'جعبه متعلقات جک')}
+  window.__bfOrd.ns(function(_ns){return function(o,r){if(isBox(o)&&!o.serial)return true;return _ns.apply(this,arguments)}});
+  window.__bfOrd.mm(function(_mm){return function(rid,fam,wh){
+    var r=_mm.apply(this,arguments);
+    try{
+      var list=document.querySelector('.mv-list');if(!list)return r;
+      var rowsEl=[].slice.call(list.querySelectorAll('.mv-r'));
+      /* ردیف‌ها را دوباره از DOM بشناسیم: عنوان هر ردیف + textarea سریال */
+      var objs=DB.units.concat(DB.lots).filter(function(o){return o.rid===rid&&o.f&&o.f.wh===(wh||'shakib')&&o.status!=='void'});
+      function catOf(t){for(var i=0;i<objs.length;i++){try{if(xInfo(objs[i].cat,objs[i].f,rid).title===t)return objs[i]}catch(e){}}return null}
+      var R=rowsEl.map(function(el){var ta=el.querySelector('textarea[data-ms]'),t=(el.querySelector('.mv-h b')||{}).textContent||'',o=catOf(t);return {el:el,ta:ta,t:t,box:isBox(o)||has(t,'جعبه متعلقات جک'),jack:!!o&&o.cat==='jack'}});
+      var jacks=R.filter(function(x){return x.jack&&x.ta}),boxes=R.filter(function(x){return x.box&&x.ta});
+      if(!jacks.length||!boxes.length)return r;
+      boxes.forEach(function(b){var h=document.createElement('div');h.className='bfjb-hint';h.textContent='🔗 سریال جعبه = سریال جک (خودکار) — در صورت نیاز تغییر دهید';b.ta.parentNode.appendChild(h);b.hint=h;
+        b.ta.addEventListener('input',function(ev){if(ev.isTrusted){b.man=true;h.className='bfjb-hint man';h.textContent='✏️ سریال جعبه دستی تغییر کرد (دیگر از سریال جک کپی نمی‌شود)'}})});
+      function sync(){var S=[];jacks.forEach(function(j){S=S.concat(parseSerials(j.ta.value))});
+        var off=0;boxes.forEach(function(b){var q=(+String((b.el.querySelector('.mv-q')||{}).textContent||'').replace(/[^\d۰-۹]/g,'').replace(/[۰-۹]/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)}))||1;
+          var part=S.slice(off,off+q);off+=q;if(b.man)return;b.ta.value=part.join('\n');b.ta.dispatchEvent(new Event('input',{bubbles:true}))})}
+      jacks.forEach(function(j){j.ta.addEventListener('input',sync)});
+    }catch(e){console.warn('[WJBOX]',e)}
+    return r}});
+  /* ورود مستقیم با سریال (تأمین‌کنندهٔ متفرقه و…): سریال جک ← سریال جعبه متعلقات، مگر کاربر دستی عوض کند */
+  document.addEventListener('input',function(e){var t=e.target;if(!t)return;
+    if(t.dataset&&t.dataset.sk==='k'&&t.dataset.key===BOXN){var s=inKit[BOXN];if(s&&e.isTrusted)s.man=true;return}
+    if(t.id!=='inSerials'||inCat!=='jack')return;var k=kitFor(inCat,inVals);if(k!=='wjack')return;
+    var S=parseSerials(t.value),st=inKit[BOXN]=inKit[BOXN]||{on:true,qty:1};if(st.man)return;
+    st.on=true;st.qty=Math.max(1,S.length);st.sers=S.slice(0,30);clearTimeout(window.__bfJb);window.__bfJb=setTimeout(function(){try{renderKit()}catch(_){}},200)},true);
+})();
+</script>
+
 
 </body>
 </html>

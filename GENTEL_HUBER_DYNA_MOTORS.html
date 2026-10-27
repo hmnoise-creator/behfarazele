@@ -3494,7 +3494,7 @@ capacityDynaEl.addEventListener('change', () => {
    ============================================================ */
 const BF_PH_MULT_NEW = 1.10;
 // تغییر قیمت مورخ 1405/08/04 (ریال)
-const BF_PH_0804 = { gentelDrum450: 5600000000, dynaDrum450: 5400000000 };
+const BF_PH_0804 = { gentelDrum450: 5600000000, dynaDrum450: 5400000000, gentelDisk800v16: 5783936900 };   // [1405/08/05] جنتل رایز دیسکی WT1-B ۸۰۰kg ۱.۶ m/s (2:1) = ۵٬۷۸۳٬۹۳۶٬۹۰۰ ریال
 const BF_PH = {
   dyna:       { mult: BF_PH_MULT_NEW, set:'m0804', refs: [], cls:'ph-dyna',   label:'داینا' },
   gentelrise: { mult: BF_PH_MULT_NEW, set:'m0804', refs: [], cls:'ph-gentel', label:'جنتلرایز' },
@@ -3510,7 +3510,7 @@ Object.keys(DATA_DYNA).forEach(t=>Object.keys(DATA_DYNA[t]).forEach(ra=>DATA_DYN
 })));
 Object.keys(DATA).forEach(t=>Object.keys(DATA[t]).forEach(ra=>DATA[t][ra].forEach(r=>{
   // [1405/08/04] جنتلرایز ۶ نفره بشکه‌ای (450kg) = ۵۶۰ میلیون تومان؛ بقیه همان نرخ «+۱۰٪»
-  if(typeof r.motorPrice === 'number') BF_PH.gentelrise.refs.push({o:r, v:r.motorPrice, m4: (t==='drum' && Number(r.kg)===450) ? BF_PH_0804.gentelDrum450 : Math.round(r.motorPrice * BF_PH_MULT_NEW)});
+  if(typeof r.motorPrice === 'number') BF_PH.gentelrise.refs.push({o:r, v:r.motorPrice, m4: (t==='drum' && Number(r.kg)===450) ? BF_PH_0804.gentelDrum450 : (t==='disk' && ra==='2:1' && Number(r.kg)===800 && Number(r.speed)===1.6) ? BF_PH_0804.gentelDisk800v16 : Math.round(r.motorPrice * BF_PH_MULT_NEW)});
 })));
 DATA_HUBER.forEach(r=>{ if(typeof r.motorPrice === 'number') BF_PH.huber.refs.push({o:r, v:r.motorPrice}); });
 

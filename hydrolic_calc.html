@@ -672,6 +672,21 @@ table.scan tr.cur td{background:#e6f4f0;font-weight:800}
 td.g{color:var(--g);font-weight:800}td.y{color:var(--y);font-weight:800}td.r{color:var(--r);font-weight:800}
 .scanwrap{max-height:340px;overflow:auto;border:1px solid var(--line);border-radius:12px}
 .status{font-size:.75rem;color:var(--mute);margin-top:6px}
+.prof{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0 12px}
+@media(max-width:560px){.prof{grid-template-columns:1fr}}
+.pg{border:1.5px solid var(--line);border-radius:14px;padding:8px 10px;background:linear-gradient(180deg,#fbfdfc,#f2f7f5)}
+.pg>b{font-size:.8rem;display:block;margin-bottom:6px}
+.pg small{display:block;font-size:.7rem;color:var(--mute);margin-top:5px;line-height:1.6}
+.seg2{display:flex;gap:6px}
+.seg2 button{flex:1;font-family:inherit;font-weight:900;font-size:.82rem;padding:8px 6px;border-radius:11px;border:1.5px solid var(--line);background:#fff;cursor:pointer;transition:all .15s}
+.seg2 button[data-v=eco].on{background:linear-gradient(135deg,#1f8a4c,#36b26b);border-color:#1f8a4c;color:#fff}
+.seg2 button[data-v=heavy].on{background:linear-gradient(135deg,#7a3e0c,#c2691b);border-color:#7a3e0c;color:#fff}
+.spd{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 2px}
+.spd button{font-family:inherit;font-size:.74rem;font-weight:800;padding:5px 9px;border-radius:12px;border:1.5px solid var(--line);background:#fff;cursor:pointer;line-height:1.35;text-align:center}
+.spd button small{display:block;font-weight:600;font-size:.66rem;color:var(--mute)}
+.spd button.on{border-color:var(--teal2);background:var(--teal-l);box-shadow:0 0 0 2px rgba(15,110,86,.15)}
+.spd button.g small{color:var(--g)}.spd button.y small{color:var(--y)}.spd button.r small{color:var(--r)}
+.spd-t{font-size:.74rem;font-weight:800;color:#34504c;margin-top:8px}
 .legend{display:flex;gap:10px;flex-wrap:wrap;font-size:.74rem;margin-top:6px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-left:4px;vertical-align:middle}
 iframe.src{position:absolute;width:10px;height:10px;left:-9999px;top:-9999px;border:0;opacity:0;pointer-events:none}
@@ -736,6 +751,10 @@ iframe.src{position:absolute;width:10px;height:10px;left:-9999px;top:-9999px;bor
         <div class="f"><label>ضخامت پیستون</label><select id="selT"></select></div>
         <div class="status" id="pickHint"></div>
       </div>
+      <div class="prof">
+        <div class="pg"><b>🔩 جک</b><div class="seg2" data-prof="jack"><button data-v="eco" class="on">💰 اقتصادی</button><button data-v="heavy">🏋️ سنگین</button></div><small id="profJackTx">کوچک‌ترین جک مجاز (ارزان‌تر)</small></div>
+        <div class="pg"><b>⚙️ پاور</b><div class="seg2" data-prof="pu"><button data-v="eco" class="on">💰 اقتصادی</button><button data-v="heavy">🏋️ سنگین</button></div><small id="profPuTx">کم‌ترین توان مجاز با نزدیک‌ترین سرعت</small></div>
+      </div>
       <div class="checks" id="checks"></div>
       <div class="legend"><span><i style="background:var(--g)"></i>عالی</span><span><i style="background:var(--y)"></i>قابل قبول / با احتیاط</span><span><i style="background:var(--r)"></i>رد</span></div>
       <div id="notes"></div>
@@ -751,7 +770,7 @@ iframe.src{position:absolute;width:10px;height:10px;left:-9999px;top:-9999px;bor
         <div class="box sh" id="boxSh"><div class="bh">🔩 شکیب جک <small style="font-weight:600;opacity:.85">SHAKIB</small></div><div class="bb"><div class="empty">⏳</div></div></div>
         <div class="box wi" id="boxWi"><div class="bh">🛠️ ویتور <small style="font-weight:600;opacity:.85">WITTUR · OMARLIFT</small></div><div class="bb"><div class="empty">⏳</div></div></div>
       </div>
-      <div class="note">قیمت‌ها به <b>ریال</b> و <b>بدون ارزش افزوده</b>، همان قیمت‌های فعال داخل ابزار شکیب و ابزار ویتور است. پاور یونیت طوری انتخاب می‌شود که دبی آن از دبی لازم کمتر نباشد و توانش برای همان دبی و فشار کابین پر، به‌علاوهٔ <b>۱ کیلووات اضافه</b>، کافی باشد.</div>
+      <div class="note">قیمت‌ها به <b>ریال</b> و <b>بدون ارزش افزوده</b>، همان قیمت‌های فعال داخل ابزار شکیب و ابزار ویتور است. همهٔ ترکیب‌های جک و پاور کاتالوگ امتحان می‌شود: اول جک مجاز، بعد <b>نزدیک‌ترین سرعت</b> به سرعت درخواستی (±۱۰٪ ← ±۲۰٪)، بعد <b>کم‌ترین قیمت</b>. توان پاور برای همان دبی و فشار کابین پر، به‌علاوهٔ <b>۱ کیلووات اضافه</b>، کافی است. «سنگین» جک یا پاور را یک پله قوی‌تر می‌کند.</div>
     </div>
   </div>
  </div>
@@ -894,30 +913,60 @@ function witturJackFor(D,T,inp){
   return {L:pref.course,price:pref.price,type:type,pieces:pref.pieces,location:pref.location,variant:pref.variant,locMatch:pref.location===loc||!pref.location};
 }
 /* بهترین جک هر برند: کوچک‌ترین قطر با وضعیت سبز، وگرنه زرد */
-function bestFor(brand,inp){
+function bestFor(brand,inp,mode){
+  mode = mode || PROF.jack;
   var src = brand==='sh'?SH:WI; if(!src) return null;
   var combos={}; src.jacks.forEach(function(j){ combos[j.D+'|'+j.T]={D:j.D,T:j.T}; });
   var list=Object.keys(combos).map(function(k){return combos[k]}).sort(function(a,b){return a.D-b.D || (a.T==='solid'?0:a.T)-(b.T==='solid'?0:b.T)});
-  var out={g:null,y:null};
+  /* [BF-HYD-PROF] اقتصادی = کوچک‌ترین جک مجاز (سبز یا زرد) — سنگین = یک سایز قوی‌تر (قطر بزرگ‌تر، فشار کمتر، حاشیهٔ کمانش بیشتر) با وضعیت سبز */
+  var ok=[];
   list.forEach(function(c){
     var j = brand==='sh'?shakibJackFor(c.D,c.T,inp):witturJackFor(c.D,c.T,inp); if(!j) return;
     var r=evalJack(c.D,c.T,inp,j.L/10), s=jackStatus(r);
-    if(s==='g'&&!out.g) out.g={c:c,j:j,r:r,s:s};
-    if(s!=='r'&&!out.y) out.y={c:c,j:j,r:r,s:s};
+    if(s!=='r') ok.push({c:c,j:j,r:r,s:s});
   });
-  return out.g||out.y;
+  if(!ok.length) return null;
+  var eco=ok[0];
+  if(mode!=='heavy') return eco;
+  var bigger=ok.filter(function(o){ return o.c.D>eco.c.D || (o.c.D===eco.c.D && o.c.T!=='solid' && eco.c.T!=='solid' && o.c.T>eco.c.T); });
+  return bigger.filter(function(o){return o.s==='g'})[0] || bigger[0] || eco;
 }
 /* ================= انتخاب پاور یونیت ================= */
-function pickPU(list,need,pf){   // need = لیتر لازم پمپ
-  var cand=list.filter(function(p){ return p.L>=need; });
-  if(!cand.length) return null;
-  cand.sort(function(a,b){ return a.L-b.L || a.kw-b.kw; });
-  for(var i=0;i<cand.length;i++){ var p=cand[i]; var kwNeed=p.L*(pf+7)/488+1; if(p.kw>=kwNeed) return {pu:p,kwNeed:kwNeed}; }
-  return null;
+/* [BF-HYD-PU] به‌جای «اولین پمپ بزرگ‌تر از دبی لازم» (که با کمی تغییر سرعت، یک‌باره پاور بزرگ‌تر می‌داد)،
+   سرعت واقعی کابین با هر پمپ کاتالوگ حساب می‌شود و نزدیک‌ترین سرعت به سرعت درخواستی انتخاب می‌شود.
+   توان: kW ≥ دبی همان پمپ × (فشار کابین پر + ۷) ÷ ۴۸۸ + ۱ کیلووات.  اقتصادی = کم‌ترین توان مجاز · سنگین = یک پله توان بیشتر */
+function speedOf(L,A,inp){ return L*inp.S/(inp.N*6*A); }
+function spdSt(dev){ var a=Math.abs(dev); return a<=0.10?'g':(a<=0.20?'y':'r'); }
+function puCands(list,r,inp){
+  return list.map(function(p){ var v=speedOf(p.L,r.A,inp), kwNeed=p.L*(r.pf+7)/488+1;
+    return {pu:p,L:p.L,v:v,dev:(v-inp.V)/inp.V,kwNeed:kwNeed,ok:p.kw>=kwNeed}; }).filter(function(o){return o.ok});
+}
+function speedOptions(cands){   // یک گزینه برای هر لیتراژ، مرتب بر اساس نزدیکی سرعت
+  var by={}; cands.forEach(function(o){ if(!by[o.L]) by[o.L]=o; });
+  return Object.keys(by).map(function(k){return by[k]}).sort(function(a,b){ return Math.abs(a.dev)-Math.abs(b.dev) || a.L-b.L; });
+}
+function choosePU(cands,inp,forcedL,mode){
+  if(!cands.length) return null;
+  var opts=speedOptions(cands); if(!opts.length) return null;
+  var L = (forcedL && opts.some(function(o){return o.L===forcedL})) ? forcedL : opts[0].L;
+  var same=cands.filter(function(o){return o.L===L}).sort(function(a,b){ return a.pu.kw-b.pu.kw || (a.pu.price||a.pu.shakib||a.pu.belin||0)-(b.pu.price||b.pu.shakib||b.pu.belin||0); });
+  var eco=same[0], pick=eco, heavyNote='';
+  if(mode==='heavy'){
+    var up=same.filter(function(o){return o.pu.kw>eco.pu.kw})[0];
+    if(!up){ up=cands.filter(function(o){ return o.pu.kw>eco.pu.kw && Math.abs(o.dev)<=0.15; }).sort(function(a,b){ return a.pu.kw-b.pu.kw || Math.abs(a.dev)-Math.abs(b.dev); })[0]; }
+    if(up) pick=up; else heavyNote='پاور قوی‌تری با همین حدود سرعت در کاتالوگ نیست؛ همان پاور اقتصادی نمایش داده شد.';
+  }
+  return {pu:pick.pu,kwNeed:pick.kwNeed,v:pick.v,dev:pick.dev,L:pick.L,opts:opts,heavyNote:heavyNote,eco:eco};
+}
+function spdChips(b,res,inp){
+  return '<div class="spd-t">🚀 نزدیک‌ترین سرعت‌ها به '+fa(inp.V)+' m/s (کلیک = انتخاب):</div><div class="spd">'+res.opts.slice(0,5).map(function(o){
+    var st=spdSt(o.dev), sg=(o.dev>=0?'+':'−')+fa(Math.round(Math.abs(o.dev)*100))+'٪';
+    return '<button data-spd="'+b+'" data-l="'+o.L+'" class="'+st+(o.L===res.L?' on':'')+'"><b class="ltr">'+fa(n2(o.v,2))+' m/s</b><small class="ltr">'+fa(o.L)+'L · '+sg+'</small></button>'; }).join('')+'</div>';
 }
 
 /* ================= رابط کاربری ================= */
-var userD=null, userT=null, CHOICE={sh:{valve:null},wi:{t:'hm'}}, SELECTED=null;
+var userD=null, userT=null, CHOICE={sh:{valve:null,L:null},wi:{t:'hm',L:null}}, SELECTED=null, PROF={jack:'eco',pu:'eco'};
+document.querySelectorAll('[data-prof]').forEach(function(g){ g.addEventListener('click',function(e){ var b=e.target.closest('button'); if(!b) return; g.querySelectorAll('button').forEach(function(x){x.classList.toggle('on',x===b)}); PROF[g.dataset.prof]=b.dataset.v; CHOICE.sh.L=null; CHOICE.wi.L=null; run(); }); });
 function allCombos(){
   var m={}; [SH,WI].forEach(function(s){ if(s) s.jacks.forEach(function(j){ m[j.D+'|'+j.T]={D:j.D,T:j.T}; }); });
   if(!Object.keys(m).length) [50,60,70,80,90,100,110,120,130,140,150,160].forEach(function(D){ [5,7.5,10].forEach(function(T){ m[D+'|'+T]={D:D,T:T}; }); });
@@ -932,15 +981,15 @@ function fillPickers(curD,curT){
   st.innerHTML=Ts.map(function(T){return '<option value="'+T+'"'+(String((userT!=null?userT:curT))===String(T)?' selected':'')+'>'+tTxt(T)+(T==='solid'?'':' mm')+'</option>'}).join('');
   st.disabled = userD==null;
 }
-$('selD').onchange=function(){ userD=this.value?Number(this.value):null; userT=null; if(userD!=null){ var c=allCombos().filter(function(x){return x.D===userD}); userT=c.length?c[0].T:null; } run(); };
+$('selD').onchange=function(){ userD=this.value?Number(this.value):null; userT=null; CHOICE.sh.L=null; CHOICE.wi.L=null; if(userD!=null){ var c=allCombos().filter(function(x){return x.D===userD}); userT=c.length?c[0].T:null; } run(); };
 $('selT').onchange=function(){ userT=this.value==='solid'?'solid':Number(this.value); run(); };
 
 function ck(cls,t,v,m){ return '<div class="ck '+cls+'"><div class="t">'+t+'</div><div class="v">'+v+'</div><div class="m">'+m+'</div></div>'; }
 function run(){
   var inp=inputs(), auto=null, base=null;
   if(userD==null){
-    var bs=bestFor('sh',inp), bw=bestFor('wi',inp);
-    auto = [bs,bw].filter(Boolean).sort(function(a,b){ return (a.s==='g'?0:1)-(b.s==='g'?0:1) || a.c.D-b.c.D; })[0] || null;
+    var bs=pickOffer('sh',inp), bw=pickOffer('wi',inp);
+    auto = bs || bw || null;
     base = auto ? {D:auto.c.D,T:auto.c.T} : null;
     if(!base){   // بدون کاتالوگ: اسکن عمومی
       var cs=allCombos(); for(var i=0;i<cs.length;i++){ var rr=evalJack(cs[i].D,cs[i].T,inp); if(jackStatus(rr)!=='r'){ base=cs[i]; break; } }
@@ -950,22 +999,26 @@ function run(){
   fillPickers(base&&base.D, base&&base.T);
   var r=evalJack(base.D,base.T,inp);
   var sPe=stPe(r.pe), sPf=stPf(r.pf), sBk=stBk(r);
-  var stdL=stdSel(r.pumpL,L_LIST), stdK=stdSel(r.kwReq,KW_LIST);
+  var stdL=L_LIST.slice().sort(function(a,b){ return Math.abs(speedOf(a,r.A,inp)-inp.V)-Math.abs(speedOf(b,r.A,inp)-inp.V) || a-b; })[0];   // نزدیک‌ترین پمپ استاندارد به سرعت درخواستی
+  if(inp.MT==='dry'){ stdL=stdSel(r.pumpL,L_LIST); }
+  var stdK=stdSel(stdL*(r.pf+7)/488+1,KW_LIST);
   var vSpeed = stdL ? (stdL*inp.S)/(inp.N*6*r.A) : null;          // C63 سرعت واقعی با پمپ استاندارد
   var pMax = (stdK&&stdL) ? stdK*488/stdL : null;                 // C64 ماکزیمم فشار خروجی
-  var sSp = vSpeed==null?'r':(vSpeed<=inp.V*1.15?'g':(vSpeed<=inp.V*1.35?'y':'r'));
+  var sSp = vSpeed==null?'r':spdSt((vSpeed-inp.V)/inp.V);
   var sPm = pMax==null?'r':(pMax>=r.pf+7?'g':(pMax>=r.pf?'y':'r'));
   var all=worst([sPe,sPf,sBk]);
   var v=$('verdict'); v.className='verdict '+all;
   v.innerHTML = (all==='g'?'✅ طراحی صحیح است':all==='y'?'⚠️ قابل اجرا، با احتیاط':'⛔ این ترکیب مجاز نیست')+' — جک '+fa(base.D)+'×'+tTxt(base.T)+' ، کورس '+fa(inp.CO)+' cm'+(userD==null?' <span class="tag g">پیشنهاد خودکار</span>':' <span class="tag y">انتخاب دستی</span>');
-  $('pickHint').textContent = userD==null ? 'کوچک‌ترین جک کاتالوگ که همهٔ کنترل‌ها را پاس می‌کند؛ برای تغییر، قطر را انتخاب کنید.' : 'قطر و ضخامت دستی انتخاب شده — برای برگشت، «پیشنهاد خودکار» را بزنید.';
+  $('pickHint').textContent = userD==null ? (PROF.jack==='heavy'?'یک سایز قوی‌تر از کوچک‌ترین جک مجاز (فشار کمتر، حاشیهٔ کمانش بیشتر)':'کوچک‌ترین جک کاتالوگ که همهٔ کنترل‌ها را پاس می‌کند')+'؛ برای تغییر، قطر را انتخاب کنید.' : 'قطر و ضخامت دستی انتخاب شده — برای برگشت، «پیشنهاد خودکار» را بزنید.';
+  $('profJackTx').textContent = PROF.jack==='heavy' ? 'یک سایز قطر بزرگ‌تر — فشار کمتر و عمر بیشتر پکینگ' : 'کوچک‌ترین جک مجاز (ارزان‌تر)';
+  $('profPuTx').textContent = PROF.pu==='heavy' ? 'یک پله توان بیشتر با همان سرعت — کار سنگین‌تر و گرمای کمتر' : 'کم‌ترین توان مجاز با نزدیک‌ترین سرعت';
   var h='';
   h+=ck(sPe,'فشار استاتیک — کابین خالی',n2(r.pe)+' bar', sPe==='r'?'کمتر از ۱۲ bar — جک بزرگ است؛ قطر کوچک‌تر':sPe==='g'?'۱۳ تا ۲۲ — عالی':'قابل قبول (۱۲ تا ۱۳ یا بالای ۲۲)');
   h+=ck(sPf,'فشار استاتیک — کابین پر',n2(r.pf)+' bar', sPf==='r'?'۴۲ bar یا بیشتر — جک کوچک است؛ قطر بزرگ‌تر':sPf==='g'?'۲۰ تا ۳۵٫۷۹ — عالی':'قابل قبول (کمتر از ۴۲ ولی خارج از ۲۰ تا ۳۵٫۷۹)');
   h+=ck(sBk,'کمانش (Buckling)',n2(r.F,0)+' / '+n2(r.Fs,0)+' daN', (sBk==='r'?'⛔ نیروی وارد از نیروی مجاز بیشتر است':'نیروی وارد ≤ مجاز')+' · λ = '+n2(r.lam,0)+(r.lam>=100?' (اویلر)':' (تیمو / EN 81-20)'));
   h+=ck('i','دبی لازم پمپ',n2(r.q)+' L/min','پمپ استاندارد: <b class="ltr">'+(stdL?fa(stdL)+' L':'ERROR')+'</b>'+(inp.MT==='dry'?' · لیتراژ پمپ خشک: '+n2(r.pumpL):''));
-  h+=ck('i','توان الکتروموتور',n2(r.kwCalc,2)+' kW','+ ۱ کیلووات اضافه = '+n2(r.kwReq,2)+' ← استاندارد: <b class="ltr">'+(stdK?fa(stdK)+' kW':'ERROR')+'</b>');
-  h+=ck(sSp,'سرعت واقعی با پمپ استاندارد',n2(vSpeed,2)+' m/s', sSp==='g'?'نزدیک سرعت خواسته‌شده':'بیشتر از سرعت خواسته‌شده — پاور کوچک‌تر یا قطر دیگر بررسی شود');
+  h+=ck('i','توان الکتروموتور',n2(r.kwCalc,2)+' kW','+ ۱ کیلووات اضافه = '+n2(r.kwReq,2)+' ← برای پمپ '+fa(stdL)+'L: <b class="ltr">'+(stdK?fa(stdK)+' kW':'ERROR')+'</b>');
+  h+=ck(sSp,'سرعت واقعی با پمپ استاندارد',n2(vSpeed,2)+' m/s', (vSpeed>=inp.V?'+':'−')+fa(Math.round(Math.abs((vSpeed-inp.V)/inp.V)*100))+'٪ نسبت به سرعت درخواستی'+(sSp==='g'?' — نزدیک':' — قطر دیگر را هم بررسی کنید'));
   h+=ck(sPm,'ماکزیمم فشار خروجی پاور',n2(pMax)+' bar', sPm==='g'?'بیشتر از فشار کابین پر + ۷':'نزدیک یا کمتر از فشار کابین پر');
   h+=ck('i','حجم روغن در گردش',n2(r.oil)+' L','جرم پیستون: '+n2(r.mp)+' kg');
   h+=ck('i','حداقل ضخامت دیوارهٔ سیلندر',n2(r.eWall,2)+' mm','قطر خارجی سیلندر '+n2(r.od,0)+' mm (اطلاعاتی)');
@@ -985,63 +1038,108 @@ function renderScan(inp,base){
     return '<tr data-d="'+c.D+'" data-t="'+c.T+'" class="'+(base&&base.D===c.D&&String(base.T)===String(c.T)?'cur':'')+'"><td>'+fa(c.D)+'×'+tTxt(c.T)+'</td><td class="'+stPe(r.pe)+'">'+n2(r.pe)+'</td><td class="'+stPf(r.pf)+'">'+n2(r.pf)+'</td><td class="'+stBk(r)+'">'+n2(r.lam,0)+'</td><td>'+n2(r.q)+'</td><td>'+n2(r.kwReq,1)+'</td><td>'+(inSh==null?'…':inSh?'✓':'—')+'</td><td>'+(inWi==null?'…':inWi?'✓':'—')+'</td><td><span class="tag '+s+'">'+(s==='g'?'عالی':s==='y'?'قابل قبول':'رد')+'</span></td></tr>'; });
   $('scan').innerHTML='<tr><th>جک</th><th>فشار خالی</th><th>فشار پر</th><th>λ کمانش</th><th>دبی L/min</th><th>kW (+۱)</th><th>شکیب</th><th>ویتور</th><th>وضعیت</th></tr>'+rows.join('');
 }
-$('scan').addEventListener('click',function(e){ var tr=e.target.closest('tr[data-d]'); if(!tr) return; userD=Number(tr.dataset.d); userT=tr.dataset.t==='solid'?'solid':Number(tr.dataset.t); run(); });
+$('scan').addEventListener('click',function(e){ var tr=e.target.closest('tr[data-d]'); if(!tr) return; CHOICE.sh.L=null; CHOICE.wi.L=null; userD=Number(tr.dataset.d); userT=tr.dataset.t==='solid'?'solid':Number(tr.dataset.t); run(); });
 
 function renderBoxes(inp,base){
   renderBox('sh',inp,base); renderBox('wi',inp,base);
+}
+/* [BF-HYD-SMART] جست‌وجوی هوشمند: همهٔ ترکیب‌های «جک کاتالوگ × پاور کاتالوگ» هر برند امتحان می‌شود.
+   اولویت ۱: جک مجاز (سبز/زرد) · اولویت ۲: نزدیکی سرعت به درخواست (±۱۰٪ ← ±۲۰٪) · اولویت ۳: کم‌ترین قیمت کل.
+   جک سنگین = جک بزرگ‌تر با وضعیت سبز · پاور سنگین = یک پله توان بیشتر با همان سرعت */
+function tierOf(dev){ var a=Math.abs(dev); return a<=0.10?0:(a<=0.20?1:2); }
+function puPrice(b,pu){ return b==='sh' ? (CHOICE.sh.valve==='belin' || !(pu.shakib && pu.L<150) ? pu.belin : pu.shakib) : pu.price; }
+function brandOffers(b,inp){
+  var src=b==='sh'?SH:WI; if(!src) return [];
+  var combos={}; src.jacks.forEach(function(j){ combos[j.D+'|'+j.T]={D:j.D,T:j.T}; });
+  var out=[];
+  Object.keys(combos).forEach(function(k){
+    var c=combos[k];
+    if(userD!=null && !(c.D===userD && String(c.T)===String(userT))) return;
+    var j=b==='sh'?shakibJackFor(c.D,c.T,inp):witturJackFor(c.D,c.T,inp); if(!j) return;
+    var r=evalJack(c.D,c.T,inp,j.L/10), st=jackStatus(r); if(st==='r' && userD==null) return;
+    var cands=puCands(src.pus,r,inp); if(!cands.length) return;
+    var opts=speedOptions(cands);
+    opts.forEach(function(o){
+      var same=cands.filter(function(x){return x.L===o.L}).sort(function(x,y){ return x.pu.kw-y.pu.kw || (puPrice(b,x.pu)||9e18)-(puPrice(b,y.pu)||9e18); });
+      var pu=same[0], pp=puPrice(b,pu.pu);
+      out.push({c:c,j:j,r:r,s:st,L:o.L,v:o.v,dev:o.dev,tier:tierOf(o.dev),pu:pu,total:(j.price||0)+(pp||0),opts:opts,cands:cands});
+    });
+  });
+  return out;
+}
+function pickOffer(b,inp){
+  var all=brandOffers(b,inp); if(!all.length) return null;
+  var sortF=function(x,y){ return x.tier-y.tier || (x.s==='g'?0:1)-(y.s==='g'?0:1) || x.total-y.total || Math.abs(x.dev)-Math.abs(y.dev); };
+  var pool=all.slice().sort(sortF), best=pool[0];
+  if(PROF.jack==='heavy' && userD==null){
+    var hv=all.filter(function(o){ return o.s==='g' && o.c.D>best.c.D; }).sort(sortF)[0] || all.filter(function(o){ return o.c.D>best.c.D; }).sort(sortF)[0];
+    if(hv) best=hv;
+  }
+  var forced=CHOICE[b].L;
+  if(forced){ var f=all.filter(function(o){ return o.c.D===best.c.D && String(o.c.T)===String(best.c.T) && o.L===forced; })[0]; if(f) best=f; else CHOICE[b].L=null; }
+  return best;
 }
 function renderBox(b,inp,base){
   var el=$(b==='sh'?'boxSh':'boxWi'), bb=el.querySelector('.bb'), src=b==='sh'?SH:WI;
   el.classList.toggle('sel', !!(SELECTED&&SELECTED.brand===b));
   var old=el.querySelector('.bf'); if(old) old.remove();
-  if(src===false){ bb.innerHTML='<div class="empty">⚠️ ابزار '+(b==='sh'?'شکیب':'ویتور')+' در دسترس نیست — قیمت قابل خواندن نیست.</div>'; return; }
-  if(!src){ bb.innerHTML='<div class="empty">⏳ در حال خواندن قیمت‌ها…</div>'; return; }
-  var j = b==='sh'?shakibJackFor(base.D,base.T,inp):witturJackFor(base.D,base.T,inp), c=base, note='';
-  if(!j && userD==null){ var bst=bestFor(b,inp); if(bst){ j=bst.j; c=bst.c; note='جک '+fa(base.D)+'×'+tTxt(base.T)+' در کاتالوگ این برند نیست؛ نزدیک‌ترین جک قبول‌شدهٔ همین برند پیشنهاد شد.'; } }
-  if(!j){ bb.innerHTML='<div class="empty">این جک ('+fa(base.D)+'×'+tTxt(base.T)+' با کورس '+fa(inp.CO*10)+' mm'+(b==='wi'?'، '+(inp.S===1?'مستقیم':'غیرمستقیم'):'')+') در کاتالوگ '+(b==='sh'?'شکیب':'ویتور')+' موجود نیست.</div>'; return; }
-  var r=evalJack(c.D,c.T,inp,j.L/10), st=jackStatus(r);
-  var need=r.pumpL, p, h='', puPrice=null, puTxt='', cur='';
+  if(src===false){ bb.innerHTML='<div class="empty">⚠️ ابزار '+(b==='sh'?'شکیب':'ویتور')+' در دسترس نیست — قیمت قابل خواندن نیست.</div>'; el._offer=null; return; }
+  if(!src){ bb.innerHTML='<div class="empty">⏳ در حال خواندن قیمت‌ها…</div>'; el._offer=null; return; }
+  var of=pickOffer(b,inp), note='';
+  if(!of){ bb.innerHTML='<div class="empty">'+(userD!=null?'جک '+fa(userD)+'×'+tTxt(userT)+' با کورس '+fa(inp.CO*10)+' mm'+(b==='wi'?' ('+(inp.S===1?'مستقیم':'غیرمستقیم')+')':'')+' در کاتالوگ '+(b==='sh'?'شکیب':'ویتور')+' نیست یا پاور مناسبی ندارد.':'هیچ ترکیب مجاز جک و پاور در کاتالوگ '+(b==='sh'?'شکیب':'ویتور')+' برای این پروژه پیدا نشد — سفارش ساخت ویژه.')+'</div>'; el._offer=null; return; }
+  var c=of.c, j=of.j, r=of.r, st=of.s;
+  /* پاور سنگین: یک پله توان بیشتر روی همان لیتراژ (همان سرعت) */
+  var same=of.cands.filter(function(x){return x.L===of.L}).sort(function(x,y){return x.pu.kw-y.pu.kw});
+  var chosen=same[0];
+  if(b==='wi'){ var tsel=same.filter(function(x){return x.pu.t===CHOICE.wi.t}); if(!tsel.length){ var tt=['hm','heAssembly','heItaly'].filter(function(t){return same.some(function(x){return x.pu.t===t})})[0]; if(tt){ CHOICE.wi.t=tt; tsel=same.filter(function(x){return x.pu.t===tt}); } } same=tsel.length?tsel:same; chosen=same[0]; }
+  if(PROF.pu==='heavy'){
+    var up=same.filter(function(x){return x.pu.kw>chosen.pu.kw})[0];
+    if(!up){ var pool=of.cands.filter(function(x){ return x.pu.kw>chosen.pu.kw && Math.abs(x.dev)<=Math.max(0.15,Math.abs(of.dev)+0.05) && (b!=='wi'||x.pu.t===CHOICE.wi.t); }).sort(function(x,y){ return x.pu.kw-y.pu.kw || Math.abs(x.dev)-Math.abs(y.dev); }); up=pool[0]; }
+    if(up) chosen=up; else note='پاور قوی‌تری با همین حدود سرعت در کاتالوگ نیست؛ همان پاور اقتصادی نمایش داده شد.';
+  }
+  var pu=chosen.pu, v=chosen.v, dev=chosen.dev, h='', cur='', puTxt=fa(pu.kw)+'kW-'+fa(pu.L)+'L', price=null;
   if(b==='sh'){
-    p=pickPU(src.pus,need,r.pf);
-    if(p){ var pu=p.pu, shOK=!!pu.shakib && pu.L<150;
-      if(CHOICE.sh.valve==null || (CHOICE.sh.valve==='shakib'&&!shOK)) CHOICE.sh.valve = shOK?'shakib':'belin';
-      puPrice = CHOICE.sh.valve==='shakib'?pu.shakib:pu.belin;
-      puTxt = fa(pu.kw)+'kW-'+fa(pu.L)+'L';
-      cur = src.curS[pu.kw+'kw-'+pu.L+'L'] || src.curK[String(pu.kw)] || '';
-      var code = CHOICE.sh.valve==='shakib'?pu.shakibCode:pu.belinCode, acc=src.acc[code]||'';
-      h+='<div class="kv"><b>جک</b><span class="ltr">'+fa(c.D)+'*'+tTxt(c.T)+'*'+fa(j.L)+'</span><b>نوع</b><span>'+(j.type==='direct'?'مستقیم · ستون قیمت زیر':'غیرمستقیم · ستون قیمت کنار')+'</span><b>پاور یونیت</b><span class="ltr">'+puTxt+'</span>'+(cur?'<b>جریان</b><span class="ltr">'+fa(cur)+'</span>':'')+'<b>شیر</b><span>'+(CHOICE.sh.valve==='shakib'?'شیر شکیب '+(pu.type==='3/4'?'۴ بوبین ۳/۴':pu.type):'شیر بلین آلمان '+(pu.type==='3/4'?'۴ بوبین ۳/۴':/1\*1/.test(pu.type)?'۴ بوبین ۱-۱/۲':pu.type))+'</span></div>';
-      h+='<div class="opts"><button data-valve="shakib" class="'+(CHOICE.sh.valve==='shakib'?'on':'')+'"'+(shOK?'':' disabled title="برای پاور ۱۵۰ لیتر و بالاتر شیر شکیب نداریم"')+'>شیر شکیب</button><button data-valve="belin" class="'+(CHOICE.sh.valve==='belin'?'on':'')+'">شیر بلین آلمان</button></div>';
-      if(acc) h+='<div class="status">📦 '+esc(acc)+'</div>';
-    }
+    var shOK=!!pu.shakib && pu.L<150;
+    if(CHOICE.sh.valve==null || (CHOICE.sh.valve==='shakib'&&!shOK)) CHOICE.sh.valve = shOK?'shakib':'belin';
+    price = CHOICE.sh.valve==='shakib'?pu.shakib:pu.belin;
+    cur = src.curS[pu.kw+'kw-'+pu.L+'L'] || src.curK[String(pu.kw)] || '';
+    var code = CHOICE.sh.valve==='shakib'?pu.shakibCode:pu.belinCode, acc=src.acc[code]||'';
+    h+='<div class="kv"><b>جک</b><span class="ltr">'+fa(c.D)+'*'+tTxt(c.T)+'*'+fa(j.L)+'</span><b>نوع</b><span>'+(j.type==='direct'?'مستقیم · ستون قیمت زیر':'غیرمستقیم · ستون قیمت کنار')+'</span><b>پاور یونیت</b><span class="ltr">'+puTxt+'</span><b>سرعت واقعی</b><span class="ltr">'+fa(n2(v,2))+' m/s</span>'+(cur?'<b>جریان</b><span class="ltr">'+fa(cur)+'</span>':'')+'<b>شیر</b><span>'+(CHOICE.sh.valve==='shakib'?'شیر شکیب '+(pu.type==='3/4'?'۴ بوبین ۳/۴':pu.type):'شیر بلین آلمان '+(pu.type==='3/4'?'۴ بوبین ۳/۴':/1\*1/.test(pu.type)?'۴ بوبین ۱-۱/۲':pu.type))+'</span></div>';
+    h+='<div class="opts"><button data-valve="shakib" class="'+(CHOICE.sh.valve==='shakib'?'on':'')+'"'+(shOK?'':' disabled title="برای پاور ۱۵۰ لیتر و بالاتر شیر شکیب نداریم"')+'>شیر شکیب</button><button data-valve="belin" class="'+(CHOICE.sh.valve==='belin'?'on':'')+'">شیر بلین آلمان</button></div>';
+    if(acc) h+='<div class="status">📦 '+esc(acc)+'</div>';
   } else {
     var tps=['hm','heAssembly','heItaly'], lbl={hm:'HM مکانیکی (Soft Plus)',heAssembly:'HE هوس — تحت لیسانس',heItaly:'HE هوس — ایتالیا'};
-    var listT=src.pus.filter(function(x){return x.t===CHOICE.wi.t}); p=pickPU(listT,need,r.pf);
-    if(!p){ for(var i=0;i<tps.length&&!p;i++){ var lt=src.pus.filter(function(x){return x.t===tps[i]}); var pp=pickPU(lt,need,r.pf); if(pp){ p=pp; CHOICE.wi.t=tps[i]; } } }
-    if(p){ var pu2=p.pu; puPrice=pu2.price; puTxt=fa(pu2.kw)+'kW-'+fa(pu2.L)+'L'; cur=src.cur[pu2.key]||'';
-      h+='<div class="kv"><b>جک</b><span class="ltr">'+fa(c.D)+'×'+tTxt(c.T)+'×'+fa(j.L)+'</span><b>نوع</b><span>'+(j.type==='direct'?'مستقیم':'غیرمستقیم')+' '+(j.pieces===2?'دو تکه':'یک تکه')+(j.location?' · نصب '+esc(j.location):'')+(j.variant?' · '+esc(j.variant):'')+'</span><b>پاور یونیت</b><span class="ltr">'+puTxt+'</span>'+(cur?'<b>جریان</b><span class="ltr">'+fa(cur)+'</span>':'')+'<b>نوع پاور</b><span>'+lbl[CHOICE.wi.t]+'</span>'+(pu2.tank?'<b>تانک</b><span>'+fa(pu2.tank)+' لیتر</span>':'')+'</div>';
-      h+='<div class="opts">'+tps.map(function(t){ var ok=!!pickPU(src.pus.filter(function(x){return x.t===t}),need,r.pf); return '<button data-wt="'+t+'" class="'+(CHOICE.wi.t===t?'on':'')+'"'+(ok?'':' disabled')+'>'+lbl[t]+'</button>'; }).join('')+'</div>';
-      if(!j.locMatch) note=(note?note+'<br>':'')+'ورودی «'+(inp.pos==='زیر'?'از زیر':'از بغل')+'» برای این سایز در لیست ویتور نیست؛ «'+esc(j.location)+'» در نظر گرفته شد.';
-    }
+    price=pu.price; cur=src.cur[pu.key]||'';
+    h+='<div class="kv"><b>جک</b><span class="ltr">'+fa(c.D)+'×'+tTxt(c.T)+'×'+fa(j.L)+'</span><b>نوع</b><span>'+(j.type==='direct'?'مستقیم':'غیرمستقیم')+' '+(j.pieces===2?'دو تکه':'یک تکه')+(j.location?' · نصب '+esc(j.location):'')+(j.variant?' · '+esc(j.variant):'')+'</span><b>پاور یونیت</b><span class="ltr">'+puTxt+'</span><b>سرعت واقعی</b><span class="ltr">'+fa(n2(v,2))+' m/s</span>'+(cur?'<b>جریان</b><span class="ltr">'+fa(cur)+'</span>':'')+'<b>نوع پاور</b><span>'+lbl[pu.t]+'</span>'+(pu.tank?'<b>تانک</b><span>'+fa(pu.tank)+' لیتر</span>':'')+'</div>';
+    h+='<div class="opts">'+tps.map(function(t){ var ok=of.cands.some(function(o){return o.pu.t===t && o.L===pu.L}); return '<button data-wt="'+t+'" class="'+(pu.t===t?'on':'')+'"'+(ok?'':' disabled title="این نوع پاور با این لیتراژ در لیست ویتور نیست"')+'>'+lbl[t]+'</button>'; }).join('')+'</div>';
+    if(!j.locMatch) note=(note?note+'<br>':'')+'ورودی «'+(inp.pos==='زیر'?'از زیر':'از بغل')+'» برای این سایز در لیست ویتور نیست؛ «'+esc(j.location)+'» در نظر گرفته شد.';
   }
-  if(!p) h+='<div class="note">⚠️ پاور یونیتی با دبی ≥ '+n2(need)+' لیتر و توان کافی در کاتالوگ پیدا نشد — سفارش ساخت ویژه.</div>';
-  var tot=(j.price||0)+(puPrice||0);
-  h='<div style="margin-bottom:6px"><span class="tag '+st+'">'+(st==='g'?'✅ همهٔ کنترل‌ها عالی':st==='y'?'⚠️ قابل قبول':'⛔ رد')+'</span> <span class="status">فشار پر '+n2(r.pf)+' bar · خالی '+n2(r.pe)+' bar · λ '+n2(r.lam,0)+'</span></div>'+h;
-  h+='<div class="price"><div class="row"><span>قیمت جک</span><b class="ltr">'+money(j.price)+'</b></div><div class="row"><span>قیمت پاور یونیت</span><b class="ltr">'+money(puPrice)+'</b></div><div class="row tot"><span>جمع (ریال)</span><span class="ltr">'+money(tot)+'</span></div></div>';
+  /* تراشه‌های سرعت: فقط گزینه‌های معقول (−۵۰٪ تا +۶۰٪) */
+  var chips=of.opts.filter(function(o){ return o.dev>=-0.5 && o.dev<=0.6; }).slice(0,5);
+  if(chips.length) h+='<div class="spd-t">🚀 نزدیک‌ترین سرعت‌ها به '+fa(inp.V)+' m/s با همین جک (کلیک = انتخاب):</div><div class="spd">'+chips.map(function(o){
+    var s2=spdSt(o.dev), sg=(o.dev>=0?'+':'−')+fa(Math.round(Math.abs(o.dev)*100))+'٪';
+    return '<button data-spd="'+b+'" data-l="'+o.L+'" class="'+s2+(o.L===pu.L?' on':'')+'"><b class="ltr">'+fa(n2(o.v,2))+' m/s</b><small class="ltr">'+fa(o.L)+'L · '+sg+'</small></button>'; }).join('')+'</div>';
+  if(spdSt(dev)==='r') note=(note?note+'<br>':'')+'⚠️ نزدیک‌ترین سرعت قابل اجرا '+fa(n2(v,2))+' m/s است؛ با این وزن و سرعت، پاور مناسب‌تری در کاتالوگ نیست.';
+  var tot=(j.price||0)+(price||0);
+  h='<div style="margin-bottom:6px"><span class="tag '+st+'">'+(st==='g'?'✅ همهٔ کنترل‌ها عالی':st==='y'?'⚠️ قابل قبول':'⛔ رد')+'</span> <span class="tag '+spdSt(dev)+'">سرعت '+(dev>=0?'+':'−')+fa(Math.round(Math.abs(dev)*100))+'٪</span> '+(PROF.jack==='heavy'?'<span class="tag y">🏋️ جک سنگین</span> ':'')+(PROF.pu==='heavy'?'<span class="tag y">🏋️ پاور سنگین</span>':'')+'<div class="status">فشار پر '+n2(r.pf)+' bar · خالی '+n2(r.pe)+' bar · λ '+n2(r.lam,0)+' · توان لازم '+n2(chosen.kwNeed,1)+' kW (با ۱ کیلووات اضافه)</div></div>'+h;
+  h+='<div class="price"><div class="row"><span>قیمت جک</span><b class="ltr">'+money(j.price)+'</b></div><div class="row"><span>قیمت پاور یونیت</span><b class="ltr">'+money(price)+'</b></div><div class="row tot"><span>جمع (ریال)</span><span class="ltr">'+money(tot)+'</span></div></div>';
   if(note) h+='<div class="note">'+note+'</div>';
   bb.innerHTML=h;
   var foot=document.createElement('div'); foot.className='bf';
   var isSel=SELECTED&&SELECTED.brand===b;
   foot.innerHTML='<button class="btn'+(isSel?'':' gh')+'" data-sel="'+b+'">'+(isSel?'✔ انتخاب شد':'انتخاب این پیشنهاد')+'</button><span class="status">صدور پیش‌فاکتور و چاپ: مرحلهٔ بعد</span>';
   el.appendChild(foot);
-  el._offer={brand:b,brandName:b==='sh'?'شکیب جک':'ویتور',jack:{D:c.D,T:c.T,L:j.L,type:j.type,pieces:j.pieces||null,location:j.location||'',price:j.price},pu:p?{txt:puTxt,kw:p.pu.kw,L:p.pu.L,price:puPrice,valve:b==='sh'?CHOICE.sh.valve:null,wtype:b==='wi'?CHOICE.wi.t:null,current:cur}:null,total:tot,
-    calc:{pe:r.pe,pf:r.pf,lam:r.lam,F:r.F,Fs:r.Fs,q:r.q,kwCalc:r.kwCalc,kwReq:r.kwReq},inputs:inp,customer:$('cust').value,project:$('proj').value};
+  el._offer={brand:b,brandName:b==='sh'?'شکیب جک':'ویتور',profile:{jack:PROF.jack,pu:PROF.pu},jack:{D:c.D,T:c.T,L:j.L,type:j.type,pieces:j.pieces||null,location:j.location||'',price:j.price},
+    pu:{txt:puTxt,kw:pu.kw,L:pu.L,speed:v,price:price,valve:b==='sh'?CHOICE.sh.valve:null,wtype:b==='wi'?pu.t:null,current:cur},total:tot,
+    calc:{pe:r.pe,pf:r.pf,lam:r.lam,F:r.F,Fs:r.Fs,q:r.q,kwCalc:r.kwCalc,kwReq:chosen.kwNeed},inputs:inp,customer:$('cust').value,project:$('proj').value};
 }
 document.addEventListener('click',function(e){
   var t=e.target.closest('[data-valve]'); if(t&&!t.disabled){ CHOICE.sh.valve=t.dataset.valve; run(); return; }
   t=e.target.closest('[data-wt]'); if(t&&!t.disabled){ CHOICE.wi.t=t.dataset.wt; run(); return; }
+  t=e.target.closest('[data-spd]'); if(t){ CHOICE[t.dataset.spd].L=Number(t.dataset.l); run(); return; }
   t=e.target.closest('[data-sel]'); if(t){ var box=$(t.dataset.sel==='sh'?'boxSh':'boxWi'); SELECTED=box._offer||null; window.bfHydSelection=SELECTED; try{ localStorage.setItem('bf_hyd_selection_v1',JSON.stringify(SELECTED)); }catch(_){} run(); }
 });
-['P','Q','PUL','CAR','V','TR','PH','MG','CO','RPM','E','RM','RP','OD'].forEach(function(id){ $(id).addEventListener('input',function(){ if(id==='CO') $('COauto').checked=false; clearTimeout(run._t); run._t=setTimeout(run,180); }); });
+['P','Q','PUL','CAR','V','TR','PH','MG','CO','RPM','E','RM','RP','OD'].forEach(function(id){ $(id).addEventListener('input',function(){ if(id==='CO') $('COauto').checked=false; if(id==='V'){ CHOICE.sh.L=null; CHOICE.wi.L=null; } clearTimeout(run._t); run._t=setTimeout(run,180); }); });
 $('COauto').addEventListener('change',run);
 window.bfHydEval=evalJack; window.bfHydRun=run;
 

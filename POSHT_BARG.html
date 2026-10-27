@@ -7373,22 +7373,37 @@ function populatePrintSheet(suffix){
       }).join('');
     };
 
-    // پنل کابین: یک ردیف واحد جمع، و بلافاصله زیر آن، تجهیزات ارتباطی خود کابین
+    // پنل کابین: [BF-CABGRP] هر مدل پنل (مثلاً E50، AK100، TG250) یک ردیف مستقل با تجهیزات همان پنل و قیمت خودش؛
+    // تجهیزاتی که بعد از هر پنل به فاکتور اضافه شده‌اند (همان «افزودن سفارش»)، در ردیف همان پنل می‌آیند.
+    // اگر فقط یک پنل در فاکتور باشد، خروجی دقیقاً مثل قبل یک ردیف است.
     const cabinCounter = {n:0};
     let cabinRowsHtml = '';
     let cabinSumPrice=0, cabinSumQty=0;
     let cabinLabelsJoined = '';
-    if(cabinItems.length){
-      const panelSections = ['touch','steel','steel15','oneMeter'];
-      // مدل پنل (TG350 / E300 / ...) در عنوان همین ردیف آمده؛ پس «(E300)/(E400)» داخل نام پلکسی‌ها تکراری است
-      const cabinHasModelTag = cabinItems.some(it=>/<b[^>]*>[^<]+<\/b>/.test(it.desc));
-      let prevPanelPrefix = null;   // برای حذف عنوان تکراریِ پنل‌های پشت‌سرهم (فقط پرانتز مشخصات دومی می‌آید)
-      const cabinLabels = cabinItems.map(it=>{
+    const panelSections = ['touch','steel','steel15','oneMeter'];
+    const cabinGroups = [];
+    {
+      const ordered = normalItems.filter(it=>it.section!=='floor');
+      let cur = null;
+      const pre = [];   // تجهیزاتی که قبل از هر پنلی ثبت شده‌اند ← به اولین پنل
+      ordered.forEach(it=>{
+        if(panelSections.indexOf(it.section)!==-1){ cur = {items:[it]}; cabinGroups.push(cur); }
+        else if(cur) cur.items.push(it);
+        else pre.push(it);
+      });
+      if(pre.length){ if(cabinGroups.length) cabinGroups[0].items = cabinGroups[0].items.concat(pre); else cabinGroups.push({items:pre}); }
+    }
+    cabinGroups.forEach(g=>{
+      const gItems = bfProductFirst(g.items);
+      const hasModelTag = gItems.some(it=>/<b[^>]*>[^<]+<\/b>/.test(it.desc));
+      let prevPanelPrefix = null;
+      let gSum = 0, gQty = 0;
+      const labels = gItems.map(it=>{
         const lt = it.qty*it.unitPrice;
-        total+=lt; cabinTotal+=lt; cabinSumPrice+=lt;
+        total+=lt; cabinTotal+=lt; cabinSumPrice+=lt; gSum+=lt;
         const isPanelItem = panelSections.indexOf(it.section)!==-1;
-        if(isPanelItem) cabinSumQty+=it.qty;
-        let txt = bfCompactPrintText(stripExtraDimsForPrint(it.desc), {stripModelTag: cabinHasModelTag});
+        if(isPanelItem){ cabinSumQty+=it.qty; gQty+=it.qty; }
+        let txt = bfCompactPrintText(stripExtraDimsForPrint(it.desc), {stripModelTag: hasModelTag});
         if(isPanelItem){
           const vg = bfFindVariantGroup(txt);
           if(vg){
@@ -7402,8 +7417,11 @@ function populatePrintSheet(suffix){
         }
         return txt + (it.qty>1? ' × '+it.qty : '');
       });
-      cabinLabelsJoined = bfMergePhoneIntercom(cabinLabels.join('، '));
-    }
+      g.label = bfMergePhoneIntercom(labels.join('، '));
+      g.sum = gSum; g.qty = gQty;
+    });
+    cabinLabelsJoined = cabinGroups.map(g=>g.label).join(' | ');
+    cabinCounter.n = cabinGroups.length;   // ردیف‌های پنل اول شماره می‌خورند، تجهیزات ارتباطی بعد از آن‌ها
     const cabinCommRowsHtml = buildCommRows(cabinTagCardItems, 'تجهیزات ارتباطی', cabinCounter, bfRowsCabinComm)
                              + buildCommRows(cabinConverterItems, 'تجهیزات ارتباطی', cabinCounter, bfRowsCabinComm);
 
@@ -7441,14 +7459,17 @@ function populatePrintSheet(suffix){
     const cabinShare = cabinPlusFloorBase > 0 ? cabinSumPrice / cabinPlusFloorBase : (cabinItems.length ? 1 : 0);
     const floorShare = cabinPlusFloorBase > 0 ? floorTotal / cabinPlusFloorBase : (floorItems.length ? 1 : 0);
 
-    if(cabinItems.length){
+    if(cabinGroups.length){
       const cabinSumPriceDisplay = cabinSumPrice + deltaTotal * cabinShare;
       cabinTotal = cabinSumPriceDisplay;
-      cabinCounter.n++;
-      // چون این ردیف، جمعِ چند قلم مختلف کابین است، «قیمت واحد» به‌صورت میانگین وزنی (قیمت کل ÷ تعداد) نمایش داده می‌شود
-      const cabinAvgUnit = cabinSumQty>0 ? (cabinSumPriceDisplay/cabinSumQty) : cabinSumPriceDisplay;
-      bfRowsCabinPanel.push({kind:'panel', desc: cabinLabelsJoined, qty: cabinSumQty, total: cabinSumPriceDisplay});
-      cabinRowsHtml = `<tr><td>${cabinCounter.n}</td><td>${cabinLabelsJoined}${bfRefTag}</td><td>${cabinSumQty}</td><td>${fmt(cabinAvgUnit)}</td><td>${fmt(cabinSumPriceDisplay)}</td></tr>`;
+      const cabFactor = cabinSumPrice > 0 ? cabinSumPriceDisplay / cabinSumPrice : 1;
+      cabinRowsHtml = cabinGroups.map((g,gi)=>{
+        const gDisp = cabinSumPrice > 0 ? g.sum * cabFactor : (cabinSumPriceDisplay / cabinGroups.length);
+        // قیمت واحد = قیمت کل همین ردیف (پنل + تجهیزات خودش) ÷ تعداد همین پنل
+        const gUnit = g.qty>0 ? (gDisp/g.qty) : gDisp;
+        bfRowsCabinPanel.push({kind:'panel', desc: g.label, qty: g.qty, total: gDisp});
+        return `<tr><td>${gi+1}</td><td>${g.label}${bfRefTag}</td><td>${g.qty}</td><td>${fmt(gUnit)}</td><td>${fmt(gDisp)}</td></tr>`;
+      }).join('');
     }
 
     let floorRows = '';

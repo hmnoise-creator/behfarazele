@@ -2978,6 +2978,25 @@ function bfBoldFloorModel(txt){
   parts[0] = boldFirst;
   return txt.slice(0, start) + parts.join('،') + txt.slice(j - 1);
 }
+/* [BF-BOLDMODEL] پنل‌های کابینی که مدلشان در شرح پررنگ نیست (مثل یک‌متری‌ها: ak100، ak300، هیواد…):
+   اولین بخش داخل پرانتز (نام مدل) پررنگ می‌شود — مثل bfBoldFloorModel برای پنل طبقه. اگر شرح از قبل <b> دارد، دست نمی‌خورد. */
+function bfBoldCabinModel(txt){
+  txt = String(txt||'');
+  if(/<b[\s>]/i.test(txt)) return txt;
+  const i = txt.indexOf('(');
+  if(i < 0) return txt;
+  let depth = 1, j = i + 1;
+  while(j < txt.length && depth > 0){ if(txt[j] === '(') depth++; else if(txt[j] === ')') depth--; j++; }
+  if(depth !== 0) return txt;
+  const inner = txt.slice(i + 1, j - 1);
+  const parts = bfSplitTop(inner, '،');
+  const first = parts[0] || '';
+  const lead = (/^\s*/.exec(first) || [''])[0], body = first.slice(lead.length);
+  if(!body.trim()) return txt;
+  const code = /[A-Za-z]{1,3}\d{2,4}[A-Za-z]?/.exec(body);
+  parts[0] = code ? lead + body.slice(0, code.index) + '<b>' + code[0] + '</b>' + body.slice(code.index + code[0].length) : lead + '<b>' + body + '</b>';
+  return txt.slice(0, i + 1) + parts.join('،') + txt.slice(j - 1);
+}
 // «(3)» انتهای شرح، وقتی تعداد جداگانه (× 3 یا ستون تعداد) نمایش داده می‌شود، تکراری است
 function bfStripQtySuffix(s, qty){
   if(!(qty > 1)) return s;
@@ -7404,6 +7423,7 @@ function populatePrintSheet(suffix){
         const isPanelItem = panelSections.indexOf(it.section)!==-1;
         if(isPanelItem){ cabinSumQty+=it.qty; gQty+=it.qty; }
         let txt = bfCompactPrintText(stripExtraDimsForPrint(it.desc), {stripModelTag: hasModelTag});
+        if(isPanelItem) txt = bfBoldCabinModel(txt);   // [BF-BOLDMODEL] مدل پنل (مثلاً AK100) در چاپ پررنگ
         if(isPanelItem){
           const vg = bfFindVariantGroup(txt);
           if(vg){

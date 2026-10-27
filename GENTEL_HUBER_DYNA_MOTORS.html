@@ -5572,6 +5572,7 @@ window.bfFpRepriceImpl = function(snap){
       add('سرعت', selTxt('speed'+sfx) ? selTxt('speed'+sfx).replace(/m\/s/i,'').trim()+' متر بر ثانیه' : '');
       add('ظرفیت', selTxt('capacity'+sfx));
       add('توان', txt('rPower'+sfx) ? txt('rPower'+sfx)+' kW' : '');
+      add('جریان (Current)', txt('rCurrent'+sfx) ? txt('rCurrent'+sfx)+' آمپر' : '');
       price = txt('rPrice'+sfx);
     } else {
       L.push('🔹 موتور گیرلس هوبر (Huber)');
@@ -5580,6 +5581,7 @@ window.bfFpRepriceImpl = function(snap){
       add('سرعت', selTxt('huberSpeed') ? selTxt('huberSpeed').replace(/m\/s/i,'').trim()+' متر بر ثانیه' : '');
       add('قطر فلکه', txt('hSheave') ? txt('hSheave')+' mm' : '');
       add('توان', txt('hPower') ? txt('hPower')+' kW' : '');
+      add('جریان (Current)', txt('hAmpere') ? txt('hAmpere')+' آمپر' : '');
       price = txt('hPrice');
     }
     if(!price) return '';
@@ -5602,7 +5604,7 @@ window.bfFpRepriceImpl = function(snap){
   function mount(cardId, kind){
     const hero = document.querySelector('#'+cardId+' .result-hero'); if(!hero || hero.querySelector('.bf-qc-btn')) return;
     const b=document.createElement('button'); b.type='button'; b.className='bf-qc-btn';
-    b.innerHTML='📋 کپی اطلاعات برای مشتری'; b.title='نوع موتور، سیستم، سرعت، ظرفیت و قیمت را کپی می‌کند تا در واتساپ/تلگرام/بله paste کنید';
+    b.innerHTML='📋 کپی اطلاعات برای مشتری'; b.title='نوع موتور، سیستم، سرعت، ظرفیت، توان، جریان و قیمت را کپی می‌کند تا در واتساپ/تلگرام/بله paste کنید';
     b.onclick=function(){
       const t=build(kind);
       if(!t){ alert('ابتدا مدل موتور (و قیمت) را کامل انتخاب کنید.'); return; }

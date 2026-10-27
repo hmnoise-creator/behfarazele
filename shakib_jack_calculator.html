@@ -11599,5 +11599,183 @@ window.bfFpRepriceImpl = function(snap){
   try{ window.bfPdfLive(); }catch(e){}
 })();
 </script>
+<!-- ===== [SH-QUICKCOPY] کپی متن آمادهٔ مشتری (جک / پاوریونیت + قیمت + تخفیف) — در هر سه کادر invoice-controls =====
+     سفارش اصلی (ست جک و پاور)، سفارش تکی و سفارش کاملاً دستی. بازگشت: همین بلوک را پاک کنید. -->
+<style>
+  .sh-qc-wrap{ flex-basis:100%; display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:10px; padding-top:10px; border-top:1px dashed rgba(127,127,127,.35); }
+  .sh-qc-btn{ display:inline-flex; align-items:center; gap:7px; padding:9px 16px; border-radius:10px; border:1.5px solid #0f6e56; background:linear-gradient(135deg,#0f6e56,#139a78);
+    color:#fff; font:inherit; font-size:13px; font-weight:800; cursor:pointer; box-shadow:0 3px 10px rgba(15,110,86,.25); transition:transform .12s, box-shadow .12s; }
+  .sh-qc-btn:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(15,110,86,.35); }
+  .sh-qc-btn.done{ background:linear-gradient(135deg,#1e7d32,#43a047); border-color:#1e7d32; }
+  .sh-qc-btn.prev{ background:transparent; color:#0f6e56; box-shadow:none; }
+  .sh-qc-hint{ font-size:11.5px; opacity:.75; }
+  .sh-qc-pre{ flex-basis:100%; display:none; white-space:pre-wrap; direction:rtl; text-align:right; margin:4px 0 0; padding:12px 14px; border-radius:10px;
+    background:#f4fbf8; color:#173b33; border:1px solid #cfe9df; font:13px/1.9 Vazirmatn,Tahoma,sans-serif; max-height:360px; overflow:auto; }
+  .sh-qc-pre.on{ display:block; }
+  @media print{ .sh-qc-wrap{ display:none !important; } }
+</style>
+<script>
+(function(){
+  'use strict';
+  var FA = '۰۱۲۳۴۵۶۷۸۹';
+  function fa(x){ return String(x == null ? '' : x).replace(/\d/g, function(d){ return FA[d]; }); }
+  function en(x){ return String(x == null ? '' : x).replace(/[۰-۹]/g, function(c){ return FA.indexOf(c); }).replace(/[٠-٩]/g, function(c){ return '٠١٢٣٤٥٦٧٨٩'.indexOf(c); }); }
+  function num(x){ return Number(en(x).replace(/[^\d]/g, '')) || 0; }
+  function money(n){ n = Math.round(Number(n) || 0); return fa(n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')).replace(/,/g, '٬'); }   // ۱۲٬۳۴۵٬۰۰۰
+  function pct(p){ p = Math.round((Number(p) || 0) * 100) / 100; return fa(p) + '٪'; }
+  function strip(s){ return String(s == null ? '' : s).replace(/<br\s*\/?>/gi, ' · ').replace(/<\/div>\s*<div[^>]*>/gi, ' · ').replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/\s+/g, ' ').replace(/^[\s·—-]+|[\s·—-]+$/g, '').trim(); }
+  /* اعداد داخل مشخصات فنی (سایز، قطر، کیلووات…) لاتین می‌مانند تا با جدول کاتالوگ یکی باشند؛ فقط ارقام فارسی‌نویسی متن یکدست می‌شود */
+  function specTxt(s){ s = strip(s); return (s === '—' || s === '-') ? '' : s; }
+  /* مقدار ساده (۳، ۲ طبقه) فارسی‌نویسی می‌شود؛ کد فنی (80*5*2000، 5.8kw، 0.5 m/s) لاتین می‌ماند تا جهتش در پیام به‌هم نریزد */
+  function nice(v){ v = String(v == null ? '' : v); return /[A-Za-z*×\/]/.test(v) ? v : fa(v).replace(/,/g, '٬'); }
+  function val(id){ var el = document.getElementById(id); return el ? String(el.value || '').trim() : ''; }
+  function clean(v){ v = String(v == null ? '' : v).trim(); return (v === '—' || v === '-') ? '' : v; }
+  function todayFa(){
+    try{ var o = {}; new Intl.DateTimeFormat('en-US-u-ca-persian-nu-latn', { year:'numeric', month:'2-digit', day:'2-digit' }).formatToParts(new Date()).forEach(function(x){ o[x.type] = x.value; }); return fa(String(o.year).replace(/\D/g,'') + '/' + o.month + '/' + o.day); }catch(e){ return ''; }
+  }
+  var LINE = '┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄';
+  var NUMS = ['۱️⃣','۲️⃣','۳️⃣','۴️⃣','۵️⃣','۶️⃣','۷️⃣','۸️⃣','۹️⃣','🔟'];
+  function badge(i){ return i < 10 ? (fa(i + 1) + ')') : (fa(i + 1) + ')'); }
+  function iconOf(name, kind){
+    var t = (kind || '') + ' ' + (name || '');
+    if(/rupture|رپچر/.test(t)) return '🛡';
+    if(/fitting|اتصالات|مغزی/.test(t)) return '🔧';
+    if(/pu\b|پاور/.test(t)) return '⚙️';
+    if(/jack|جک/.test(t)) return '🔩';
+    if(/oil|روغن/.test(t)) return '🛢';
+    if(/hose|شلنگ/.test(t)) return '🧵';
+    if(/karasling|کار/.test(t)) return '🏗';
+    return '▪️';
+  }
+  function header(rec, title){
+    var L = [];
+    var c = clean(rec && rec.customerName), p = clean(rec && rec.customerProject);
+    if(c) L.push('👤 مشتری: ' + c);
+    if(p) L.push('🏢 پروژه: ' + p);
+    L.push('📅 تاریخ: ' + todayFa());
+    return L;
+  }
+  function priceBlock(L, o){
+    L.push('');
+    L.push('💰 خلاصهٔ قیمت');
+    L.push('▫️ جمع اقلام: ' + money(o.base) + ' ریال');
+    if(o.vat > 0) L.push('🧾 ارزش افزوده (' + fa(10) + '٪): ' + money(o.vat) + ' ریال');
+    (o.discounts || []).forEach(function(d){ if(d.amount > 0) L.push('🎁 ' + d.label + (d.pct ? ' (' + pct(d.pct) + ')' : '') + ': ' + money(d.amount) + ' ریال'); });
+    var totalDisc = (o.discounts || []).reduce(function(s, d){ return s + (d.amount || 0); }, 0);
+    L.push(LINE);
+    L.push('✅ مبلغ نهایی: ' + money(o.final) + ' ریال');
+    L.push('   (معادل ' + money(Math.round(o.final / 10)) + ' تومان)');
+    L.push(o.official ? '📑 نوع سند: فاکتور رسمی (با ارزش افزوده)' : '📑 نوع سند: فاکتور غیررسمی');
+  }
+  function footer(L, note, warranty){
+    if(warranty) L.push('🛡 گارانتی: ' + fa(warranty) + ' سال');
+    if(note) { L.push(''); L.push('📝 ' + note); }
+    L.push('');
+    L.push('⏳ قیمت‌ها بر اساس نرخ روز است');
+    L.push('مرکز تخصصی فروش سیستم های هیدرولیک و گیرلس');
+  }
+  function itemLines(L, list){
+    L.push('');
+    L.push('📦 اقلام سفارش');
+    list.forEach(function(it, i){
+      L.push('');
+      L.push(badge(i) + ' ' + iconOf(it.name, it.kind) + ' ' + it.name);
+      if(it.spec) it.spec.split(/\s*·\s*/).filter(function(x){ return x && !/^قیمت/.test(x); }).forEach(function(s){ L.push('     ▫️ ' + s); });
+      var q = Number(it.qty) || 1;
+      L.push('     ' + (q > 1 ? ('تعداد: ' + fa(q) + ' × ' + money(it.unit) + ' = ') : 'مبلغ: ') + money(it.total) + ' ریال');
+    });
+  }
+  /* ---------- سفارش اصلی (ست جک و پاوریونیت) ---------- */
+  function buildMain(){
+    var calc = (typeof computeFinal === 'function') ? computeFinal() : null;
+    if(!calc || !calc.finalTotal) return '';
+    var rec = null; try{ rec = bfBuildShakibRecord(); }catch(e){}
+    var fx = { specs:[], lines:[] };
+    try{ fx = bfFpExtractSheet(bfBuildQuickSheetHtml(calc, {})); }catch(e){}
+    var L = header(rec, 'پیشنهاد قیمت ست جک و پاوریونیت شکیب');
+    var SK = /نفر|ظرفیت|بار|سرعت|طبقه|مسیر|کورس|سر جک|ارتفاع|توقف|سیستم|نوع جک|Roping/;
+    var specs = (fx.specs || []).filter(function(s){ return s && s.k && s.v && !/مشتری|پروژه|تاریخ|شماره|تلفن|آدرس|نشانی|کاربر|کارشناس|صادر/.test(s.k); });
+    if(specs.length){
+      L.push('');
+      L.push('📐 مشخصات فنی پروژه');
+      specs.forEach(function(s){ L.push('▫️ ' + s.k + ': ' + nice(s.v)); });
+    }
+    var list = (fx.lines || []).map(function(l){
+      var q = num(l.qty) || 1, t = num(l.amount);
+      return { name: strip(l.name), spec: specTxt(l.spec), qty: q, total: t, unit: q ? Math.round(t / q) : t };
+    }).filter(function(x){ return x.name; });
+    if(list.length) itemLines(L, list);
+    var d = [];
+    d.push({ label:'تخفیف قطعات اصلی', pct: calc.discountPct, amount: calc.mainDiscountAmount });
+    d.push({ label:'تخفیف متعلقات', pct: calc.discountAccPct, amount: calc.accDiscountAmount });
+    d.push({ label:'تخفیف ویژه', amount: calc.manualDiscount });
+    priceBlock(L, { base: calc.subtotal, vat: calc.vatAmount, discounts: d, final: calc.finalTotal, official: calc.isOfficial });
+    footer(L, val('invoiceNote'), num(val('warrantyYearsInput')));
+    return L.join('\n');
+  }
+  /* ---------- سفارش تکی / کاملاً دستی ---------- */
+  function buildCart(kind){
+    var c = kind === 'single' ? (typeof singleCartCalc !== 'undefined' ? singleCartCalc : null) : (typeof manualCalc !== 'undefined' ? manualCalc : null);
+    if(!c || !c.items || !c.items.length || !c.finalTotal) return '';
+    var rec = null; try{ rec = kind === 'single' ? bfBuildSingleItemRecord() : bfBuildManualOrderRecord(); }catch(e){}
+    var L = header(rec, kind === 'single' ? 'پیشنهاد قیمت اقلام شکیب' : 'پیشنهاد قیمت جک و پاوریونیت شکیب');
+    var list = c.items.map(function(it){
+      var q = Number(it.qty) || 1, u = Number(it.unitPrice) || 0;
+      var name = strip(typeof bfPrintTitle === 'function' ? bfPrintTitle(it) : it.title);
+      var spec = specTxt(typeof bfPrintSpec === 'function' ? bfPrintSpec(it) : it.spec);
+      if(spec && name.indexOf(spec) >= 0 && spec.length < 40) spec = '';
+      return { name: name || 'قلم', spec: spec, qty: q, unit: u, total: u * q, kind: it.kind };
+    });
+    itemLines(L, list);
+    var hasOil = c.items.some(function(it){ return it.kind === 'oil'; });
+    priceBlock(L, { base: c.base, vat: c.vatAmount, discounts: [{ label: hasOil ? 'تخفیف اقلام غیر از روغن' : 'تخفیف', pct: c.discountPct, amount: c.discountAmount }], final: c.finalTotal, official: c.isOfficial });
+    footer(L, kind === 'manual' ? val('manualNote') : '', 0);
+    return L.join('\n');
+  }
+  function build(mode){ return mode === 'main' ? buildMain() : buildCart(mode); }
+  window.bfShakibCopyText = build;
+  function copyText(t){
+    function fallback(){ var ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:-1000px;opacity:0;'; document.body.appendChild(ta); ta.select(); var ok = false; try{ ok = document.execCommand('copy'); }catch(e){} ta.remove(); return ok; }
+    if(navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(t).then(function(){ return true; }).catch(fallback);
+    return Promise.resolve(fallback());
+  }
+  var LABEL = '📋 کپی مشخصات و قیمت برای مشتری';
+  function icOf(mode){   // ورودی‌ها به «جدول تعدیل» منتقل می‌شوند؛ پس کادر را از روی ترتیب/پنل پیدا می‌کنیم
+    var all = [].slice.call(document.querySelectorAll('.invoice-controls')), panel = document.getElementById('invoicePanel');
+    var main = panel ? panel.querySelector('.invoice-controls') : null;
+    var rest = all.filter(function(x){ return x !== main; });
+    return mode === 'main' ? main : mode === 'single' ? rest[0] : rest[1];
+  }
+  function mount(anchorId, mode){
+    var a = document.getElementById(anchorId), ic = (a && a.closest('.invoice-controls')) || icOf(mode);
+    if(!ic || ic.querySelector('.sh-qc-wrap')) return;
+    ic.style.flexWrap = 'wrap';
+    var w = document.createElement('div'); w.className = 'sh-qc-wrap no-print';
+    w.innerHTML = '<button type="button" class="sh-qc-btn"></button><button type="button" class="sh-qc-btn prev">👁 پیش‌نمایش</button><span class="sh-qc-hint">متن مرتب جک / پاور + قیمت و تخفیف — آمادهٔ واتساپ، تلگرام و بله</span><pre class="sh-qc-pre"></pre>';
+    var b = w.children[0], pv = w.children[1], pre = w.querySelector('pre');
+    b.textContent = LABEL;
+    b.onclick = function(){
+      var t = build(mode);
+      if(!t){ alert('ابتدا مشخصات و قیمت را کامل کنید (حداقل یک قلم با قیمت).'); return; }
+      if(pre.classList.contains('on')) pre.textContent = t;
+      copyText(t).then(function(ok){
+        b.classList.add('done'); b.textContent = ok ? '✅ کپی شد — در گفتگو paste کنید' : '⚠️ کپی نشد';
+        if(!ok) prompt('متن را کپی کنید (Ctrl+C):', t);
+        setTimeout(function(){ b.classList.remove('done'); b.textContent = LABEL; }, 2300);
+      });
+    };
+    pv.onclick = function(){
+      if(pre.classList.contains('on')){ pre.classList.remove('on'); pv.textContent = '👁 پیش‌نمایش'; return; }
+      var t = build(mode);
+      if(!t){ alert('ابتدا مشخصات و قیمت را کامل کنید.'); return; }
+      pre.textContent = t; pre.classList.add('on'); pv.textContent = '🙈 بستن پیش‌نمایش';
+    };
+    ic.appendChild(w);
+  }
+  function init(){ mount('markupInput', 'main'); mount('singleDiscountInput', 'single'); mount('manualDiscountInput', 'manual'); }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
 </body>
 </html>

@@ -5702,6 +5702,7 @@ body.bfpo-can .bfpo-edit{display:inline-block}
   var TYPE_FA={disk:'دیسکی',drum:'بشکه‌ای'}, BR_FA={gentelrise:'جنتل رایز',dyna:'داینا لیفت',huber:'هوبر'};
   var MODEL={disk:'WT1-B',drum:'WT2-P'};
   function hdr(){ var h={'Content-Type':'application/json'}; try{ var a=(typeof bfAuthHeaders==='function')?bfAuthHeaders():{}; for(var k in a) h[k]=a[k]; }catch(e){} return h; }
+  function js(r){ var ct=(r.headers.get('content-type')||''); if(ct.indexOf('json')<0) throw new Error('سرور هنوز نسخهٔ جدید را اجرا نمی‌کند — پنجرهٔ سرور را ببندید و server.js را دوباره اجرا کنید'); return r.json(); }
   function f(n){ return (n==null||!isFinite(n))?'—':Math.round(n).toLocaleString('en-US'); }
   function fa(n){ return (n==null||!isFinite(n))?'—':Math.round(n).toLocaleString('fa-IR'); }
   function jd(iso){ try{ return new Date(iso).toLocaleString('fa-IR-u-ca-persian',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
@@ -5758,7 +5759,7 @@ body.bfpo-can .bfpo-edit{display:inline-block}
 
   // ۴) بارگذاری از سرور
   function load(){
-    return fetch('/api/price-overrides?page='+PAGE,{headers:hdr(),cache:'no-store'}).then(function(r){ return r.json(); }).then(function(j){
+    return fetch('/api/price-overrides?page='+PAGE,{headers:hdr(),cache:'no-store'}).then(js).then(function(j){
       if(!j||!j.ok) return; OVR={}; LAST={};
       (j.overrides||[]).forEach(function(o){ OVR[o.pkey]=o; });
       (j.last||[]).forEach(function(l){ LAST[l.pkey]=l; });
@@ -5770,7 +5771,7 @@ body.bfpo-can .bfpo-edit{display:inline-block}
 
   // ۵) پنجرهٔ تغییر قیمت
   function overlay(html, wide){ var ov=document.createElement('div'); ov.className='bfpo-ov'; ov.innerHTML='<div class="bfpo-box'+(wide?' wide':'')+'">'+html+'</div>'; ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); }); document.body.appendChild(ov); return ov; }
-  function save(body){ return fetch('/api/price-overrides',{method:'POST',headers:hdr(),body:JSON.stringify(body)}).then(function(r){ return r.json().then(function(j){ if(!r.ok||!j.ok) throw new Error((j&&j.error)||'ذخیره نشد'); return j; }); }); }
+  function save(body){ return fetch('/api/price-overrides',{method:'POST',headers:hdr(),body:JSON.stringify(body)}).then(function(r){ return js(r).then(function(j){ if(!r.ok||!j.ok) throw new Error((j&&j.error)||'ذخیره نشد'); return j; }); }); }
   function openEdit(b, r0){
     var r=liveRow(r0); if(!CAN){ alert('فقط ادمین و مدیریت می‌توانند قیمت را تغییر دهند.'); return; }
     var cur=r.motorPrice, base=r._base, l=LAST[r._pk];
@@ -5821,7 +5822,7 @@ body.bfpo-can .bfpo-edit{display:inline-block}
       var base=null, b=brandOf(r.pkey); (BF_PH[b]?BF_PH[b].refs:[]).some(function(x){ if(x.o._pk===r.pkey){ base=x.o._base; return true; } });
       save({page:PAGE,key:r.pkey,label:r.label,price:r.old_price,base:base,old:r.new_price,reason:'برگشت ردیف #'+r.id+' — '+why.trim(),undoOf:r.id}).then(fetchRows).then(load).then(function(){ toast('↩️ قیمت برگشت داده شد و در دفتر ثبت شد'); }).catch(function(e){ alert('❌ '+e.message); });
     }
-    function fetchRows(){ return fetch('/api/price-log?page='+PAGE,{headers:hdr(),cache:'no-store'}).then(function(r){ return r.json(); }).then(function(j){ if(!j.ok) throw new Error(j.error||'خطا'); rows=j.rows||[]; CAN=!!j.canEdit; draw(); }).catch(function(e){ ov.querySelector('#bfpoL').textContent='❌ '+e.message; }); }
+    function fetchRows(){ return fetch('/api/price-log?page='+PAGE,{headers:hdr(),cache:'no-store'}).then(js).then(function(j){ if(!j.ok) throw new Error(j.error||'خطا'); rows=j.rows||[]; CAN=!!j.canEdit; draw(); }).catch(function(e){ ov.querySelector('#bfpoL').textContent='❌ '+e.message; }); }
     ov.querySelector('#bfpoQ').addEventListener('input',draw);
     ov.querySelector('#bfpoX').onclick=function(){
       var H=['ردیف','تاریخ و ساعت','کاربر','مدل','قیمت قبلی (ریال)','قیمت جدید (ریال)','درصد تغییر','نوع','علت'];

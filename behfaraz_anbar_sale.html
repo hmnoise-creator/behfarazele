@@ -1904,7 +1904,7 @@ var MAIN_K=QS_MAINK;
 
 /* ---------- متعلقات هوشمند هر محصول (زیرمجموعهٔ همان کالا ثبت می‌شوند) ---------- */
 var KITS={
-  wjack:{t:'جعبه متعلقات جک ویتور (آسانسور ۱۱۰)',for:'جک',brand:'ویتور',items:[{n:'جعبه متعلقات جک ویتور',ser:'req',def:1}]},
+  wjack:{t:'متعلقات جک ویتور (آسانسور ۱۱۰) — جعبه متعلقات و شلنگ',for:'جک',brand:'ویتور',items:[{n:'جعبه متعلقات جک ویتور',ser:'req',def:1},{n:'شلنگ استاندارد ۱۱۰ 1-1/4',u:'متر',brand:'110'},{n:'شلنگ استاندارد ۱۱۰ 1-1/2',u:'متر',brand:'110'}]},
   hevos:{t:'برد هوس (Hevos) — اگر همراه این پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:'opt',tag:'برد هوس'},{n:'درخت سیم داخل پاور یونیت',tag:'درخت سیم داخل پاور'}]},
   hevosIT:{t:'برد هوس (Hevos) — اگر همراه این پاور رسیده تیک بزنید',for:'پاوریونیت',brand:'ویتور',hv:1,items:[{n:'برد هوس ویتور',ser:'opt',tag:'برد هوس'},{n:'درخت سیم داخل پاور یونیت',tag:'درخت سیم داخل پاور'}]},
   /* [BF-VALVE] ترتیب و نام شیرها طبق دستور بهفراز — شیرهای بلین دیگر «شکیب» جلویشان ندارند (sh:1 = شیر ساخت شکیب) */
@@ -2390,7 +2390,7 @@ function renderKit(){
   var K=KITS[k],rec=kitRecommended(k),on=K.items.filter(function(it){return (inKit[it.n]||{}).on}).length;
   box.innerHTML='<div class="kit"><div class="kit-head"><b>🧰 '+esc(K.t)+'</b>'+(k==='shpu'?'':'<button type="button" class="btn sm" data-kitall="1" style="margin-inline-start:8px">'+(K.items.every(function(it){return (inKit[it.n]||{}).on})?'☐ برداشتن همه':'☑ انتخاب همه')+'</button>')+'<span class="o">'+(on?fa(on)+' قلم انتخاب شده — زیرمجموعهٔ همین کالا ثبت می‌شود':'هر قلمی که همراه این کالا رسیده را علامت بزنید')+'</span></div>'+
     K.items.map(function(it){var st=inKit[it.n]||{};
-      return '<div class="kit-row'+(st.on?' on':'')+'" data-kn="'+esc(it.n)+'"><label class="kit-l"><input type="checkbox" data-kon'+(st.on?' checked':'')+'><span>'+esc(it.n)+(rec.indexOf(it.n)>=0?' <em class="rec">پیشنهادی برای این مدل</em>':'')+(it.ser?' <em class="sr">جدول سریال</em>':'')+'</span></label>'+
+      return '<div class="kit-row'+(st.on?' on':'')+'" data-kn="'+esc(it.n)+'"><label class="kit-l"><input type="checkbox" data-kon'+(st.on?' checked':'')+'><span>'+esc(it.n)+(it.u?' <em class="o" style="font-style:normal">(تعداد = متراژ به '+esc(it.u)+')</em>':'')+(rec.indexOf(it.n)>=0?' <em class="rec">پیشنهادی برای این مدل</em>':'')+(it.ser?' <em class="sr">جدول سریال</em>':'')+'</span></label>'+
         (st.on?'<div class="kit-b">'+stepperHtml('k',st.qty==null?1:st.qty)+(it.ser?serTableHtml('k',it.n,st,qtyOf(st.qty==null?1:st.qty),it.ser==='req',it.ser==='opt'):'')+'</div>':'')+'</div>';
     }).join('')+'</div>';
   liveCheckAll();
@@ -2577,13 +2577,13 @@ function inAdd(){
   var parentSer=(mainOk&&ser&&mainSers.length===1)?mainSers[0]:'';
   kitOn.forEach(function(it){
     var st=inKit[it.n],q=qtyOf(st.qty==null?1:st.qty);
-    var fo={company:f.company,project:f.project,brand:K.brand||f.brand||'',name:it.n,spec:mainOk?'همراه '+CATS[inCat].name+' '+base:'','for':K['for']};
+    var fo={company:f.company,project:f.project,brand:it.brand||K.brand||f.brand||'',name:it.n,spec:mainOk?'همراه '+CATS[inCat].name+' '+base:'','for':K['for']};
     if(parentSer)fo.parent=parentSer;
     if(K.cat){var fc={company:f.company,project:f.project,brand:K.brand||f.brand||'',name:it.n};if(K['for'])fc['for']=K['for'];if(K.cat==='door'&&f.spec&&mainOk)fc.spec=f.spec;
       inStaged.push({cat:K.cat,f:fc,qty:q,unit:'عدد',g:g,child:mainOk});return}
     var ss=kitSerialsOf(it,st,q);
     if(ss.length){inStaged.push({cat:'acc',f:fo,serials:ss,unit:'عدد',g:g,child:mainOk});if(q-ss.length>0)inStaged.push({cat:'acc',f:clone(fo),qty:q-ss.length,unit:'عدد',g:g,child:mainOk})}
-    else inStaged.push({cat:'acc',f:fo,qty:q,unit:'عدد',g:g,child:mainOk});
+    else inStaged.push({cat:'acc',f:fo,qty:q,unit:it.u||'عدد',g:g,child:mainOk});
   });
   /* پنل طبقهٔ همراه همین پنل کابین (همان ورود) + متعلقات طبقه */
   if(flrOn){var gf=++inGroupSeq,ff={model:String(inFlr.model).trim(),company:f.company,project:f.project};if(String(inFlr.mat||'').trim())ff.spec=String(inFlr.mat).trim();

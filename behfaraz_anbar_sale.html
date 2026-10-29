@@ -6426,7 +6426,7 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
     function push(o,src){
       var f=o.f||{};if(isAm(o))return;var r=rm[o.rid]||{};
       var it={cat:o.cat,f:f,slot:slotOf(o.cat,f),main:main(o.cat,f),brand:brandOf(o.cat,f),spec:(typeof boardSpec==='function'?boardSpec(f):f.spec)||'',
-        qty:src.qty,unit:src.unit,wh:src.wh,serial:src.serial||'',date:r.date||'',sup:canonSup(r.supplier||''),rid:o.rid,opening:!!r.opening};
+        qty:src.qty,unit:src.unit,wh:src.wh,serial:src.serial||'',date:r.date||'',sup:canonSup(r.supplier||''),rid:o.rid,opening:!!r.opening&&!r.company};
       if(f.company){var p=proj(f.company,f.project);p.items.push(it);if(!it.opening&&it.date>p.date)p.date=it.date;p.ts=Math.max(p.ts,r.ts||0)}
       else if(src.wh!=='out')CAP.push(it);
     }

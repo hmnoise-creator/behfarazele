@@ -4230,7 +4230,7 @@ function chipsRow(id,opts){return '<div class="chips ynr" id="'+id+'">'+opts.map
 function chipsVal(id){var b=document.querySelector('#'+id+' .chipb.on');return b?b.dataset.v:''}
 function chipsBind(id,cb){var el=$(id);if(!el)return;el.addEventListener('click',function(e){var b=e.target.closest('[data-v]');if(!b)return;[].forEach.call(el.children,function(x){x.classList.toggle('on',x===b)});if(cb)cb(b.dataset.v)})}
 function destModal(){
-  var sup=supNow(),is110=false /* ۱۱۰ اکنون مثل شکیب: انبار یا مشتری */,n=inStaged.filter(function(l){return !l.child}).length,dst='';
+  var sup=supNow(),rngNeed=sup===SHK&&inStaged.some(function(l){return l.cat==='jack'||l.cat==='pu'}),is110=false /* ۱۱۰ اکنون مثل شکیب: انبار یا مشتری */,n=inStaged.filter(function(l){return !l.child}).length,dst='';
   var l0=inStaged.filter(function(l){return l.f&&l.f.company})[0];
   if(is110)dst=l0?'cust':'stock';
   openModal('<h3>'+(is110?'🧾 قیمت و فاکتور این سفارش آسانسور ۱۱۰ ('+fa(n)+' کالا)':'🎯 این سفارش ('+fa(n)+' کالا) برای کجاست؟')+'</h3>'+
@@ -4242,12 +4242,13 @@ function destModal(){
       '<div class="dP"><label class="f">جمع قیمت خرید کل کالاها (ریال) <span class="req">*</span></label><input id="dBuy" class="bf-money" inputmode="numeric" autocomplete="off"></div>'+
       '<div class="dC"><label class="f">جمع قیمت فروش به مشتری (ریال) <span class="req">*</span></label><input id="dSell" class="bf-money" inputmode="numeric" autocomplete="off"></div>'+
       '<div class="dP"><label class="f">🧾 فاکتور رسمی <span class="req">*</span></label>'+chipsRow('dOff',[['1','✅ دارد'],['0','❌ ندارد']])+'</div>'+
-      '<div class="dC"><label class="f">📍 محدوده <span class="req">*</span></label>'+chipsRow('dRng',[['in','🟢 داخل محدوده'],['out','🔴 خارج از محدوده']])+'</div>'+
+      '<div class="dC dR"><label class="f">📍 محدوده <span class="o">(فقط جک و پاور شکیب)</span> <span class="req">*</span></label>'+chipsRow('dRng',[['in','🟢 داخل محدوده'],['out','🔴 خارج از محدوده']])+'</div>'+
     '</div><div id="dOpenNote" class="note" style="display:none;font-size:.8rem;margin-top:8px">📋 <b>موجودی اول دوره</b>: کالاها مستقیم در <b>انبار بهفراز</b> می‌نشینند (نه انبار '+esc(sup===A110?'آسانسور ۱۱۰':sup===SHK?'شکیب':'خرید متفرقه')+'). قیمت و فاکتور لازم نیست و هیچ مبلغی به حساب '+esc(sup)+' اضافه نمی‌شود. اگر کالا برای مشتری رزرو است، نام شرکت / پروژه را بنویسید.</div><div id="dProf"></div></div><div class="msg bad" id="dMsg"></div>'+
     '<div class="actions"><button type="button" class="btn grn" id="dOk"'+(is110?'':' disabled')+'>✓ ثبت نهایی سفارش</button><button type="button" class="btn ghost" onclick="closeModal()">انصراف</button></div>',function(){
     function showC(){[].forEach.call(document.querySelectorAll('#dF .dC'),function(x){x.style.display=(dst==='cust'||(dst==='open'&&x.classList.contains('dO')))?'':'none'});
       [].forEach.call(document.querySelectorAll('#dF .dP'),function(x){x.style.display=dst==='open'?'none':''});
       var on=$('dOpenNote');if(on)on.style.display=dst==='open'?'':'none';
+      [].forEach.call(document.querySelectorAll('#dF .dR'),function(x){x.style.display=dst==='cust'&&rngNeed?'':'none'});
       [].forEach.call(document.querySelectorAll('#dF .dReq'),function(x){x.style.display=dst==='open'?'none':''});[].forEach.call(document.querySelectorAll('#dF .dOpt'),function(x){x.style.display=dst==='open'?'':'none'})}
     function prof(){var b=money($('dBuy').value),s=money($('dSell').value),p=$('dProf');if(dst!=='cust'||!b||!s){p.innerHTML='';return}
       p.innerHTML=s<b?'<div class="prof bad">⛔ قیمت فروش ('+fm(s)+') کمتر از قیمت خرید ('+fm(b)+') است — فروش زیر قیمت خرید مجاز نیست</div>':'<div class="prof ok">📈 سود: '+fm(s-b)+' ریال ('+fa(((s-b)/b*100).toFixed(1))+'٪)</div>'}
@@ -4267,7 +4268,8 @@ function destModal(){
       if(dst==='cust'&&!(s>0)){showMsg('dMsg','جمع قیمت فروش را بنویسید');$('dSell').focus();return}
       if(dst==='cust'&&s<b){showMsg('dMsg','⛔ قیمت فروش نمی‌تواند کمتر از قیمت خرید باشد');$('dSell').focus();return}
       if(!off){showMsg('dMsg','فاکتور رسمی دارد یا ندارد؟ انتخاب کنید');return}
-      if(dst==='cust'&&!rng){showMsg('dMsg','داخل محدوده یا خارج از محدوده؟ انتخاب کنید');return}
+      if(!rngNeed)rng='';
+      if(dst==='cust'&&rngNeed&&!rng){showMsg('dMsg','جک / پاور شکیب: داخل محدوده یا خارج از محدوده؟ انتخاب کنید');return}
       var dn=norm(inv);if(DB.receipts.some(function(r){return !r.void&&canonSup(r.supplier)===sup&&norm(r.invNo||r.docNo||'')===dn})){showMsg('dMsg','⛔ فاکتور شمارهٔ '+inv+' این تأمین‌کننده قبلاً ثبت شده — شمارهٔ فاکتور تکراری پذیرفته نمی‌شود');$('dInv').focus();return}
       closeModal();doSave({sup:sup,dst:dst,co:dst==='cust'?co:'',pj:pj,inv:inv,buy:b,sell:dst==='cust'?s:0,off:off==='1',rng:dst==='cust'?rng:''});
     };
@@ -4307,7 +4309,7 @@ function editOrder(rid,after){
     '<div><label class="f">جمع قیمت خرید (ریال)</label><input id="eoB" class="bf-money" value="'+(r.buyTotal?fm(r.buyTotal):'')+'" autocomplete="off"></div>'+
     (r.dest==='cust'?'<div><label class="f">جمع قیمت فروش (ریال)</label><input id="eoS" class="bf-money" value="'+(r.sellTotal?fm(r.sellTotal):'')+'" autocomplete="off"></div>':'')+
     '<div><label class="f">🧾 فاکتور رسمی</label>'+chipsRow('eoO',[['1','✅ دارد'],['0','❌ ندارد']])+'</div>'+
-    (r.dest==='cust'?'<div><label class="f">📍 محدوده</label>'+chipsRow('eoR',[['in','🟢 داخل محدوده'],['out','🔴 خارج از محدوده']])+'</div>':'')+
+    (r.dest==='cust'&&bfRngRec(r)?'<div><label class="f">📍 محدوده</label>'+chipsRow('eoR',[['in','🟢 داخل محدوده'],['out','🔴 خارج از محدوده']])+'</div>':'')+
     '</div><div class="msg bad" id="eoMsg"></div><div class="actions"><button type="button" class="btn grn" id="eoOk">✓ ذخیره</button><button type="button" class="btn ghost" onclick="closeModal()">انصراف</button></div>',function(){
     chipsBind('eoO');chipsBind('eoR');
     var o=document.querySelector('#eoO [data-v="'+(r.official?'1':r.official===false?'0':'x')+'"]');if(o)o.classList.add('on');
@@ -4421,7 +4423,7 @@ function moveModal(rid,fam,wh){
   if(!rows.length){toast('موردی برای انتقال نیست');return}
   rows.forEach(function(x){x.ser=!x.u&&(needSer(x.o,r)||((isM||mvWh==='a110')&&!!SER0[x.o.cat]));var inf=xInfo(x.o.cat,x.o.f,rid);x.t=inf.title;x.s=inf.sub;x.d='bf'});
   openModal('<h3>📦 '+(isM?'ورود به انبار — سفارش ':'انتقال سفارش ')+esc(fa(r.no||''))+(r.invNo?' · فاکتور '+esc(fa(r.invNo)):'')+(isM?' · '+esc(canonSup(r.supplier))+' (از انبار خرید متفرقه)':mvWh==='a110'?' از انبار آسانسور ۱۱۰':' از انبار شکیب')+'</h3>'+(isM?'<div class="note" style="font-size:.8rem">🔢 کالا الان واقعاً وارد انبار می‌شود — برای جک، پاور، موتور، تابلو و شاسی‌ها ثبت سریال <b>اجباری</b> است.</div>':'')+
-    '<div class="grid g2"><div><label class="f">📅 تاریخ ورود <span class="req">*</span></label><input id="mvD" class="ltr" value="'+todayJ()+'" autocomplete="off"></div><div><label class="f">📍 محدوده <span class="req">*</span></label>'+chipsRow('mvR',[['in','🟢 داخل محدوده'],['out','🔴 خارج از محدوده']])+'</div></div>'+
+    '<div class="grid g2"><div><label class="f">📅 تاریخ ورود <span class="req">*</span></label><input id="mvD" class="ltr" value="'+todayJ()+'" autocomplete="off"></div><div'+(bfRngRec(r)?'':' style="display:none"')+'><label class="f">📍 محدوده <span class="o">(جک و پاور شکیب)</span> <span class="req">*</span></label>'+chipsRow('mvR',[['in','🟢 داخل محدوده'],['out','🔴 خارج از محدوده']])+'</div></div>'+
     (function(){var dc=mvDefCo(rows,r),dp=mvDefPj(rows,r),sg=dc?'res':dp?'capj':'cap';
       return '<div id="mvBx" class="xbox mv-dst" style="margin:8px 0"><div class="xb-t">🏷️ کالاهای «📦 انبار بهفراز» در انبار کجا بنشینند؟ <span class="req">*</span></div>'+
       '<div class="chips ynr" id="mvDst">'+[['cap','💼 سرمایه انبار','موجودی آزاد — بدون پروژه'],['capj','💼 سرمایه انبار — به نام پروژه','بدون مشتری؛ زیر نام پروژهٔ شما در بخش سرمایه'],['res','🏷️ رزرو برای مشتری / پروژه','به نام همان مشتری و پروژه قفل می‌شود']].map(function(o){return '<button type="button" class="chipb mvd-b" data-v="'+o[0]+'" title="'+o[2]+'"><b>'+o[1]+'</b>'+(o[0]===sg?' <span class="mvd-sg">پیشنهادی</span>':'')+'<small>'+o[2]+'</small></button>'}).join('')+'</div>'+
@@ -4447,7 +4449,7 @@ function moveModal(rid,fam,wh){
     document.querySelector('.mv-list').addEventListener('input',function(e){var t=e.target;if(t.dataset.ms==null)return;var n=parseSerials(t.value).length,x=rows[+t.dataset.ms],c=document.querySelector('[data-mc="'+t.dataset.ms+'"]');c.textContent=fa(n)+' از '+fa(x.q);c.style.color=n===x.q?'var(--in)':'#C0201A'});
     $('mvOk').onclick=function(){
       var d=normDate($('mvD').value),rng=chipsVal('mvR'),act=rows.filter(function(x){return x.d!=='stay'});
-      if(!d){showMsg('mvMsg','تاریخ ورود نامعتبر است');return}if(!rng){showMsg('mvMsg','داخل یا خارج از محدوده؟ انتخاب کنید');return}
+      if(!d){showMsg('mvMsg','تاریخ ورود نامعتبر است');return}if(!bfRngRec(r))rng='';else if(!rng){showMsg('mvMsg','جک / پاور شکیب: داخل یا خارج از محدوده؟ انتخاب کنید');return}
       if(!act.length){showMsg('mvMsg','هیچ کالایی برای انتقال انتخاب نشده');return}
       var all={},bad='';act.forEach(function(x,i){if(!x.ser||bad)return;var ta=document.querySelector('[data-ms="'+rows.indexOf(x)+'"]'),S=parseSerials(ta.value);
         if(S.length!==x.q){bad='سریال «'+x.t+'»: '+fa(S.length)+' از '+fa(x.q)+' وارد شده';ta.focus();return}
@@ -4480,7 +4482,7 @@ function doMove(r,act,d,rng,X,B){
       var i=DB.lots.indexOf(o);if(i>=0)DB.lots.splice(i,1);return}
     delete o.f.wh;if(!toPj)setCP(o.f);o.key=lotKey(o.cat,o.f,o.unit);o.inDate=d;
     if(toPj){var q=o.rem;o.rem=0;items.push({type:'l',key:o.key,cat:o.cat,f:o.f,unit:o.unit,qty:q,alloc:[{lotId:o.id,qty:q}]})}});
-  r.range=rng;r.recvDate=d;
+  if(rng)r.range=rng;else delete r.range;r.recvDate=d;
   if(X){var ex={id:xid,no:X.no,date:d,customer:X.c,project:X.p,dest:X.a,plate:X.pl,driver:X.dr,phone:X.ph,receiver:'',note:(mvWh==='misc'?'ارسال مستقیم از انبار خرید متفرقه — سفارش ':mvWh==='a110'?'ارسال مستقیم از انبار آسانسور ۱۱۰ — سفارش ':'ارسال مستقیم از انبار شکیب — سفارش ')+(r.no||'')+(r.invNo?' · فاکتور '+r.invNo:''),user:curUser(),ts:Date.now(),void:false,items:items,range:rng,direct:true};
     DB.exits.push(ex);if(/^\d+$/.test(X.no))DB.seq.out=Math.max(DB.seq.out,+X.no);addLog('حواله مستقیم به پروژه','حواله '+X.no+' · '+X.c+' / '+X.p+' · '+fa(items.length)+' قلم')}
   addLog(mvWh==='misc'?'ورود از انبار خرید متفرقه':mvWh==='a110'?'انتقال از انبار آسانسور ۱۱۰':'انتقال از انبار شکیب','سفارش '+(r.no||'—')+' · '+fa(act.length)+' ردیف · تاریخ ورود '+d+(B?' · مقصد: '+(B.c?'رزرو '+B.c+(B.p?' / '+B.p:''):B.p?'سرمایه انبار — پروژهٔ '+B.p:'سرمایه انبار'):''));
@@ -4861,10 +4863,12 @@ function expPdf(scope){var R=expRows(scope);if(!R.length){toast('موردی بر
   setTimeout(function(){try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){toast('چاپ باز نشد')}setTimeout(function(){fr.remove()},60000)},400);
   toast('در پنجرهٔ چاپ، «Save as PDF» را انتخاب کنید')}
 /* حوالهٔ خروج (فروش از انبار): داخل یا خارج از محدوده */
-(function(){var pj=$('xProj');if(!pj)return;var d=document.createElement('div');d.className='s2';d.innerHTML='<label class="f">📍 محدودهٔ فروش <span class="o">(اختیاری)</span></label>'+chipsRow('xRng',[['in','🟢 داخل محدوده'],['out','🔴 خارج از محدوده']]);
+(function(){var pj=$('xProj');if(!pj)return;var d=document.createElement('div');d.className='s2';d.innerHTML='<label class="f">📍 محدودهٔ فروش <span class="o">(فقط جک و پاور شکیب — اختیاری)</span></label>'+chipsRow('xRng',[['in','🟢 داخل محدوده'],['out','🔴 خارج از محدوده']]);
   pj.parentNode.parentNode.insertBefore(d,pj.parentNode.nextSibling);
   $('xRng').addEventListener('click',function(e){var b=e.target.closest('[data-v]');if(!b)return;var was=b.classList.contains('on');[].forEach.call($('xRng').children,function(x){x.classList.remove('on')});if(!was)b.classList.add('on')});
-  $('btnSaveOut').addEventListener('click',function(){var v=chipsVal('xRng'),n0=DB.exits.length;if(!v)return;setTimeout(function(){if(DB.exits.length>n0){DB.exits[DB.exits.length-1].range=v;save();[].forEach.call($('xRng').children,function(x){x.classList.remove('on')})}},0)},true)})();
+  function vis(){var on=xStaged.some(function(it){var u=it.type==='u'?uMap()[it.unitId]:null;return u?bfShkJP(u.cat,u.f,u.rid):bfShkJP(it.cat,it.f,null)});d.style.display=on?'':'none';if(!on)[].forEach.call($('xRng').children,function(x){x.classList.remove('on')})}
+  vis();var _rxs=window.renderXStaged;if(_rxs){window.renderXStaged=renderXStaged=function(){var r=_rxs.apply(this,arguments);try{vis()}catch(e){}return r}}
+  $('btnSaveOut').addEventListener('click',function(){var v=chipsVal('xRng'),n0=DB.exits.length;if(!v)return;setTimeout(function(){if(DB.exits.length>n0&&bfRngExit(DB.exits[DB.exits.length-1])){DB.exits[DB.exits.length-1].range=v;save();[].forEach.call($('xRng').children,function(x){x.classList.remove('on')})}},0)},true)})();
 /* ویرایش کالا در انبار: لیست کشویی محصولات مرتبط کنار هر فیلد */
 function editDrop(cat){var box=document.getElementById('modalRoot');if(!box)return;
   [].forEach.call(box.querySelectorAll('input[data-ef]'),function(inp){var k=inp.dataset.ef;if(inp.parentNode.querySelector('select.ef-dd'))return;
@@ -5501,6 +5505,8 @@ function cands(){var rm=rMap(),R=[],T=toks(SQ.q);
   return R}
 function selKey(r){return r.k+':'+r.id}
 function catOpts(cur,all){return CAT_ORDER.map(function(c){return '<option value="'+c+'"'+(cur===c?' selected':'')+'>'+CATS[c].icon+' '+CATS[c].name+'</option>'}).join('')}
+function slRngNeed(){try{if(SM==='stock'){var um=uMap();return Object.keys(SEL).some(function(k){var x=SEL[k];if(x.k==='u'){var u=um[x.id];return !!u&&bfShkJP(u.cat,u.f,u.rid)}var l=DB.lots.filter(function(z){return z.key===x.id&&z.status!=='void'})[0];return !!l&&bfShkJP(l.cat,l.f,l.rid)})}
+  return (NS||[]).some(function(i){return bfShkJP(i.cat,{brand:i.brand})})}catch(e){return false}}
 function custForm(){
   var CU=uniq(DB.exits.map(function(x){return x.customer}).concat(((window.bfAllSales?bfAllSales().ords:[])).map(function(o){return o.company})));
   return '<datalist id="dl_slc">'+CU.map(function(v){return '<option value="'+esc(v)+'">'}).join('')+'</datalist>'+
@@ -5511,7 +5517,7 @@ function custForm(){
   '<div><label class="f">💰 جمع مبلغ فروش (ریال) <span class="req">*</span></label><input id="slAm" class="bf-money" inputmode="numeric" value="'+esc(SF2.am||'')+'" autocomplete="off"></div>'+
   '<div style="grid-column:1/-1"><label class="f">🤝 توضیحات تسویه حساب با مشتری</label><textarea id="slSt" rows="2" class="rtl" placeholder="مثلاً ۵۰٪ نقد هنگام سفارش، مابقی چک ۳۰ روزه — یا تسویه کامل قبل از تحویل">'+esc(SF2.st||'')+'</textarea></div>'+
   '<div><label class="f">🧾 فاکتور رسمی</label><div class="chips ynr" id="slOf"><button type="button" class="chipb'+(SF2.of==='1'?' on':'')+'" data-v="1">✅ دارد</button><button type="button" class="chipb'+(SF2.of==='0'?' on':'')+'" data-v="0">❌ ندارد</button></div></div>'+
-  '<div><label class="f">📍 محدوده</label><div class="chips ynr" id="slRg"><button type="button" class="chipb'+(SF2.rg==='in'?' on':'')+'" data-v="in">🟢 داخل محدوده</button><button type="button" class="chipb'+(SF2.rg==='out'?' on':'')+'" data-v="out">🔴 خارج از محدوده</button></div></div>'+
+  (slRngNeed()?'<div><label class="f">📍 محدوده <span class="o">(جک و پاور شکیب)</span></label><div class="chips ynr" id="slRg">':'<div style="display:none"><div class="chips ynr" id="slRg">')+'<button type="button" class="chipb'+(SF2.rg==='in'?' on':'')+'" data-v="in">🟢 داخل محدوده</button><button type="button" class="chipb'+(SF2.rg==='out'?' on':'')+'" data-v="out">🔴 خارج از محدوده</button></div></div>'+
   '</div><div class="msg bad" id="slMsg"></div>'+(ro()?'':'<div class="actions"><button type="button" class="btn grn" id="slSave">✓ ثبت فروش</button></div>')}
 function stockHtml(){
   var R=cands(),selN=Object.keys(SEL).length,h='';
@@ -5611,7 +5617,7 @@ function saveSale(){keepForm();
   if(!pj){showMsg('slMsg','نام پروژه را بنویسید');$('slPj').focus();return}
   if(!dv){showMsg('slMsg','زمان تحویل تقریبی را مشخص کنید');$('slDv').focus();return}
   if(!(am>0)){showMsg('slMsg','جمع مبلغ فروش را بنویسید');$('slAm').focus();return}
-  var s={id:uid(),no:nextSaleNo(),date:todayJ(),time:nowT(),ts:Date.now(),user:curUser()||'—',kind:SM,company:co,project:pj,delivery:dv,settle:st,sellTotal:am,official:SF2.of==null?null:SF2.of==='1',range:SF2.rg||'',items:[],void:false};
+  var s={id:uid(),no:nextSaleNo(),date:todayJ(),time:nowT(),ts:Date.now(),user:curUser()||'—',kind:SM,company:co,project:pj,delivery:dv,settle:st,sellTotal:am,official:SF2.of==null?null:SF2.of==='1',range:slRngNeed()?(SF2.rg||''):'',items:[],void:false};
   if(SM==='stock'){var keys=Object.keys(SEL);if(!keys.length){showMsg('slMsg','کالایی انتخاب نشده');return}
     var um=uMap(),bad='';
     keys.forEach(function(k){var x=SEL[k];if(bad)return;
@@ -6322,6 +6328,23 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
   var _ro=resetOutForm;resetOutForm=function(){window.__xFromStock=false;var r=_ro.apply(this,arguments);apply();return r};window.resetOutForm=resetOutForm;
   var nav=document.getElementById('nav');if(nav)nav.addEventListener('click',function(e){var b=e.target.closest('button[data-t]');if(b&&b.dataset.t==='out'){window.__xFromStock=false;setTimeout(apply,0)}},true);
 })();
+</script>
+<script id="bfRngJs">
+/* ===== [BF-V0807] «محدوده» (داخل / خارج از محدوده) فقط برای جک و پاور یونیت شکیب — برای بقیهٔ محصولات همه‌جا حذف ===== */
+function bfShkJP(cat,f,rid){if(cat!=='jack'&&cat!=='pu')return false;f=f||{};if(/شکیب/.test(f.brand||''))return true;var r=rid?rMap()[rid]:null;return !!(r&&canonSup(r.supplier)==='شکیب جک')}
+function bfRngRec(r){return !!r&&canonSup(r.supplier||'')==='شکیب جک'&&(r.lines||[]).some(function(l){return l.cat==='jack'||l.cat==='pu'})}
+function bfRngExit(x){var um=uMap();return (x.items||[]).some(function(it){var u=it.type==='u'?um[it.unitId]:null;return bfShkJP(it.cat||(u&&u.cat),it.f||(u&&u.f),u&&u.rid)})}
+function bfRngSale(s){var um=uMap();return (s.items||[]).some(function(it){if(it.k==='u'){var u=um[it.id];return !!u&&bfShkJP(u.cat,u.f,u.rid)}
+  if(it.k==='l'){var a=(it.lots||[])[0],l=a?DB.lots.filter(function(z){return z.id===a.lotId})[0]:null;return l?bfShkJP(l.cat,l.f,l.rid):bfShkJP(it.cat,{brand:it.brand})}
+  return bfShkJP(it.cat,{brand:it.brand})})}
+/* دادهٔ قبلی: محدودهٔ ثبت‌شده برای محصولات غیر از جک و پاور شکیب پاک می‌شود */
+function bfRngClean(){var n=0;(DB.receipts||[]).forEach(function(r){if(r.range&&!r._sale&&!bfRngRec(r)){delete r.range;n++}});
+  (DB.exits||[]).forEach(function(x){if(x.range&&!bfRngExit(x)){delete x.range;n++}});
+  (DB.sales||[]).forEach(function(x){if(x.range&&!bfRngSale(x)){x.range='';n++}});return n}
+(function(){try{if(bfRngClean())save()}catch(e){}
+  if(typeof adopt==='undefined'){var _sv=window.save;}
+  /* بعد از هر بارگذاری از سرور هم پاک‌سازی انجام شود */
+  setInterval(function(){try{if(bfRngClean())save()}catch(e){}},20000)})();
 </script>
 <style id="bfPbCss">
 /* ===== [BF-V0807] بُرد پروژه‌ها و سرمایه انبار ===== */

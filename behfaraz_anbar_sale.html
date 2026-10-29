@@ -4962,7 +4962,7 @@ function cancelCustModal(rows,title){
   });
 }
 /* ---------- ④ کنسلی خرید نزد شرکت مادر ← حذف از بدهی ---------- */
-function purchaseCancelModal(rid,wh){
+window.bfPcxModal=purchaseCancelModal;function purchaseCancelModal(rid,wh){
   var r=rMap()[rid];if(!r)return;var sup=canonSup(r.supplier),rows=[];
   shkUnits(wh).forEach(function(u){if(u.rid===rid)rows.push({o:u,u:true})});shkLots(wh).forEach(function(l){if(l.rid===rid)rows.push({o:l,u:false})});
   if(!rows.length){toast('کالایی از این سفارش نزد '+sup+' باقی نمانده');return}
@@ -4990,7 +4990,7 @@ function purchaseCancelModal(rid,wh){
       var sa=$('pcS')?Math.min(money($('pcS').value),r.sellTotal||0):0;
       if(sa>0){var b0=r.sellTotal;r.sellTotal=Math.max(0,b0-sa);(r.cxlLog=r.cxlLog||[]).push({date:d,amount:sa,before:b0,why:'کنسلی خرید — '+why,by:by,items:names.join('، ')});if(r.sellTotal<=0){r.cxCust={company:r.company,project:r.project||'',date:d,why:why};r.dest='stock'}}
       addLog('کنسلی خرید از '+sup,'سفارش '+(r.no||'')+(r.invNo?' / فاکتور '+r.invNo:'')+' · '+fa(sel.length)+' قلم · کسر از بدهی '+fm(a||0)+' ریال · علت: '+why);save();closeModal();
-      toast('✓ خرید کنسل شد'+(a>0?' و '+fm(a)+' ریال از بدهی به '+sup+' کم شد':''));try{renderShkWh()}catch(e){}try{renderFin()}catch(e){}};
+      toast('✓ خرید کنسل شد'+(a>0?' و '+fm(a)+' ریال از بدهی به '+sup+' کم شد':''));try{renderShkWh()}catch(e){}try{renderFin()}catch(e){}try{if(curTab==='stock')renderStock()}catch(e){}};
   });
 }
 function pcxBadge(r){var L=r.pcxLog||[];if(!L.length)return '';var a=L.reduce(function(s,x){return s+(x.amount||0)},0);
@@ -5642,7 +5642,7 @@ function toExit(id){var s=sales().filter(function(x){return x.id===id})[0];if(!s
     else if(it.k==='l'&&it.key){var er=xAddLot(it.key,it.qty);if(er)miss++}});
   try{renderPick();renderXStaged()}catch(_){}
   toast(miss?'⚠️ بعضی اقلام دیگر در انبار نیستند ('+fa(miss)+')':'✓ اقلام فروش '+fa(s.no)+' در حواله قرار گرفت — حواله را ثبت کنید')}
-function voidSale(id){var s=sales().filter(function(x){return x.id===id})[0];if(!s||s.void)return;
+window.bfVoidSale=voidSale;function voidSale(id){var s=sales().filter(function(x){return x.id===id})[0];if(!s||s.void)return;
   var um=uMap(),out=s.items.some(function(it){if(it.k==='u'){var u=um[it.id];return u&&u.status==='out'}if(it.k==='l')return (it.lots||[]).some(function(a){var l=DB.lots.filter(function(z){return z.id===a.lotId})[0];return l&&l.rem<l.qty-1e-9});return false});
   if(out){openModal('<h3>امکان ابطال نیست</h3><div class="note">بخشی از کالاهای این فروش با حواله از انبار خارج شده‌اند. ابتدا حواله را در «تاریخچه» باطل کنید.</div><div class="actions"><button class="btn ghost" onclick="closeModal()">بستن</button></div>');return}
   var why=prompt('دلیل ابطال فروش '+s.no+':','');if(why==null)return;if(!why.trim()){toast('دلیل را بنویسید');return}
@@ -6369,6 +6369,7 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
 .pb-ft{margin-top:auto;border-top:1px solid #EEF2F1;padding:8px 12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:#FAFCFB}
 .pb-ft .sum{font-size:.72rem;color:#5b6b69;flex:1}
 .pb-ft button{font:inherit;font-size:.74rem;font-weight:700;border-radius:10px;padding:6px 10px;border:1.5px solid #CFE0DC;background:#fff;color:#0E6B66;cursor:pointer}
+.pb-ft button.cx{border-color:#E8B4AE;color:#C0201A}.pb-ft button.cx:hover{background:#FDECEA}
 .pb-ft button.pri{background:#0E6B66;color:#fff;border-color:#0E6B66}
 .pb-det{grid-column:1/-1;border:2px solid #0E6B66;border-radius:18px;background:#fff;padding:10px;box-shadow:0 14px 30px -20px rgba(14,107,102,.8)}
 .pb-det h4{margin:2px 6px 10px;display:flex;gap:8px;align-items:center}
@@ -6470,9 +6471,9 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
       if(l.rem>0)push(l,{qty:l.rem,unit:l.unit,wh:whOf(l.f,false),serial:(l.f||{}).bser||''});
       if(out>0&&l.f&&l.f.company)push(l,{qty:out,unit:l.unit,wh:'out'})});
     (DB.sales||[]).forEach(function(s){if(s.void||s.kind!=='nostock'||s.resolved||!s.company)return;var p=proj(s.company,s.project);if(s.date>p.date)p.date=s.date;p.ts=Math.max(p.ts,s.ts||0);
-      (s.items||[]).forEach(function(i){var f=i.f||{brand:i.brand,spec:i.spec};p.items.push({cat:i.cat,f:f,slot:slotOf(i.cat,f),main:i.name||i.title||'',brand:i.brand||'',spec:i.spec||'',qty:+i.qty||1,unit:i.unit||'عدد',wh:'need',saleNo:s.no,date:s.date,note:[s.settle,s.delivery&&s.delivery!=='—'?'تحویل: '+s.delivery:''].filter(Boolean).join(' · '),sno:s.no})})});
+      (s.items||[]).forEach(function(i){var f=i.f||{brand:i.brand,spec:i.spec};p.items.push({cat:i.cat,f:f,slot:slotOf(i.cat,f),main:i.name||i.title||'',brand:i.brand||'',spec:i.spec||'',qty:+i.qty||1,unit:i.unit||'عدد',wh:'need',saleNo:s.no,sid:s.id,date:s.date,note:[s.settle,s.delivery&&s.delivery!=='—'?'تحویل: '+s.delivery:''].filter(Boolean).join(' · '),sno:s.no})})});
     (DB.rsvNeeds||[]).forEach(function(n){if(n.status!=='open'||!n.co||n.co==='انبار')return;var p=proj(n.co,n.pj);var f=n.f||{};
-      p.items.push({cat:n.cat,f:f,slot:slotOf(n.cat,f),main:main(n.cat,f)||n.title||'',brand:brandOf(n.cat,f),spec:f.spec||'',qty:+n.qty||1,unit:n.unit||'عدد',wh:'need',rsv:1,date:n.date})});
+      p.items.push({cat:n.cat,f:f,slot:slotOf(n.cat,f),main:main(n.cat,f)||n.title||'',brand:brandOf(n.cat,f),spec:f.spec||'',qty:+n.qty||1,unit:n.unit||'عدد',wh:'need',rsv:1,rsvId:n.id,date:n.date})});
     /* مالی هر پروژه */
     try{var A=window.bfAllSales?bfAllSales():{ords:[],pays:[]};
       A.ords.forEach(function(o){var p=P[key(o.company,o.project)];if(p)p.sell=(p.sell||0)+(+o.sellTotal||0)});
@@ -6513,11 +6514,15 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
     var othH=oth.length?'<div class="pb-sec">📍 بقیهٔ اقلام این پروژه</div><div class="pb-more">'+oth.map(function(i){var w=WH[i.wh];return '<span class="pb-chip" style="--sb:'+w.b+';--sbd:'+w.d+';--wc:'+w.c+'">'+(CATS[i.cat]?CATS[i.cat].icon:'📦')+' '+esc([(CATS[i.cat]||{}).name,i.brand,i.main].filter(Boolean).join(' '))+(i.serial?' · سریال '+esc(i.serial):'')+' ×'+fa(i.qty)+(i.unit!=='عدد'?' '+esc(i.unit):'')+' — <b>'+WHS[i.wh]+'</b></span>'}).join('')+'</div>':'';
     var go2=[];['a110','shakib','misc'].forEach(function(w){if(c[w])go2.push('<button type="button" data-pbwh="'+w+'">'+({a110:'🟠 رفتن به انبار ۱۱۰',shakib:'🔵 رفتن به انبار شکیب',misc:'🧺 رفتن به خرید متفرقه'})[w]+'</button>')});
     var hasNeed=p.items.some(function(i){return i.wh==='need'&&i.saleNo!=null});
+    var cx=[],seenCx={};if(!ro2())p.items.forEach(function(i){var k;
+      if((i.wh==='a110'||i.wh==='shakib'||i.wh==='misc')&&i.rid){k='o'+i.rid+i.wh;if(!seenCx[k]){seenCx[k]=1;cx.push('<button type="button" class="cx" data-pbpcx="'+esc(i.rid)+'" data-wh="'+i.wh+'" title="کالاهای این سفارش از '+esc(WHS[i.wh])+' حذف و مبلغ از بدهی به '+esc(i.sup||'شرکت مادر')+' کم می‌شود">❌ کنسل خرید سفارش '+esc(fa(i.rno||''))+' ('+WHS[i.wh]+')</button>')}}
+      else if(i.wh==='need'&&i.sid){k='s'+i.sid;if(!seenCx[k]){seenCx[k]=1;cx.push('<button type="button" class="cx" data-pbnsx="'+esc(i.sid)+'">❌ کنسل خرید — فروش '+esc(fa(i.sno||''))+'</button>')}}
+      else if(i.wh==='need'&&i.rsvId){k='r'+i.rsvId;if(!seenCx[k]){seenCx[k]=1;cx.push('<button type="button" class="cx" data-pbrsvx="'+esc(i.rsvId)+'">❌ کنسل نیاز — '+esc(i.main||'کالا')+'</button>')}}});
     return '<div class="pb-card'+(op?' open':'')+'" style="--st:'+st[1]+';--stb:'+st[2]+'" data-pbk="'+esc(p.k)+'">'+hd+'<div class="pb-drawer"><div class="pb-in"><div class="pb-body">'+pay+
       (slots.length?'<div class="pb-slots">'+slots.join('')+'</div>':'')+
       (x.length?'<div class="pb-more">'+x.map(function(i){var w=WH[i.wh];return '<span class="pb-chip" style="--sb:'+w.b+';--sbd:'+w.d+';--wc:'+w.c+'" title="'+esc(w.n)+'">'+(CATS[i.cat]?CATS[i.cat].icon:'📦')+' '+esc([i.main||(CATS[i.cat]||{}).name,i.cat==='acc'?'':i.brand].filter(Boolean).join(' '))+(i.qty>1||i.unit!=='عدد'?' ×'+fa(i.qty)+(i.unit!=='عدد'?' '+esc(i.unit):''):'')+'</span>'}).join('')+'</div>':'')+
       notesHtml(p)+tbl+othH+
-      '<div class="pb-ft"><span class="sum">'+['bf','a110','shakib','misc','need','out'].filter(function(k){return c[k]}).map(function(k){return '<span style="color:'+WH[k].c+'">● '+fa(c[k])+' '+WHS[k]+'</span>'}).join(' &nbsp;')+'</span>'+go2.join('')+(hasNeed&&!ro2()?'<button type="button" data-pbsale="1">🛒 خرید از شرکت مادر</button>':'')+'<button type="button" class="pri" data-pbtog="'+esc(p.k)+'">▲ بستن</button></div></div></div></div></div>'}
+      '<div class="pb-ft"><span class="sum">'+['bf','a110','shakib','misc','need','out'].filter(function(k){return c[k]}).map(function(k){return '<span style="color:'+WH[k].c+'">● '+fa(c[k])+' '+WHS[k]+'</span>'}).join(' &nbsp;')+'</span>'+go2.join('')+cx.join('')+(hasNeed&&!ro2()?'<button type="button" data-pbsale="1">🛒 خرید از شرکت مادر</button>':'')+'<button type="button" class="pri" data-pbtog="'+esc(p.k)+'">▲ بستن</button></div></div></div></div></div>'}
   function ro2(){try{return typeof BF_WH_RO!=='undefined'&&BF_WH_RO}catch(e){return false}}
   function projView(D){
     var L=D.L.slice(),q=norm(pbQ);
@@ -6571,7 +6576,23 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
     if(t=e.target.closest('[data-cpk]')){cpOpen=cpOpen===t.dataset.cpk?'':t.dataset.cpk;rs();if(cpOpen)setTimeout(function(){var pn=document.getElementById('cpPanel');if(pn)pn.scrollIntoView({block:'start',behavior:'smooth'})},30);return}
     if(t=e.target.closest('[data-pbwh]')){try{stkView=t.dataset.pbwh}catch(_){}var b=document.querySelector('.shk-whbar [data-wv="'+t.dataset.pbwh+'"]');if(b)b.click();return}
     if(t=e.target.closest('[data-pbsale]')){go('sale');return}
+    if(t=e.target.closest('[data-pbpcx]')){if(window.bfPcxModal)bfPcxModal(t.dataset.pbpcx,t.dataset.wh);return}
+    if(t=e.target.closest('[data-pbrsvx]')){var n=(DB.rsvNeeds||[]).filter(function(z){return z.id===t.dataset.pbrsvx})[0];if(!n)return;var w=prompt('علت لغو این نیاز:','');if(w==null)return;
+      n.status='cancel';n.doneVia=w||'';n.doneAt=todayJ();n.doneBy=curUser()||'—';addLog('نیاز رزرو لغو شد',(n.co||'')+(n.pj?' / '+n.pj:'')+' · '+(n.title||'')+(w?' · '+w:''));save();rs();toast('✓ نیاز لغو شد');return}
+    if(t=e.target.closest('[data-pbnsx]')){nsCancel(t.dataset.pbnsx);return}
   });
+  function nsCancel(id){var S=(DB.sales||[]).filter(function(x){return x.id===id})[0];if(!S)return;
+    var its=(S.items||[]).map(function(i){return '• '+esc([(CATS[i.cat]||{}).name,i.brand,i.name].filter(Boolean).join(' '))+' ×'+fa(i.qty)+(i.unit&&i.unit!=='عدد'?' '+esc(i.unit):'')}).join('<br>');
+    openModal('<h3>❌ کنسل خرید — فروش '+esc(fa(S.no))+'</h3><div class="note" style="font-size:.82rem"><b>'+esc(S.company+(S.project?' / '+S.project:''))+'</b><br>'+its+'</div>'+
+      '<div class="dst"><button type="button" data-nsx="void"><span>🚫</span><b>مشتری کنسل کرد</b><small>کل این فروش باطل می‌شود و از حساب مشتری خارج می‌شود</small></button><button type="button" data-nsx="nobuy"><span>✋</span><b>خرید لازم نیست</b><small>فروش و حساب مشتری می‌ماند؛ فقط از هشدار «باید خرید» خارج می‌شود</small></button></div>'+
+      '<div id="nsxW" style="display:none;margin-top:8px"><label class="f">علت <span class="req">*</span></label><input id="nsxWhy" autocomplete="off" placeholder="مثلاً: از انبار دیگر تأمین شد / مشتری خودش تهیه کرد"><div class="msg bad" id="nsxMsg"></div><div class="actions"><button type="button" class="btn grn" id="nsxOk">✓ ثبت</button></div></div>'+
+      '<div class="actions"><button type="button" class="btn ghost" onclick="closeModal()">انصراف</button></div>',function(){
+      document.querySelector('.dst').addEventListener('click',function(e){var b=e.target.closest('[data-nsx]');if(!b)return;
+        if(b.dataset.nsx==='void'){closeModal();if(window.bfVoidSale){bfVoidSale(id);rs()}return}
+        [].forEach.call(this.children,function(x){x.classList.toggle('on',x===b)});$('nsxW').style.display='';$('nsxWhy').focus()});
+      $('nsxOk').onclick=function(){var w=$('nsxWhy').value.trim();if(!w){showMsg('nsxMsg','علت را بنویسید');return}
+        S.resolved=true;S.buyCanceled=true;S.resolvedAt=todayJ();S.resolvedBy=curUser()||'—';S.resolvedNote='کنسل خرید — '+w;
+        addLog('کنسل خرید (فروش بدون خرید)','فروش '+S.no+' · '+S.company+' · '+w);save();closeModal();rs();try{updSaleBadge()}catch(_){}toast('✓ خرید کنسل شد — فروش '+fa(S.no)+' از هشدار «باید خرید» خارج شد')}})}
   sc.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-pbtog],[data-cpk]')){e.preventDefault();e.target.click()}});
   sc.addEventListener('input',function(e){if(e.target.id!=='pbQ')return;pbQ=e.target.value;clearTimeout(sc._pbt);sc._pbt=setTimeout(function(){rs();var q=document.getElementById('pbQ');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},250)});
   try{if(typeof curTab!=='undefined'&&curTab==='stock')renderStock()}catch(e){}

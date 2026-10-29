@@ -4161,7 +4161,7 @@ var TILES=[
 var TILES110=[
   {id:'jp',lg:'wittur',ic:'🔩',t:'جک و پاور',s:'جک و پاوریونیت ویتور',sub:[['jack','🔩 جک'],['pu','⚙️ پاور یونیت']]},
   {id:'mt',lg:'gentle',ic:'🧲',t:'موتورها',s:'جنتلرایز (بشکه‌ای / دیسکی) · هوبر',sub:[['motorG','🧲 جنتلرایز'],['motorH','🧲 هوبر']]},
-  {id:'pt',lg:'a110',ic:'🧩',t:'متعلقات',s:'کاراسلینگ · کولینگ · شلنگ · درخت سیم · روغن',sub:[['parts','🧩 متعلقات ۱۱۰ (کاراسلینگ، کولینگ، شلنگ…)'],['oil','🛢️ روغن']]}
+  {id:'pt',lg:'a110',ic:'🧩',t:'متعلقات',s:'کاراسلینگ · کولینگ · شلنگ · درخت سیم · روغن',sub:[['parts','🧩 متعلقات ۱۱۰ (کاراسلینگ، کولینگ…)'],['hose110','🪢 شلنگ'],['oil','🛢️ روغن']]}
 ];
 function TL(){return isA110()?TILES110:TILES}
 var ILL={
@@ -4198,7 +4198,10 @@ function listHtml(){
 function onSheetClick(e){var t;
   var TILES=TL();
   if(t=e.target.closest('[data-tile]')){tileOn=t.dataset.tile;var T=TILES.filter(function(x){return x.id===tileOn})[0];if(tileOn==='pt')showAllCats=true;selectCat(T.sub[0][0]);return}
-  if(t=e.target.closest('[data-sub]')){if(tileOn==='pt')showAllCats=true;selectCat(t.dataset.sub);return}
+  if(t=e.target.closest('[data-sub]')){if(tileOn==='pt')showAllCats=true;
+    if(t.dataset.sub==='hose110'){partsSup='a110';selectCat('parts');var hk='a110|hose';inParts[hk]=inParts[hk]||{qty:1};inParts[hk].on=true;try{renderParts()}catch(_){}
+      setTimeout(function(){var el=document.querySelector('[data-pk="a110|hose"]');if(el){el.scrollIntoView({block:'center',behavior:'smooth'});el.classList.add('flash')}[].forEach.call(document.querySelectorAll('.shk-sub [data-sub]'),function(b){b.classList.toggle('on',b.dataset.sub==='hose110')})},60);return}
+    selectCat(t.dataset.sub);return}
   if(t=e.target.closest('[data-shc]')){var l=inStaged[+t.dataset.shc];if(l)commentModal(l,function(){renderSheet()});return}
   if(t=e.target.closest('[data-shrm]')){var b=document.querySelector('#inStaged [data-rm="'+t.dataset.shrm+'"]');if(b)b.click();return}
 }

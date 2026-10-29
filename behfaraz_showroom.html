@@ -2,6 +2,53 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
+<script id="bfPassGate">
+/* ===================== [BF-GATE] رمز ورود نسخهٔ آنلاین (GitHub Pages) =====================
+   قبل از نمایش هر صفحه رمز خواسته می‌شود. بعد از ورود درست، همین مرورگر رمز را به خاطر می‌سپارد.
+   رمز به‌صورت هش SHA-256 نگه داشته می‌شود (خود رمز داخل کد نیست).
+   برای تغییر رمز، مقدار HASH را با هش رمز جدید عوض کنید (همهٔ دستگاه‌ها دوباره رمز می‌خواهند).
+   برای خروج: localStorage.removeItem('bf_gate_v1') یا دکمهٔ «خروج از نسخهٔ آنلاین» در کنسول. */
+(function(){
+  var HASH = '9309e4219a24dab704eda32ce860f233b3a398ecc62d142112c34eba6e5362ba', KEY = 'bf_gate_v1';
+  function ok(){ try{ return localStorage.getItem(KEY) === HASH; }catch(e){ return false; } }
+  window.bfGateLogout = function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); };
+  if(ok()) return;
+  var de = document.documentElement; de.classList.add('bf-locked');
+  var st = document.createElement('style'); st.id = 'bfGateStyle';
+  st.textContent = 'html.bf-locked body>*:not(#bfGate){display:none!important}html.bf-locked,html.bf-locked body{overflow:hidden!important;background:#0f3d3a!important}'
+   + '#bfGate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f3d3a,#1f6f66);font-family:Vazirmatn,Tahoma,sans-serif;direction:rtl;padding:16px}'
+   + '#bfGate form{background:#fff;border-radius:18px;padding:28px 24px;width:100%;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center}'
+   + '#bfGate h2{margin:0 0 6px;color:#0f3d3a;font-size:20px}#bfGate p{margin:0 0 18px;color:#5b6b69;font-size:13px}'
+   + '#bfGate input{width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #cfdcda;border-radius:12px;font-size:16px;text-align:center;direction:ltr;outline:none}'
+   + '#bfGate input:focus{border-color:#1f8a7f}#bfGate button{margin-top:12px;width:100%;padding:12px;border:0;border-radius:12px;background:#0f3d3a;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}'
+   + '#bfGate .err{color:#c0392b;font-size:13px;min-height:18px;margin-top:10px}';
+  (document.head || de).appendChild(st);
+  function unlock(){ de.classList.remove('bf-locked'); var g = document.getElementById('bfGate'); if(g) g.remove(); var s = document.getElementById('bfGateStyle'); if(s) s.remove(); try{ window.dispatchEvent(new Event('resize')); }catch(e){} }
+  function sha(t){
+    if(window.crypto && crypto.subtle && window.TextEncoder)
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)).then(function(b){ return Array.prototype.map.call(new Uint8Array(b), function(x){ return ('0'+x.toString(16)).slice(-2); }).join(''); });
+    return Promise.reject(new Error('nocrypto'));
+  }
+  window.addEventListener('storage', function(e){ if(e.key === KEY && ok()) unlock(); });
+  function show(){
+    if(document.getElementById('bfGate')) return;
+    var g = document.createElement('div'); g.id = 'bfGate';
+    g.innerHTML = '<form autocomplete="off"><h2>سامانهٔ بهفراز</h2><p>برای ورود، رمز را وارد کنید</p>'
+      + '<input type="password" id="bfGatePw" placeholder="رمز ورود" autofocus><button type="submit">ورود</button><div class="err" id="bfGateErr"></div></form>';
+    document.body.appendChild(g);
+    var inp = g.querySelector('input'), err = g.querySelector('.err');
+    setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 50);
+    g.querySelector('form').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      sha(inp.value).then(function(h){
+        if(h === HASH){ try{ localStorage.setItem(KEY, HASH); }catch(e){} unlock(); }
+        else { err.textContent = 'رمز اشتباه است'; inp.select(); }
+      }, function(){ err.textContent = 'مرورگر شما پشتیبانی نمی‌کند — صفحه را با https باز کنید'; });
+    });
+  }
+  if(document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- [BF-ICON] آیکون بهفراز برای «افزودن به صفحهٔ اصلی» در آیفون / اندروید -->
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">

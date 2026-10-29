@@ -2,6 +2,53 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script id="bfPassGate">
+/* ===================== [BF-GATE] رمز ورود نسخهٔ آنلاین (GitHub Pages) =====================
+   قبل از نمایش هر صفحه رمز خواسته می‌شود. بعد از ورود درست، همین مرورگر رمز را به خاطر می‌سپارد.
+   رمز به‌صورت هش SHA-256 نگه داشته می‌شود (خود رمز داخل کد نیست).
+   برای تغییر رمز، مقدار HASH را با هش رمز جدید عوض کنید (همهٔ دستگاه‌ها دوباره رمز می‌خواهند).
+   برای خروج: localStorage.removeItem('bf_gate_v1') یا دکمهٔ «خروج از نسخهٔ آنلاین» در کنسول. */
+(function(){
+  var HASH = '9309e4219a24dab704eda32ce860f233b3a398ecc62d142112c34eba6e5362ba', KEY = 'bf_gate_v1';
+  function ok(){ try{ return localStorage.getItem(KEY) === HASH; }catch(e){ return false; } }
+  window.bfGateLogout = function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); };
+  if(ok()) return;
+  var de = document.documentElement; de.classList.add('bf-locked');
+  var st = document.createElement('style'); st.id = 'bfGateStyle';
+  st.textContent = 'html.bf-locked body>*:not(#bfGate){display:none!important}html.bf-locked,html.bf-locked body{overflow:hidden!important;background:#0f3d3a!important}'
+   + '#bfGate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f3d3a,#1f6f66);font-family:Vazirmatn,Tahoma,sans-serif;direction:rtl;padding:16px}'
+   + '#bfGate form{background:#fff;border-radius:18px;padding:28px 24px;width:100%;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center}'
+   + '#bfGate h2{margin:0 0 6px;color:#0f3d3a;font-size:20px}#bfGate p{margin:0 0 18px;color:#5b6b69;font-size:13px}'
+   + '#bfGate input{width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #cfdcda;border-radius:12px;font-size:16px;text-align:center;direction:ltr;outline:none}'
+   + '#bfGate input:focus{border-color:#1f8a7f}#bfGate button{margin-top:12px;width:100%;padding:12px;border:0;border-radius:12px;background:#0f3d3a;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}'
+   + '#bfGate .err{color:#c0392b;font-size:13px;min-height:18px;margin-top:10px}';
+  (document.head || de).appendChild(st);
+  function unlock(){ de.classList.remove('bf-locked'); var g = document.getElementById('bfGate'); if(g) g.remove(); var s = document.getElementById('bfGateStyle'); if(s) s.remove(); try{ window.dispatchEvent(new Event('resize')); }catch(e){} }
+  function sha(t){
+    if(window.crypto && crypto.subtle && window.TextEncoder)
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)).then(function(b){ return Array.prototype.map.call(new Uint8Array(b), function(x){ return ('0'+x.toString(16)).slice(-2); }).join(''); });
+    return Promise.reject(new Error('nocrypto'));
+  }
+  window.addEventListener('storage', function(e){ if(e.key === KEY && ok()) unlock(); });
+  function show(){
+    if(document.getElementById('bfGate')) return;
+    var g = document.createElement('div'); g.id = 'bfGate';
+    g.innerHTML = '<form autocomplete="off"><h2>سامانهٔ بهفراز</h2><p>برای ورود، رمز را وارد کنید</p>'
+      + '<input type="password" id="bfGatePw" placeholder="رمز ورود" autofocus><button type="submit">ورود</button><div class="err" id="bfGateErr"></div></form>';
+    document.body.appendChild(g);
+    var inp = g.querySelector('input'), err = g.querySelector('.err');
+    setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 50);
+    g.querySelector('form').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      sha(inp.value).then(function(h){
+        if(h === HASH){ try{ localStorage.setItem(KEY, HASH); }catch(e){} unlock(); }
+        else { err.textContent = 'رمز اشتباه است'; inp.select(); }
+      }, function(){ err.textContent = 'مرورگر شما پشتیبانی نمی‌کند — صفحه را با https باز کنید'; });
+    });
+  }
+  if(document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+})();
+</script>
 <script id="bfStaticMode">
 /* ===================== [BF-STATIC] نسخهٔ آنلاین بدون سرور (GitHub Pages) =====================
    این بلوک قبل از هر کد دیگری اجرا می‌شود و یک «سرور محلی» داخل مرورگر می‌سازد:
@@ -1288,6 +1335,57 @@
 
 
 
+  <!-- ===== 🔎 جستجوی هوشمند همه محصولات (قیمت زنده) — هم‌الگوی شکیب ===== -->
+  <style id="gsStyle">
+    .gs-box{margin:0 0 16px;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,#fff3a6,#ffe066);border:2px solid #f0b400;box-shadow:0 6px 18px rgba(240,180,0,.28);position:relative;z-index:30}
+    .gs-label{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13.5px;font-weight:800;color:#5a4300;margin-bottom:8px}
+    .gs-live{display:inline-flex;align-items:center;gap:6px;background:#d92d20;color:#fff;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:800;letter-spacing:.3px}
+    .gs-live i{width:8px;height:8px;border-radius:50%;background:#fff;display:inline-block;animation:gsPulse 1.2s infinite}
+    @keyframes gsPulse{0%,100%{opacity:1}50%{opacity:.25}}
+    .gs-inputwrap{position:relative}
+    .gs-inputwrap input{width:100%;box-sizing:border-box;padding:12px 44px 12px 14px;border-radius:12px;border:2px solid #d99a00;background:#fff;color:#1b1b1b;font-family:inherit;font-size:14.5px}
+    .gs-inputwrap input:focus{outline:none;box-shadow:0 0 0 3px rgba(240,180,0,.45)}
+    .gs-icon{position:absolute;top:50%;left:14px;transform:translateY(-50%);font-size:16px;pointer-events:none}
+    .gs-results{position:absolute;top:100%;right:0;left:0;margin-top:6px;background:#fff;color:#1b1b1b;border:2px solid #d99a00;border-radius:12px;max-height:430px;overflow-y:auto;box-shadow:0 16px 38px rgba(0,0,0,.28);display:none;z-index:600}
+    .gs-results.show{display:block}
+    .gs-empty,.gs-more{padding:14px;text-align:center;font-size:12.5px;color:#6b6b6b}
+    .gs-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #f0ecd8;flex-wrap:wrap}
+    .gs-row:last-child{border-bottom:none}
+    .gs-row:hover{background:#fff9db}
+    .gs-tag{font-size:10.5px;font-weight:800;color:#fff;padding:2px 9px;border-radius:20px;white-space:nowrap;flex:none}
+    .gs-main{flex:1 1 230px;min-width:0}
+    .gs-name{font-size:13px;font-weight:800;line-height:1.55}
+    .gs-spec{font-size:11px;color:#777;line-height:1.5}
+    .gs-price{display:flex;flex-direction:column;align-items:flex-end;min-width:140px}
+    .gs-price b{font-family:'JetBrains Mono',monospace;font-size:13.5px;color:#0b6b3a}
+    .gs-price small{font-size:10.5px;color:#888}
+    .gs-qty{width:74px;padding:7px 8px;border-radius:8px;border:1.5px solid #d99a00;text-align:center;font-weight:800;font-family:inherit}
+    .gs-total{min-width:150px;font-size:12px;color:#444;text-align:left}
+    .gs-total b{font-family:'JetBrains Mono',monospace;font-size:13.5px;color:#a3231c}
+    .gs-add{border:none;border-radius:9px;padding:9px 14px;font-family:inherit;font-weight:800;font-size:12.5px;background:#0f6e56;color:#fff;cursor:pointer}
+    .gs-add:disabled{background:#b9b9b9;cursor:not-allowed}
+    @media print{#gsBox{display:none!important}}
+      .gs-row.gs-sel{background:#fff3bf;outline:2px solid #f0b400;outline-offset:-2px}
+    .gs-opt{display:inline-flex;align-items:center;gap:5px;margin-top:4px;font-size:11.5px;font-weight:700;color:#5a4300;background:#fff7d1;border:1px solid #f0d27a;border-radius:8px;padding:2px 8px;cursor:pointer}
+    .gs-opt small{color:#0b6b3a;font-weight:800}
+    .gs-hint{font-size:11px;color:#6b5500;margin-top:6px}
+    #gsBox .gs-qty{width:74px!important;min-width:0!important;max-width:74px!important;height:auto!important;flex:none!important;padding:7px 8px!important;margin:0!important;border-radius:8px!important;border:1.5px solid #d99a00!important;text-align:center!important;font-size:13px!important;background:#fff!important;color:#1b1b1b!important;box-shadow:none!important}
+    #gsBox .gs-opt{display:inline-flex!important;width:auto!important;margin:4px 0 0!important;flex-direction:row!important}
+    #gsBox .gs-opt input{width:auto!important;height:auto!important;margin:0!important;padding:0!important;flex:none!important}
+    #gsBox .gs-add{width:auto!important;flex:none!important;margin:0!important}
+    #gsBox .gs-label{width:auto}
+    #gsBox .gs-inputwrap input#gsInput{width:100%!important;max-width:none!important;padding:12px 44px 12px 14px!important;border:2px solid #d99a00!important;border-radius:12px!important;background:#fff!important;color:#1b1b1b!important;font-size:14.5px!important;height:auto!important}
+  </style>
+  <div class="gs-box no-print" id="gsBox">
+    <label class="gs-label" for="gsInput">🔎 جستجوی سریع همه موتورها و فلکه — برند، ظرفیت، سرعت یا مدل را تایپ کنید <span class="gs-live"><i></i>قیمت زنده</span></label>
+    <div class="gs-inputwrap">
+      <input type="text" id="gsInput" autocomplete="off" placeholder="مثلاً: جنتل دیسکی 630 1.6 ، داینا بشکه‌ای 8 نفر ، هوبر T32L ، 630kg 1:1 ، فلکه 320 ...">
+      <span class="gs-icon">🔍</span>
+      <div class="gs-results" id="gsResults"></div>
+    </div>
+    <div class="gs-hint">حساس به مدل و سایز (80 ≠ 180) · ↑/↓ انتخاب · Enter افزودن به سبد · Esc بستن</div>
+  </div>
+
   <!-- Brand selection -->
   <div class="card">
     <h2>انتخاب برند موتور</h2>
@@ -2080,7 +2178,7 @@ function farow(row, cabinCapacity, sheave, width, grooveCount, bearingSize, shaf
 const kwR = (min,max) => ({min,max});
 const kwL = (...v) => ({list:v});
 // قیمت هر بلبرینگ ژاپن (ریال) — طبق لیست: «هر بلبرینگ حدود ۲٬۲۰۰٬۰۰۰ تومان و سفارشی است». در سبد سفارش قابل ویرایش است.
-const FALAKE_JP_BEARING_PRICE = 22000000;
+let FALAKE_JP_BEARING_PRICE = 22000000; // let: از «مدیریت قیمت» (فقط ادمین/مدیریت) قابل تغییر است
 // ردیف‌ها و مشخصات فنی دقیقاً طبق لیست مرجع کاربر (۱۴۰۵/۰۷/۲۸) — هر ردیف یک مدل جدا (هر تعداد شیار یک ردیف).
 // kW پیشنهادی دیسکی / درامی (بشکه‌ای) طبق همان لیست؛ null = خانهٔ مشکی/خالی (برای آن نوع موتور پیشنهاد نمی‌شود).
 // قیمت‌ها همان لیست قیمت پرهام‌صنعت ۱۴۰۵/۰۷/۱۹ است (به ریال) که بر اساس قطر/عرض/بلبرینگ/شفت هر گروه نگاشت شده.
@@ -5708,13 +5806,16 @@ body.bfpo-can #bfPriceMgr .pm-bulk{display:block}
 #bfPriceMgr .pm-wrap{max-height:70vh;overflow:auto;border:1px solid #e2e8f0;border-radius:10px}
 #bfPriceMgr .pm-ro{font-size:12.5px;color:#64748b;margin:4px 0 8px}
 body.bfpo-can #bfPriceMgr .pm-ro{display:none}
+/* فقط ادمین و مدیریت این بخش، دکمهٔ دفتر و نقطه‌های قیمت ویژه را می‌بینند */
+#bfPriceMgr,.bfpo-logbtn{display:none}
+body.bfpo-can #bfPriceMgr{display:block}
+body.bfpo-can .bfpo-logbtn{display:flex}
 @media print{.bfpo-dot,.bfpo-logbtn,.bfpo-ov,#bfPriceMgr{display:none !important}}
 </style>
 <details class="card no-print" id="bfPriceMgr">
   <summary style="cursor:pointer; list-style:none;">
     <h2 style="display:inline-flex; margin:-18px -20px 16px -20px; width:calc(100% + 40px);">🛠️ مدیریت قیمت محصولات <small id="bfpoCount2" style="font-weight:400;margin-inline-start:8px;opacity:.85"></small></h2>
   </summary>
-  <div class="pm-ro">نمایش فقط‌خواندنی — تغییر قیمت فقط برای ادمین و مدیریت فعال است.</div>
   <div class="pm-bulk">
     <b>📈 افزایش / کاهش درصدی گروهی</b>
     <div class="pm-grid">
@@ -5802,7 +5903,7 @@ body.bfpo-can #bfPriceMgr .pm-ro{display:none}
   function liveRow(r){ if(!r||!r._pk) return r; var b=brandOf(r._pk), hit=null; (BF_PH[b]?BF_PH[b].refs:[]).some(function(x){ if(x.o._pk===r._pk){ hit=x.o; return true; } }); return hit; }
   function refreshOne(s){
     if(!s.dot) return; var r=s.row(), pk=r&&r._pk, l=pk&&LAST[pk], on=!!(pk&&OVR[pk]&&isCur(s.b));
-    s.dot.classList.toggle('on', on);
+    s.dot.classList.toggle('on', on && CAN);
     s.dot.title = on&&l ? ('قیمت ویژه · آخرین تغییر: '+jd(l.created_at)+' · '+(l.operator||'')+' · '+pct(l.old_price,l.new_price)+'\nعلت: '+(l.reason||'')) : '';
   }
   function refreshAll(){
@@ -5815,7 +5916,7 @@ body.bfpo-can #bfPriceMgr .pm-ro{display:none}
   // ۴) بارگذاری از سرور
   function load(){
     return fetch('/api/price-overrides?page='+PAGE,{headers:hdr(),cache:'no-store'}).then(js).then(function(j){
-      if(!j||!j.ok) return; OVR={}; LAST={};
+      if(!j||!j.ok){ if(!LOADED && (load._n=(load._n||0)+1)<200) setTimeout(load,3000); return; } OVR={}; LAST={}; // هنوز وارد نشده → بعد از ورود دوباره
       (j.overrides||[]).forEach(function(o){ OVR[o.pkey]=o; });
       (j.last||[]).forEach(function(l){ LAST[l.pkey]=l; });
       CAN=!!j.canEdit; LOADED=true; document.body.classList.toggle('bfpo-can',CAN);
@@ -5966,5 +6067,749 @@ body.bfpo-can #bfPriceMgr .pm-ro{display:none}
 </script>
 
 
+<!-- [BF-PRICE-MGR] start: کد مشترک مدیریت قیمت (منبع واحد؛ در همهٔ صفحه‌ها یکسان) -->
+<script>
+/* ===== [BF-PRICE-MGR] 🛠️ مدیریت قیمت محصولات — موتور مشترک همهٔ صفحه‌ها (فلکه، شکیب، ویتور، کارسلینگ، پنل شاسی) =====
+   - فقط ادمین و مدیریت این بخش را می‌بینند (سرور هم کنترل می‌کند؛ دفتر تغییرات برای بقیه 403 است).
+   - هر تغییر (تکی یا گروهی) با «علت اجباری» در دفتر دائمی سرور (price_log) ثبت می‌شود.
+   - فیلتر هوشمند: گروه محصول + زیرگروه + جست‌وجو (اعداد فارسی/انگلیسی) + «فقط قیمت‌های ویژه».
+   - تغییر گروهی (درصدی / مبلغ ثابت / بازگشت به پایه) دقیقاً روی همان ردیف‌های فیلترشده اعمال می‌شود.
+   - قیمت ویژه فقط روی «نرخ جاری» (همان نرخ پیش‌فرض تاریخچه قیمت) اعمال می‌شود؛ نرخ‌های قدیمی دست‌نخورده می‌مانند.
+   - اگر یک محصول در چند جدول صفحه تکرار شده باشد (مثلاً جک ۸۰×۵×۲۰۰۰ در محاسبه سریع + کاتالوگ)، یک ردیف می‌شود
+     و تغییرش همه‌جا اعمال می‌شود (فقط وقتی قیمت پایهٔ آن‌ها یکی باشد). */
+(function(){
+  'use strict';
+  if(window.BFPriceMgr) return;
+  var CSS = ''+
+  '.bfpm{direction:rtl;background:#fff;border:1px solid #e2e8f0;border-radius:16px;margin:18px 0;box-shadow:0 4px 18px rgba(15,23,42,.06);color:#0f172a;font-family:inherit;display:none}'+
+  '.bfpm.on{display:block}'+
+  '.bfpm>summary{cursor:pointer;list-style:none;padding:14px 18px;font-weight:800;font-size:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#0f766e,#14532d);color:#fff;border-radius:16px}'+
+  '.bfpm[open]>summary{border-radius:16px 16px 0 0}'+
+  '.bfpm>summary::-webkit-details-marker{display:none}'+
+  '.bfpm>summary small{font-weight:400;opacity:.9;font-size:12.5px}'+
+  '.bfpm>summary .bfpm-lock{margin-inline-start:auto;font-size:11.5px;font-weight:600;background:rgba(255,255,255,.18);padding:3px 10px;border-radius:20px}'+
+  '.bfpm-in{padding:14px 16px}'+
+  '.bfpm label.l{display:block;font-size:12.5px;margin:8px 0 4px;color:#334155}'+
+  '.bfpm input,.bfpm select,.bfpm-box input,.bfpm-box select,.bfpm-box textarea{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;font-size:14px;background:#fff;color:#0f172a}'+
+  '.bfpm input.num,.bfpm-box input.num{direction:ltr;text-align:left;font-variant-numeric:tabular-nums}'+
+  '.bfpm .b,.bfpm-box .b{padding:8px 14px;border-radius:9px;border:1px solid #cbd5e1;background:#f8fafc;font:inherit;font-size:13.5px;cursor:pointer;color:#0f172a;white-space:nowrap}'+
+  '.bfpm .b.pri,.bfpm-box .b.pri{background:#0f766e;color:#fff;border-color:#0f766e}'+
+  '.bfpm .b:disabled,.bfpm-box .b:disabled{opacity:.5;cursor:not-allowed}'+
+  '.bfpm-chips{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}'+
+  '.bfpm-chip{border:1px solid #cbd5e1;background:#fff;border-radius:20px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer;color:#0f172a}'+
+  '.bfpm-chip b{font-weight:400;opacity:.7;margin-inline-start:4px;font-size:11.5px}'+
+  '.bfpm-chip.on{background:#0f766e;color:#fff;border-color:#0f766e}'+
+  '.bfpm-chip.ov.on{background:#b45309;border-color:#b45309}'+
+  '.bfpm-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}'+
+  '.bfpm-bar>*{flex:0 0 auto;width:auto}'+
+  '.bfpm-bar .q{flex:1 1 220px;min-width:180px}'+
+  '.bfpm-bulk{border:1px solid #fcd34d;background:#fffbeb;border-radius:12px;padding:12px;margin:0 0 12px}'+
+  '.bfpm-bulk>b{display:block;margin-bottom:2px}'+
+  '.bfpm-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}'+
+  '.bfpm-grid>div{min-width:0}'+
+  '@media (max-width:760px){.bfpm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}'+
+  '.bfpm-prev{font-size:12.5px;margin-top:8px;line-height:1.9;min-height:18px}'+
+  '.bfpm-err{color:#b91c1c;font-size:13px;margin-top:6px;min-height:16px}'+
+  '.bfpm-warn{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:10px;padding:7px 10px;font-size:12.5px;margin-bottom:8px}'+
+  '.bfpm-wrap{max-height:70vh;overflow:auto;border:1px solid #e2e8f0;border-radius:10px}'+
+  '.bfpm-tbl{width:100%;border-collapse:collapse;font-size:12.5px}'+
+  '.bfpm-tbl th,.bfpm-tbl td{border-bottom:1px solid #eef2f7;padding:6px;text-align:right;vertical-align:middle}'+
+  '.bfpm-tbl th{background:#f8fafc;position:sticky;top:0;z-index:1;font-weight:700;white-space:nowrap}'+
+  '.bfpm-tbl td.n{direction:ltr;text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums}'+
+  '.bfpm-tbl tr.ov td.n.c{background:#fffbeb}'+
+  '.bfpm-tbl tr.blk td{opacity:.55}'+
+  '.bfpm-tbl td.g{white-space:nowrap;color:#475569;font-size:11.5px}'+
+  '.bfpm-tbl td .s{display:block;color:#64748b;font-size:11px}'+
+  '.bfpm-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.22);margin-inline-end:6px;vertical-align:middle}'+
+  '.bfpm-up{color:#b91c1c}.bfpm-dn{color:#15803d}'+
+  '.bfpm-pen{border:1px solid #cbd5e1;background:#fff;border-radius:7px;font:inherit;font-size:12px;padding:2px 8px;cursor:pointer}'+
+  '.bfpm-more{display:block;margin:8px auto}'+
+  '.bfpm-tag{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11px;background:#e0f2fe;color:#075985;white-space:nowrap}'+
+  '.bfpm-tag.file{background:#ede9fe;color:#5b21b6}.bfpm-tag.undo{background:#fee2e2;color:#991b1b}.bfpm-tag.reset{background:#dcfce7;color:#166534}.bfpm-tag.bulk{background:#fef3c7;color:#92400e}'+
+  '.bfpm-ov{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:16px}'+
+  '.bfpm-box{background:#fff;color:#0f172a;border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);direction:rtl;font-family:inherit;text-align:right}'+
+  '.bfpm-box.wide{max-width:1150px}'+
+  '.bfpm-box h3{margin:0 0 10px;font-size:17px}'+
+  '.bfpm-box label{display:block;font-size:13px;margin:10px 0 4px;color:#334155}'+
+  '.bfpm-info{background:#f1f5f9;border-radius:10px;padding:10px;font-size:13px;line-height:1.9}'+
+  '.bfpm-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}'+
+  '.bfpm-undo{white-space:nowrap;border:1px solid #fca5a5;color:#b91c1c;background:#fff;border-radius:7px;font:inherit;font-size:11.5px;padding:2px 7px;cursor:pointer}'+
+  '.bfpm-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0f766e;color:#fff;padding:10px 18px;border-radius:10px;z-index:2147483001;font-family:inherit;box-shadow:0 8px 24px rgba(0,0,0,.25);direction:rtl}'+
+  '@media print{.bfpm,.bfpm-ov,.bfpm-toast{display:none !important}}';
+  function addCss(){ if(document.getElementById('bfpmCss')) return; var st=document.createElement('style'); st.id='bfpmCss'; st.textContent=CSS; document.head.appendChild(st); }
+
+  function hdr(){ var h={'Content-Type':'application/json'}; try{ var a=(typeof bfAuthHeaders==='function')?bfAuthHeaders():{}; for(var k in a) h[k]=a[k]; }catch(e){} return h; }
+  function js(r){ var ct=(r.headers.get('content-type')||''); if(ct.indexOf('json')<0) throw new Error('سرور هنوز نسخهٔ جدید را اجرا نمی‌کند — پنجرهٔ سرور را ببندید و server.js را دوباره اجرا کنید'); return r.json(); }
+  function getJ(url){ return fetch(url,{headers:hdr(),cache:'no-store'}).then(function(r){ return js(r).then(function(j){ if(!r.ok||!j||!j.ok) throw new Error((j&&j.error)||'خطا'); return j; }); }); }
+  function post(url, body){ return fetch(url,{method:'POST',headers:hdr(),body:JSON.stringify(body)}).then(function(r){ return js(r).then(function(j){ if(!r.ok||!j.ok) throw new Error((j&&j.error)||'ذخیره نشد'); return j; }); }); }
+  function f(n){ return (n==null||!isFinite(n))?'—':Math.round(n).toLocaleString('en-US'); }
+  function fa(n){ return (n==null||!isFinite(n))?'—':Math.round(n).toLocaleString('fa-IR'); }
+  function jd(iso){ try{ return new Date(iso).toLocaleString('fa-IR-u-ca-persian',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function pct(a,b){ if(!a||b==null) return ''; var p=(b-a)/a*100; return (p>=0?'+':'')+p.toFixed(1)+'٪'; }
+  function pctH(a,b){ var t=pct(a,b); if(!t) return ''; return '<span class="'+(b>a?'bfpm-up':(b<a?'bfpm-dn':''))+'">'+t+'</span>'; }
+  function toEn(v){ return String(v==null?'':v).replace(/[۰-۹]/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);}).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d);}); }
+  function norm(v){ return toEn(v).toLowerCase().replace(/[×x\*]/g,'*').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/‌/g,' ').replace(/\s+/g,' ').trim(); }
+  function toast(m){ var t=document.createElement('div'); t.className='bfpm-toast'; t.textContent=m; document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }
+  function overlay(html, wide){ addCss(); var ov=document.createElement('div'); ov.className='bfpm-ov'; ov.innerHTML='<div class="bfpm-box'+(wide?' wide':'')+'">'+html+'</div>'; ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); }); document.body.appendChild(ov); return ov; }
+  var ACT={set:['تغییر','set'],reset:['بازگشت به پایه','reset'],undo:['برگشت','undo'],file:['ثبت در فایل','file'],bulk:['گروهی','bulk']};
+  var PAGE_FA={motors:'موتور',falake:'فلکه هرزگرد',shakib:'شکیب',wittur:'ویتور',karasling:'کارسلینگ',panel:'پنل شاسی'};
+
+  /* 📜 دفتر تغییرات قیمت — pages: آرایهٔ صفحه‌ها یا 'all' ؛ ctx (اختیاری) = نمونهٔ مدیر قیمت برای «برگشت» */
+  function openLog(pages, ctx, title){
+    var scopeOwn = (pages==='all') ? null : pages.join(',');
+    var ov=overlay('<h3>📜 دفتر تغییرات قیمت'+(title?' — '+esc(title):'')+'</h3>'+
+      '<div class="bfpm-bar" style="margin:0">'+
+        (scopeOwn?'<select id="bfpmLS" style="width:auto"><option value="own">فقط همین بخش</option><option value="all">همهٔ محصولات (همه‌جا)</option></select>':'')+
+        '<select id="bfpmLP" style="width:auto"><option value="">همهٔ صفحه‌ها</option></select>'+
+        '<input id="bfpmLQ" class="q" placeholder="جست‌وجو: محصول، کاربر، علت، عدد ...">'+
+        '<button type="button" class="b" id="bfpmLX">⬇️ خروجی اکسل</button><button type="button" class="b" id="bfpmLC">بستن</button></div>'+
+      '<div id="bfpmLL" style="margin-top:8px">در حال بارگذاری...</div>', true);
+    var rows=[], LASTID={};
+    ov.querySelector('#bfpmLC').onclick=function(){ ov.remove(); };
+    function scope(){ var s=ov.querySelector('#bfpmLS'); return (!scopeOwn || (s && s.value==='all')) ? 'all' : scopeOwn; }
+    function draw(){
+      var q=norm(ov.querySelector('#bfpmLQ').value), pg=ov.querySelector('#bfpmLP').value;
+      var list=rows.filter(function(r){ if(pg && r.page!==pg) return false; return !q || q.split(' ').every(function(w){ return norm([r.label,r.operator,r.reason,r.pkey,r.new_price,r.old_price,PAGE_FA[r.page]].join(' ')).indexOf(w)>=0; }); });
+      var shown=list.slice(0,1500);
+      ov.querySelector('#bfpmLL').innerHTML = list.length ? '<div style="font-size:12px;color:#64748b;margin-bottom:6px">'+fa(list.length)+' ردیف'+(list.length>shown.length?' (نمایش '+fa(shown.length)+' ردیف آخر — برای بقیه جست‌وجو یا خروجی اکسل)':'')+'</div><div class="bfpm-wrap"><table class="bfpm-tbl"><thead><tr><th>#</th><th>تاریخ و ساعت</th><th>کاربر</th><th>بخش</th><th>محصول</th><th>قیمت قبلی</th><th>قیمت جدید</th><th>تغییر</th><th>نوع</th><th>علت</th><th></th></tr></thead><tbody>'+
+        shown.map(function(r){ var a=ACT[r.action]||[r.action,'']; var isLast=LASTID[r.page+'§'+r.pkey]===r.id;
+          var can = isLast && r.old_price!=null && r.action!=='file';
+          return '<tr><td>'+fa(r.id)+'</td><td style="white-space:nowrap">'+esc(jd(r.created_at))+'</td><td>'+esc(r.operator||'')+'</td><td class="g">'+esc(PAGE_FA[r.page]||r.page)+'</td><td>'+esc(r.label||r.pkey)+'</td><td class="n">'+f(r.old_price)+'</td><td class="n"><b>'+f(r.new_price)+'</b></td><td class="n">'+pctH(r.old_price,r.new_price)+'</td><td><span class="bfpm-tag '+a[1]+'">'+a[0]+'</span></td><td>'+esc(r.reason)+'</td><td>'+(can?'<button type="button" class="bfpm-undo" data-id="'+r.id+'">↩️ برگشت</button>':'')+'</td></tr>'; }).join('')+'</tbody></table></div>' : '<p>موردی ثبت نشده است.</p>';
+      ov.querySelectorAll('.bfpm-undo').forEach(function(btn){ btn.onclick=function(){ undo(rows.find(function(x){ return String(x.id)===btn.dataset.id; })); }; });
+    }
+    function undo(r){
+      if(!r) return; var why=prompt('برگشت «'+r.label+'» از '+f(r.new_price)+' به '+f(r.old_price)+' ریال.\nعلت برگشت (اجباری):','');
+      if(why==null) return; if(why.trim().length<3){ alert('علت برگشت اجباری است.'); return; }
+      var base=null, inst=null;
+      INSTANCES.forEach(function(m){ var it=m._find(r.page, r.pkey); if(it){ base=it.base; inst=m; } });
+      if(base==null && window.bfPriceOvr && r.page==='motors'){ /* موتورها: پایه را صفحهٔ موتور خودش می‌داند */ }
+      post('/api/price-overrides',{page:r.page,key:r.pkey,label:r.label,price:r.old_price,base:base,old:r.new_price,reason:'برگشت ردیف #'+r.id+' — '+why.trim(),undoOf:r.id})
+        .then(fetchRows).then(function(){ INSTANCES.forEach(function(m){ m.load(); }); try{ if(window.bfPriceOvr) window.bfPriceOvr.load(); }catch(e){} toast('↩️ قیمت برگشت داده شد و در دفتر ثبت شد'); })
+        .catch(function(e){ alert('❌ '+e.message); });
+    }
+    function fetchRows(){
+      return getJ('/api/price-log?pages='+encodeURIComponent(scope())).then(function(j){
+        rows=j.rows||[]; LASTID={}; rows.forEach(function(r){ var k=r.page+'§'+r.pkey; if(!(k in LASTID) || LASTID[k]<r.id) LASTID[k]=r.id; });
+        var sel=ov.querySelector('#bfpmLP'), cur=sel.value, pgs={}; rows.forEach(function(r){ pgs[r.page]=1; });
+        sel.innerHTML='<option value="">همهٔ صفحه‌ها</option>'+Object.keys(pgs).map(function(p){ return '<option value="'+p+'"'+(p===cur?' selected':'')+'>'+esc(PAGE_FA[p]||p)+'</option>'; }).join('');
+        draw();
+      }).catch(function(e){ ov.querySelector('#bfpmLL').textContent='❌ '+e.message; });
+    }
+    ov.querySelector('#bfpmLQ').addEventListener('input',draw);
+    ov.querySelector('#bfpmLP').addEventListener('change',draw);
+    var ls=ov.querySelector('#bfpmLS'); if(ls) ls.addEventListener('change',fetchRows);
+    ov.querySelector('#bfpmLX').onclick=function(){
+      var H=['ردیف','تاریخ و ساعت','کاربر','بخش','محصول','کلید','قیمت قبلی (ریال)','قیمت جدید (ریال)','درصد تغییر','نوع','علت'];
+      var L=[H].concat(rows.map(function(r){ return [r.id,jd(r.created_at),r.operator||'',PAGE_FA[r.page]||r.page,r.label||'',r.pkey,r.old_price==null?'':r.old_price,r.new_price,pct(r.old_price,r.new_price),(ACT[r.action]||[r.action])[0],r.reason]; }));
+      var csv='﻿'+L.map(function(a){ return a.map(function(v){ v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }).join(','); }).join('\r\n');
+      var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='price-log-'+(scope()==='all'?'all':scope().replace(/,/g,'-'))+'.csv'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500);
+    };
+    fetchRows();
+  }
+
+  var INSTANCES=[];
+  /* cfg:
+     id, title, page (صفحهٔ پیش‌فرض در سرور), pages (همهٔ صفحه‌هایی که خوانده می‌شوند)
+     groups: [{id,label}]  ·  refs(): [{id,page,group,sub,label,unit,o,k | get,set, setg, src}]
+     isCurrent(ref) → آیا این ردیف روی نرخ جاری است؟  ·  after(changed, initial) → بازسازی/نمایش دوباره
+     mount(el) → جای بخش در صفحه  ·  wrap(reapply) → بستن تابع «تاریخچه قیمت» صفحه تا بعد از تعویض نرخ دوباره اعمال شود */
+  function create(cfg){
+    addCss();
+    var M={cfg:cfg}, ITEMS=[], BYK={}, OVR={}, LAST={}, CAN=false, LOADED=false;
+    var GROUPS=cfg.groups||[], GL={}; GROUPS.forEach(function(g){ GL[g.id]=g.label; });
+    var F={g:'all', sub:'', q:'', ov:false}, LIMIT=300;
+
+    // ۱) ساخت فهرست محصولات از روی ارجاع‌های صفحه (ردیف‌های تکراری با قیمت پایهٔ یکسان یکی می‌شوند)
+    function build(){
+      ITEMS=[]; BYK={}; var seen={}, used={};
+      var refs=[]; try{ refs=cfg.refs()||[]; }catch(e){ console.warn('[BF-PRICE-MGR] refs', e); }
+      refs.forEach(function(r){
+        if(!r || !r.id) return;
+        if(!r.get){ (function(o,k){ r.get=function(){ return o[k]; }; r.set=function(v){ o[k]=v; }; })(r.o, r.k); }
+        var b; try{ b=r.get(); }catch(e){ return; }
+        if(typeof b!=='number' || !isFinite(b)) return;
+        var page=r.page||cfg.page, sid=page+'§'+r.id, list=seen[sid]||(seen[sid]=[]);
+        var hit=null; list.some(function(it){ if(it.base===b){ hit=it; return true; } });
+        if(hit){ hit.refs.push(r); return; }
+        var key=r.id; if(list.length) key=r.id+'|'+(r.src||('v'+(list.length+1)));
+        var kk=page+'§'+key, n=2; while(used[kk]){ key=r.id+'|v'+(n++); kk=page+'§'+key; }
+        used[kk]=1;
+        var it={key:key, page:page, group:r.group||'other', sub:r.sub||'', label:r.label||r.id, unit:r.unit||'ریال', base:b, refs:[r], cur:b};
+        it._s=norm([it.label, it.sub, GL[it.group]||'', it.key].join(' '));
+        list.push(it); ITEMS.push(it); BYK[kk]=it;
+      });
+    }
+    function cur(it){ return (it.refs[0].setg && cfg.isCurrent) ? cfg.isCurrent(it.refs[0]) : true; }
+    // ۲) اعمال قیمت‌های ویژه (فقط روی نرخ جاری)
+    function apply(initial){
+      var changed=0;
+      ITEMS.forEach(function(it){
+        var o=OVR[it.page+'§'+it.key], v=o?o.price:it.base;
+        it.ovr=o||null;
+        it.refs.forEach(function(r){ if(cfg.isCurrent && r.setg && !cfg.isCurrent(r)) return; try{ if(r.get()!==v){ r.set(v); changed++; } }catch(e){} });
+        try{ it.cur=it.refs[0].get(); }catch(e){}
+        it.blocked=!cur(it);
+      });
+      if(cfg.after){ try{ cfg.after(changed>0, !!initial); }catch(e){ console.warn('[BF-PRICE-MGR] after', e); } }
+      drawAll();
+      return changed;
+    }
+    M.reapply=function(){ return apply(false); };
+    M._find=function(page,key){ return BYK[page+'§'+key]||null; };
+
+    // ۳) بارگذاری از سرور
+    var waitN=0;
+    function later(){ if(waitN++<300) setTimeout(load, Math.min(10000, 1200+waitN*300)); }
+    function load(){
+      var pages=(cfg.pages||[cfg.page]).join(',');
+      // هنوز وارد نشده (پنجرهٔ ورود باز است) → بعد از ورود خودکار دوباره تلاش می‌شود
+      if(!hdr()['x-operator-token']){ later(); return Promise.resolve(); }
+      return getJ('/api/price-overrides?pages='+encodeURIComponent(pages)).then(function(j){
+        OVR={}; LAST={};
+        (j.overrides||[]).forEach(function(o){ OVR[o.page+'§'+o.pkey]=o; });
+        (j.last||[]).forEach(function(l){ LAST[l.page+'§'+l.pkey]=l; });
+        CAN=!!j.canEdit; LOADED=true;
+        if(EL) EL.classList.toggle('on', CAN);
+        apply(true);
+      }).catch(function(e){ console.warn('[BF-PRICE-MGR] load', e); if(/وارد شوید/.test(e.message)) later(); });
+    }
+    M.load=load;
+
+    // ۴) بخش «مدیریت قیمت» آخر صفحه — فقط ادمین/مدیریت
+    var EL=document.createElement('details'); EL.className='bfpm no-print'; EL.id=cfg.id||('bfpm_'+cfg.page);
+    EL.innerHTML='<summary>🛠️ مدیریت قیمت محصولات — '+esc(cfg.title||'')+' <small class="bfpm-cnt"></small><span class="bfpm-lock">🔒 فقط ادمین و مدیریت</span></summary>'+
+      '<div class="bfpm-in">'+
+        (cfg.note?'<div style="font-size:12.5px;color:#475569;margin-bottom:8px;line-height:1.9">'+cfg.note+'</div>':'')+
+        '<div class="bfpm-chips bfpm-g"></div>'+
+        '<div class="bfpm-bar"><select class="bfpm-sub" style="min-width:170px"></select><input class="q bfpm-q" placeholder="جست‌وجو: سایز، مدل، 80*5*2000، 7.7، شلنگ ..."><button type="button" class="bfpm-chip ov bfpm-ovb">⭐ فقط قیمت‌های ویژه</button><button type="button" class="b bfpm-logb">📜 دفتر تغییرات قیمت</button></div>'+
+        '<div class="bfpm-bulk">'+
+          '<b>📈 تغییر گروهی روی <span class="bfpm-nf">۰</span> ردیفِ فیلترشدهٔ فعلی</b><div style="font-size:12px;color:#92400e">اول با دکمه‌های گروه/زیرگروه/جست‌وجو ردیف‌ها را محدود کنید؛ تغییر فقط روی همان‌ها اعمال می‌شود.</div>'+
+          '<div class="bfpm-grid">'+
+            '<div><label class="l">نوع تغییر</label><select class="bfpm-bm"><option value="pct">درصدی (٪)</option><option value="amt">مبلغ ثابت (ریال)</option><option value="base">بازگشت به قیمت پایه</option></select></div>'+
+            '<div><label class="l bfpm-bvl">درصد (منفی = کاهش)</label><input class="num bfpm-bv" inputmode="decimal" placeholder="مثلاً 5 یا -3"></div>'+
+            '<div><label class="l">گرد کردن</label><select class="bfpm-br"><option value="1">بدون گرد کردن</option><option value="1000">۱٬۰۰۰ ریال</option><option value="100000">۱۰۰٬۰۰۰ ریال</option><option value="1000000" selected>۱٬۰۰۰٬۰۰۰ ریال</option><option value="10000000">۱۰٬۰۰۰٬۰۰۰ ریال</option></select></div>'+
+            '<div><label class="l">مبنای محاسبه</label><select class="bfpm-bb"><option value="cur">قیمت فعلی</option><option value="base">قیمت پایه (لیست اصلی)</option></select></div>'+
+          '</div>'+
+          '<label class="l">علت (اجباری)</label><input class="bfpm-bwhy" placeholder="مثلاً: افزایش ۵٪ طبق اعلام تأمین‌کننده مورخ ...">'+
+          '<div class="bfpm-prev"></div><div class="bfpm-err"></div>'+
+          '<div class="bfpm-row" style="margin-top:6px"><button type="button" class="b pri bfpm-go">اعمال روی ردیف‌های فیلترشده و ثبت در دفتر</button></div>'+
+        '</div>'+
+        '<div class="bfpm-wb"></div>'+
+        '<div class="bfpm-wrap bfpm-t"></div>'+
+      '</div>';
+    function $(c){ return EL.querySelector(c); }
+    function place(){ try{ if(cfg.mount) cfg.mount(EL); else document.body.appendChild(EL); }catch(e){ document.body.appendChild(EL); } }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',place); else place();
+
+    function filtered(){
+      var q=norm(F.q), ws=q?q.split(' '):[];
+      return ITEMS.filter(function(it){
+        if(F.g!=='all' && it.group!==F.g) return false;
+        if(F.sub && it.sub!==F.sub) return false;
+        if(F.ov && !it.ovr) return false;
+        return !ws.length || ws.every(function(w){ return it._s.indexOf(w)>=0; });
+      });
+    }
+    function drawChips(){
+      var cnt={}, ovn=0; ITEMS.forEach(function(it){ cnt[it.group]=(cnt[it.group]||0)+1; if(it.ovr) ovn++; });
+      var gs=GROUPS.filter(function(g){ return cnt[g.id]; });
+      $('.bfpm-g').innerHTML='<button type="button" class="bfpm-chip'+(F.g==='all'?' on':'')+'" data-g="all">همه<b>'+fa(ITEMS.length)+'</b></button>'+
+        gs.map(function(g){ return '<button type="button" class="bfpm-chip'+(F.g===g.id?' on':'')+'" data-g="'+g.id+'">'+esc(g.label)+'<b>'+fa(cnt[g.id])+'</b></button>'; }).join('');
+      $('.bfpm-g').querySelectorAll('[data-g]').forEach(function(c){ c.onclick=function(){ F.g=c.dataset.g; F.sub=''; LIMIT=300; drawAll(); }; });
+      var subs={}; ITEMS.forEach(function(it){ if((F.g==='all'||it.group===F.g) && it.sub) subs[it.sub]=(subs[it.sub]||0)+1; });
+      var sk=Object.keys(subs);
+      $('.bfpm-sub').innerHTML='<option value="">همهٔ زیرگروه‌ها</option>'+sk.map(function(s){ return '<option value="'+esc(s)+'"'+(s===F.sub?' selected':'')+'>'+esc(s)+' ('+fa(subs[s])+')</option>'; }).join('');
+      $('.bfpm-sub').style.display=sk.length?'':'none';
+      $('.bfpm-ovb').classList.toggle('on',F.ov);
+      $('.bfpm-cnt').textContent=ovn?('· '+fa(ovn)+' قیمت ویژه'):'';
+    }
+    function lastOf(it){ return LAST[it.page+'§'+it.key]; }
+    function drawTable(){
+      var list=filtered(), w=$('.bfpm-t');
+      $('.bfpm-nf').textContent=fa(list.length);
+      var blk=ITEMS.filter(function(it){ return it.blocked; }).length;
+      $('.bfpm-wb').innerHTML=blk?'<div class="bfpm-warn">⚠️ در «📈 تاریخچه قیمت» برای بخشی از محصولات ('+fa(blk)+' ردیف) نرخ قدیمی انتخاب شده است؛ قیمت ویژه فقط روی نرخ جاری قابل تغییر و اعمال است (ردیف‌های کم‌رنگ).</div>':'';
+      var shown=list.slice(0,LIMIT);
+      w.innerHTML='<table class="bfpm-tbl"><thead><tr><th>#</th><th>گروه</th><th>محصول / شرح</th><th>قیمت فعلی</th><th>قیمت پایه</th><th>تغییر</th><th>آخرین تغییر</th><th></th></tr></thead><tbody>'+
+        shown.map(function(it,i){ var l=lastOf(it);
+          return '<tr class="'+(it.ovr?'ov ':'')+(it.blocked?'blk':'')+'"><td>'+fa(i+1)+'</td><td class="g">'+esc(GL[it.group]||it.group)+(it.page!==cfg.page?'<span class="s">'+esc(PAGE_FA[it.page]||it.page)+' (مشترک)</span>':'')+'</td>'+
+            '<td>'+esc(it.label)+(it.sub?'<span class="s">'+esc(it.sub)+(it.refs.length>1?' · '+fa(it.refs.length)+' جای صفحه':'')+'</span>':(it.refs.length>1?'<span class="s">'+fa(it.refs.length)+' جای صفحه</span>':''))+'</td>'+
+            '<td class="n c">'+(it.ovr?'<span class="bfpm-dot" title="قیمت ویژه"></span>':'')+'<b>'+f(it.cur)+'</b>'+(it.unit!=='ریال'?' <small>'+esc(it.unit)+'</small>':'')+'</td>'+
+            '<td class="n" style="color:#64748b">'+f(it.base)+'</td><td class="n">'+(it.ovr?pctH(it.base,it.cur):'')+'</td>'+
+            '<td style="font-size:11px;color:#475569">'+(l?esc(jd(l.created_at))+' · '+esc(l.operator||'')+'<span class="s" title="'+esc(l.reason)+'">'+esc(String(l.reason||'').slice(0,40))+'</span>':'')+'</td>'+
+            '<td>'+(it.blocked?'':'<button type="button" class="bfpm-pen" data-i="'+ITEMS.indexOf(it)+'">✏️</button>')+'</td></tr>'; }).join('')+
+        '</tbody></table>'+(list.length?'':'<p style="padding:10px">موردی پیدا نشد.</p>')+(list.length>shown.length?'<button type="button" class="b bfpm-more">نمایش '+fa(Math.min(300,list.length-shown.length))+' ردیف بیشتر (از '+fa(list.length-shown.length)+')</button>':'');
+      w.querySelectorAll('.bfpm-pen').forEach(function(b){ b.onclick=function(){ openEdit(ITEMS[+b.dataset.i]); }; });
+      var mo=w.querySelector('.bfpm-more'); if(mo) mo.onclick=function(){ LIMIT+=300; drawTable(); };
+    }
+    function drawAll(){ if(!EL) return; drawChips(); drawTable(); bulkPreview(); }
+    $('.bfpm-sub').onchange=function(){ F.sub=this.value; LIMIT=300; drawAll(); };
+    var qt=null; $('.bfpm-q').oninput=function(){ var v=this.value; clearTimeout(qt); qt=setTimeout(function(){ F.q=v; LIMIT=300; drawTable(); bulkPreview(); },150); };
+    $('.bfpm-ovb').onclick=function(){ F.ov=!F.ov; LIMIT=300; drawAll(); };
+    $('.bfpm-logb').onclick=function(){ openLog(cfg.pages||[cfg.page], M, cfg.title); };
+
+    // ۵) ویرایش تکی
+    function openEdit(it){
+      if(!CAN){ alert('فقط ادمین و مدیریت می‌توانند قیمت را تغییر دهند.'); return; }
+      if(it.blocked){ alert('برای این محصول در «تاریخچه قیمت» نرخ قدیمی انتخاب شده؛ اول نرخ جاری را انتخاب کنید.'); return; }
+      var l=lastOf(it);
+      var ov=overlay('<h3>✏️ قیمت ویژه — '+esc(GL[it.group]||'')+'</h3>'+
+        '<div class="bfpm-info">محصول: <b>'+esc(it.label)+'</b>'+(it.sub?'<br>زیرگروه: '+esc(it.sub):'')+'<br>قیمت فعلی: <b>'+f(it.cur)+'</b> '+esc(it.unit)+(it.ovr?' <span class="bfpm-tag bulk">ویژه</span>':'')+
+        '<br>قیمت پایه (لیست اصلی): <b>'+f(it.base)+'</b>'+(it.refs.length>1?'<br>این قیمت در '+fa(it.refs.length)+' جای صفحه (جدول‌های مختلف) یکسان به‌روز می‌شود.':'')+(it.page!==cfg.page?'<br>⚠️ مشترک با صفحهٔ دیگر ('+esc(PAGE_FA[it.page]||it.page)+') — همان‌جا هم اعمال می‌شود.':'')+
+        (l?'<br>آخرین تغییر: '+esc(jd(l.created_at))+' · '+esc(l.operator||''):'')+'</div>'+
+        '<label>قیمت جدید ('+esc(it.unit)+')</label><input class="num" id="bfpmP" inputmode="numeric" value="'+f(it.cur)+'">'+
+        '<div class="bfpm-prev" id="bfpmD"></div>'+
+        '<label>علت تغییر (اجباری)</label><textarea id="bfpmR" rows="2" placeholder="مثلاً: لیست جدید تأمین‌کننده مورخ ..."></textarea>'+
+        '<div class="bfpm-err" id="bfpmE"></div>'+
+        '<div class="bfpm-row"><button type="button" class="b pri" id="bfpmS">ثبت و ذخیره در دفتر</button>'+(it.ovr?'<button type="button" class="b" id="bfpmB">بازگشت به قیمت پایه</button>':'')+'<button type="button" class="b" id="bfpmC">انصراف</button></div>');
+      var P=ov.querySelector('#bfpmP'), D=ov.querySelector('#bfpmD'), E=ov.querySelector('#bfpmE'), R=ov.querySelector('#bfpmR');
+      function num(){ var s=toEn(P.value).replace(/[^\d]/g,''); return s?Number(s):NaN; }
+      function upd(){ var n=num(); D.innerHTML = isFinite(n)&&n>0 ? ('= '+fa(Math.round(n/10))+' تومان · تغییر: <b>'+pctH(it.cur,n)+'</b> ('+(n-it.cur>=0?'+':'')+f(n-it.cur)+')') : ''; }
+      P.addEventListener('input',function(){ var n=num(); if(isFinite(n)){ var pos=P.value.length-P.selectionStart; P.value=f(n); try{ var q=Math.max(0,P.value.length-pos); P.setSelectionRange(q,q);}catch(e){} } upd(); }); upd();
+      setTimeout(function(){ P.focus(); P.select(); },30);
+      ov.querySelector('#bfpmC').onclick=function(){ ov.remove(); };
+      function go(price, reason){
+        E.textContent=''; if(!(price>0) && !(price===0 && it.base===0)){ E.textContent='قیمت نامعتبر است'; return; }
+        if(String(reason||'').trim().length<3){ E.textContent='علت تغییر را بنویسید (اجباری).'; R.focus(); return; }
+        if(price===it.cur){ E.textContent='قیمت جدید با قیمت فعلی یکی است.'; return; }
+        if(!confirm('ثبت قیمت '+f(price)+' برای «'+it.label+'»؟\nاین تغییر با علت در دفتر تغییرات قیمت ثبت می‌شود.')) return;
+        post('/api/price-overrides',{page:it.page,key:it.key,label:(GL[it.group]?GL[it.group]+' — ':'')+it.label,price:price,base:it.base,old:it.cur,reason:reason.trim()})
+          .then(function(){ ov.remove(); return reloadAll(); }).then(function(){ toast('✅ قیمت ثبت شد و در دفتر تغییرات قیمت ذخیره شد'); })
+          .catch(function(e){ E.textContent='❌ '+e.message; });
+      }
+      ov.querySelector('#bfpmS').onclick=function(){ go(num(), R.value); };
+      var B=ov.querySelector('#bfpmB'); if(B) B.onclick=function(){ go(it.base, R.value||'بازگشت به قیمت پایه'); };
+    }
+    function reloadAll(){ return Promise.all(INSTANCES.map(function(m){ return m.load(); })); }
+
+    // ۶) تغییر گروهی روی ردیف‌های فیلترشده
+    function bulkItems(){
+      var mode=$('.bfpm-bm').value, v=Number(toEn($('.bfpm-bv').value).replace(/[^\d.\-]/g,'')), rd=Number($('.bfpm-br').value)||1, from=$('.bfpm-bb').value;
+      var list=filtered().filter(function(it){ return !it.blocked; }), out=[];
+      list.forEach(function(it){
+        var src=(from==='base')?it.base:it.cur, np;
+        if(mode==='base'){ if(!it.ovr) return; np=it.base; }
+        else { if(!(isFinite(v)&&v!==0) || !(src>0)) return; np = mode==='pct' ? src*(1+v/100) : src+v; np=Math.round(np/rd)*rd; }
+        if(!(np>0) || np===it.cur) return;
+        out.push({page:it.page,key:it.key,label:(GL[it.group]?GL[it.group]+' — ':'')+it.label,price:np,base:it.base,old:it.cur,_it:it});
+      });
+      return {items:out,mode:mode,v:v,skipped:filtered().length-list.length};
+    }
+    function bulkPreview(){
+      var m=$('.bfpm-bm').value; $('.bfpm-bvl').textContent = m==='pct'?'درصد (منفی = کاهش)':(m==='amt'?'مبلغ (ریال، منفی = کاهش)':'—'); $('.bfpm-bv').disabled=(m==='base');
+      var el=$('.bfpm-prev'), B=bulkItems();
+      if(!B.items.length){ el.innerHTML=(m==='base'?'در ردیف‌های فیلترشده قیمت ویژه‌ای برای برگشت نیست.':'')+(B.skipped?' ⚠️ '+fa(B.skipped)+' ردیف روی نرخ قدیمی است و شامل نمی‌شود.':''); return; }
+      var s=B.items[0], so=B.items.reduce(function(a,i){return a+i.old;},0), sn=B.items.reduce(function(a,i){return a+i.price;},0);
+      el.innerHTML='پیش‌نمایش: <b>'+fa(B.items.length)+'</b> ردیف تغییر می‌کند · مثال: '+esc(s._it.label)+' : '+f(s.old)+' ← <b>'+f(s.price)+'</b> ('+pctH(s.old,s.price)+') · میانگین واقعی: '+pctH(so,sn)+(B.skipped?' · ⚠️ '+fa(B.skipped)+' ردیف (نرخ قدیمی) شامل نمی‌شود':'');
+    }
+    ['.bfpm-bm','.bfpm-bv','.bfpm-br','.bfpm-bb'].forEach(function(c){ var e=$(c); e.addEventListener('input',bulkPreview); e.addEventListener('change',bulkPreview); });
+    $('.bfpm-go').onclick=function(){
+      var E=$('.bfpm-err'); E.textContent=''; var B=bulkItems(), reason=$('.bfpm-bwhy').value.trim();
+      if(!B.items.length){ E.textContent=B.mode==='base'?'ردیفی برای برگشت نیست.':'مقدار معتبر وارد کنید (مثلاً 5 یا -3).'; return; }
+      if(reason.length<3){ E.textContent='علت را بنویسید (اجباری).'; return; }
+      var scope=[F.g==='all'?'همه':(GL[F.g]||F.g)]; if(F.sub) scope.push(F.sub); if(F.q) scope.push('«'+F.q+'»'); if(F.ov) scope.push('فقط ویژه');
+      var title=(B.mode==='base'?'بازگشت به قیمت پایه':(B.mode==='pct'?((B.v>0?'+':'')+B.v+'٪'):((B.v>0?'+':'')+f(B.v)+' ریال')))+' — '+scope.join(' / ');
+      if(!confirm('اعمال «'+title+'» روی '+B.items.length+' ردیف؟\nهمهٔ تغییرها با علت در دفتر تغییرات قیمت ثبت می‌شود و هر ردیف جداگانه قابل برگشت است.')) return;
+      var btn=this; btn.disabled=true;
+      post('/api/price-overrides/bulk',{page:cfg.page,items:B.items.map(function(x){ return {page:x.page,key:x.key,label:x.label,price:x.price,base:x.base,old:x.old}; }),reason:reason,title:title})
+        .then(function(j){ $('.bfpm-bv').value=''; $('.bfpm-bwhy').value=''; return reloadAll().then(function(){ toast('✅ '+fa(j.count)+' ردیف به‌روز شد و در دفتر ثبت شد'); }); })
+        .catch(function(e){ E.textContent='❌ '+e.message; }).then(function(){ btn.disabled=false; });
+    };
+
+    build();
+    if(cfg.wrap){ try{ cfg.wrap(function(){ apply(false); }); }catch(e){ console.warn('[BF-PRICE-MGR] wrap', e); } }
+    INSTANCES.push(M);
+    M.items=function(){ return ITEMS; }; M.state=function(){ return {CAN:CAN,LOADED:LOADED,OVR:OVR}; };
+    load();
+    return M;
+  }
+  window.BFPriceMgr={create:create, openLog:function(p,t){ openLog(p||'all', null, t); }, instances:INSTANCES, norm:norm};
+})();
+
+</script>
+<script>
+/* ===== [BF-PRICE-MGR:falake] مدیریت قیمت «فلکه هرزگرد پرهام صنعت + متعلقات» — صفحهٔ موتورها (بخش جدا، زیر مدیریت قیمت موتورها) ===== */
+(function(){
+  if(!window.BFPriceMgr || typeof FALAKE_DATA==='undefined') return;
+  function d(v){ try{ return dispDec(v); }catch(e){ return v; } }
+  BFPriceMgr.create({
+    id:'bfPriceMgrFalake', page:'falake', pages:['falake'], title:'فلکه هرزگرد (پرهام صنعت) و متعلقات',
+    note:'قیمت هر مدل فلکه و «بلبرینگ ژاپن» (متعلقات) جدا قابل تغییر است. پیش‌فاکتور، سبد سفارش و PDF لیست قیمت فلکه از همین قیمت‌ها استفاده می‌کنند.',
+    groups:[{id:'falake',label:'فلکه هرزگرد'},{id:'acc',label:'متعلقات فلکه'}],
+    refs:function(){
+      var out=FALAKE_DATA.map(function(x){ return {id:'falake|'+x.row, group:'falake', sub:'قطر '+d(x.sheave)+'mm', o:x, k:'price',
+        label:'ردیف '+x.row+' · قطر '+d(x.sheave)+' × عرض '+d(x.width)+' · '+x.grooveCount+' شیار · شفت '+d(x.shaftDia)+' · بلبرینگ '+x.bearingCount+'×'+d(x.bearingSize)+' · بکسل '+d(x.ropeSize)+' · کابین '+x.cabinCapacity+' نفر'}; });
+      out.push({id:'acc|jp-bearing', group:'acc', sub:'بلبرینگ', label:'بلبرینگ ژاپن (اختیاری) — قیمت هر عدد', unit:'ریال / عدد',
+        get:function(){ return FALAKE_JP_BEARING_PRICE; }, set:function(v){ FALAKE_JP_BEARING_PRICE=v; }});
+      return out;
+    },
+    after:function(){
+      try{
+        (falakeCandidates||[]).forEach(function(c){ var s=FALAKE_DATA.find(function(x){ return x.row===c.row; }); if(s) c.price=s.price; });
+        var sel=document.getElementById('falakeModelSelect'), f=sel && falakeCandidates[+sel.value];
+        if(f){ var pd=document.getElementById('falakePriceDisp'); if(pd && pd.textContent!=='-') pd.textContent=fmt(f.price); }
+        var bl=document.getElementById('falakeBearingPriceLbl'); if(bl) bl.textContent=fmt(FALAKE_JP_BEARING_PRICE);
+      }catch(e){}
+    },
+    mount:function(el){ var a=document.getElementById('bfPriceMgr')||document.getElementById('motorCatalogCard'); if(a) a.parentNode.insertBefore(el, a.nextSibling); else document.body.appendChild(el); }
+  });
+})();
+
+</script>
+<!-- [BF-PRICE-MGR] end -->
+<script id="gsScript">
+/* ===== 🔎 موتور جستجوی هوشمند مشترک (ویتور / موتور) — هم‌الگوی جستجوی سریع شکیب =====
+   - یکسان‌سازی ارقام فارسی/عربی، ی/ک، نیم‌فاصله، × ← *، جدا کردن عدد از واحد (1000kg ← 1000 kg)
+   - مترادف‌ها: هوبر=huber ، جنتل=gentelrise ، داینا=dyna ، دیسکی=disk=WT1 ، بشکه‌ای=drum=WT2 ، غیرمستقیم≠مستقیم ...
+   - حساس به سایز: عدد تایپ‌شده باید دقیقاً با یک عدد مشخصات برابر باشد (80 ≠ 180 ≠ 800)؛
+     فقط آخرین عدد در حال تایپ، به‌صورت «شروع عدد» هم پذیرفته می‌شود (با امتیاز کمتر).
+   - کلید ↑/↓ برای حرکت، Enter برای افزودن، Esc برای بستن. قیمت در لحظهٔ افزودن دوباره و زنده خوانده می‌شود. */
+function bfSmartSearch(cfg){
+  'use strict';
+  var input = document.getElementById(cfg.input), box = document.getElementById(cfg.results), wrap = document.getElementById(cfg.wrap);
+  if(!input || !box || !wrap) return;
+  function f(n){ return Math.round(Number(n)||0).toLocaleString('en-US'); }
+  function esc(t){ return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  var SYN = (cfg.synonyms||[]).map(function(p){ return [new RegExp(p[0],'g'), p[1]]; });
+  function norm(t){
+    var s = String(t==null?'':t)
+      .replace(/[۰-۹]/g,function(d){ return String(d.charCodeAt(0)-0x06F0); })
+      .replace(/[٠-٩]/g,function(d){ return String(d.charCodeAt(0)-0x0660); })
+      .replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[ئإأآ]/g,'ا').replace(/ة/g,'ه').replace(/[ً-ٟ]/g,'').replace(/[‌‏‎]/g,' ')
+      .replace(/[\u2066-\u2069]/g,'').replace(/٫/g,'.').replace(/(\d)\s*[xX×]\s*(?=\d)/g,'$1*').replace(/×/g,'*')
+      .toLowerCase();
+    s = s.replace(/(\d)\s*\/\s*(\d)/g,'$1/$2');
+    s = s.replace(/(\d),(?=\d{3}(?!\d))/g,'$1');
+    s = s.replace(/(^|[^a-z\d.])(\d+(?:\.\d+)?)(?=[a-z؀-ۿ])/g,'$1$2 ').replace(/([؀-ۿ])(?=\d)/g,'$1 ');
+    SYN.forEach(function(p){ s = s.replace(p[0], p[1]); });
+    // عدد + واحد = یک توکن دقیق (6 نفر ≠ 16 نفر ، 630 kg ≠ 6300 kg)
+    s = s.replace(/(\d)\s+(kg|نفر|ms|kw|l|mm|cm|شیار)(?=$|[\s*\-\/(),|·—،])/g,'$1$2');
+    return s.replace(/[(),،؛:|·—]/g,' ').replace(/\s+/g,' ').trim();
+  }
+  var NUM = /^\d+(\.\d+)?$/;
+  var UNITTOK = /^(\d+(?:\.\d+)?)(kg|نفر|ms|kw|l|mm|cm|شیار)$/;
+  function tokensOf(h){ var set = {}; h.split(/[\s*\-\/]+/).forEach(function(x){ if(!x) return; set[x] = 1; var m = UNITTOK.exec(x); if(m) set[m[1]] = 1; }); return set; }
+  var CAT = null;
+  function build(){
+    CAT = [];
+    cfg.build(function(o){
+      o.hay = norm([o.tag, o.name, o.spec, o.extra||''].join(' '));
+      o.hayName = norm(o.name);
+      o.toks = tokensOf(o.hay);
+      o._ord = CAT.length;
+      o.color = (cfg.colors && cfg.colors[o.cat]) || '#555';
+      CAT.push(o);
+    });
+  }
+  var shown = [], sel = -1;
+  function score(o, toks, nq, lastPartial){
+    var sc = 0;
+    for(var i=0;i<toks.length;i++){
+      var t = toks[i];
+      if(NUM.test(t)){
+        if(o.toks[t]){ sc += 6; if(o.hayName.indexOf(t)>=0) sc += 2; continue; }
+        if(i===toks.length-1 && lastPartial){
+          var ok = false; for(var k in o.toks){ if(k.indexOf(t)===0 && NUM.test(k)){ ok = true; break; } }
+          if(ok){ sc += 2; continue; }
+        }
+        return -1;
+      }
+      if(UNITTOK.test(t)){ if(o.toks[t]){ sc += 7; continue; } return -1; }
+      if(o.toks[t]){ sc += 5; continue; }
+      if(o.hay.indexOf(t)>=0){ sc += (o.hayName.indexOf(t)>=0 ? 4 : 3); continue; }
+      return -1;
+    }
+    if(o.hayName.indexOf(nq)>=0) sc += 8;
+    return sc;
+  }
+  function render(q){
+    var nq = norm(q);
+    if(!nq){ box.classList.remove('show'); box.innerHTML=''; shown=[]; sel=-1; return; }
+    if(!CAT) build();
+    var toks = nq.split(' ');
+    var lastPartial = !/\s$/.test(String(q));
+    var hits = [];
+    CAT.forEach(function(o){ var s = score(o, toks, nq, lastPartial); if(s>=0){ o._s = s; hits.push(o); } });
+    hits.sort(function(a,b){ if(b._s!==a._s) return b._s-a._s; var pa=a.price(), pb=b.price(); return ((pa>0)?0:1)-((pb>0)?0:1) || (a._ord-b._ord); });
+    if(!hits.length){ box.innerHTML = '<div class="gs-empty">محصولی با این مشخصات پیدا نشد. (مثال: '+esc(cfg.example||'')+')</div>'; box.classList.add('show'); shown=[]; sel=-1; return; }
+    shown = hits.slice(0, 40); sel = -1;
+    box.innerHTML = shown.map(function(o, i){
+      var pr = o.price(); var ok = pr!=null && pr>0;
+      var opt = o.opt ? ('<label class="gs-opt" title="'+esc(o.opt.title||'')+'"><input type="checkbox" class="gs-optck"'+(o.opt.def!==false && o.opt.price()!=null ? ' checked' : '')+(o.opt.price()==null?' disabled':'')+'> '+esc(o.opt.label)
+        +(o.opt.price()!=null ? ' <small>'+(o.opt.price()>0 ? '+'+f(o.opt.price()) : 'بدون هزینه')+'</small>' : ' <small>ندارد</small>')+'</label>') : '';
+      return '<div class="gs-row" data-i="'+i+'">'
+        + '<span class="gs-tag" style="background:'+o.color+'">'+esc(o.tag)+'</span>'
+        + '<div class="gs-main"><div class="gs-name">'+esc(o.name)+'</div><div class="gs-spec">'+esc(o.specFn ? o.specFn() : o.spec)+'</div>'+opt+'</div>'
+        + '<div class="gs-price">'+(ok ? '<b>'+f(pr)+'</b>' : '<b style="color:#b3261e">—</b>')+'<small>'+(ok ? esc(o.unitLbl) : 'قیمت هنوز ثبت نشده')+'</small></div>'
+        + '<input type="number" class="gs-qty" value="1" min="'+(o.integer===false?0.1:1)+'" step="'+(o.integer===false?'any':1)+'" title="'+esc(o.qtyLbl||'تعداد')+'">'
+        + '<div class="gs-total">جمع: <b>—</b> ریال</div>'
+        + '<button type="button" class="gs-add"'+(ok ? '' : ' disabled')+'>➕ افزودن به سبد</button>'
+        + '</div>';
+    }).join('') + (hits.length>shown.length ? '<div class="gs-more">'+(hits.length-shown.length)+' نتیجه دیگر — مشخصات دقیق‌تری تایپ کنید (مثلاً سایز، ظرفیت یا سرعت)</div>' : '');
+    box.querySelectorAll('.gs-row').forEach(liveRow);
+    box.classList.add('show');
+  }
+  function qtyOf(o, row){
+    var el = row.querySelector('.gs-qty'); var v = parseFloat(String(el.value).replace(',', '.'));
+    if(!isFinite(v) || v<=0) v = 1;
+    return o.integer===false ? v : Math.max(1, Math.round(v));
+  }
+  function optOn(o, row){ var c = row.querySelector('.gs-optck'); return !!(o.opt && c && c.checked && !c.disabled); }
+  function lineTotal(o, row){
+    var pr = o.price(); if(!(pr>0)) return null;
+    var q = qtyOf(o,row), t = pr*q;
+    if(optOn(o,row)) t += (o.opt.price()||0)*q;
+    return Math.round(t);
+  }
+  function liveRow(row){
+    var o = shown[+row.dataset.i]; if(!o) return;
+    var t = row.querySelector('.gs-total b'), v = lineTotal(o,row);
+    if(t) t.textContent = v!=null ? f(v) : '—';
+  }
+  function highlight(){ box.querySelectorAll('.gs-row').forEach(function(r, i){ r.classList.toggle('gs-sel', i===sel); if(i===sel && r.scrollIntoView) r.scrollIntoView({block:'nearest'}); }); }
+  function addRow(row){
+    var o = shown[+row.dataset.i]; if(!o) return;
+    var pr = o.price();
+    if(!(pr>0)){ if(typeof bfToast==='function') bfToast('قیمت این قلم در دسترس نیست', 'info'); return; }
+    var q = qtyOf(o,row), withOpt = optOn(o,row);
+    var okAdd = false;
+    try{ okAdd = cfg.onAdd(o, q, withOpt, pr) !== false; }catch(e){ console.error('[bfSmartSearch]', e); alert('افزودن این قلم به سبد با خطا مواجه شد.'); return; }
+    if(!okAdd) return;
+    if(typeof bfToast==='function') bfToast('➕ «' + o.name + '» × ' + q + (withOpt ? ' + ' + o.opt.label : '') + ' به سبد اضافه شد', 'ok');
+    input.value = ''; render('');
+    var tgt = cfg.scrollTo && cfg.scrollTo();
+    if(tgt && tgt.scrollIntoView) tgt.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  input.addEventListener('input', function(){ render(input.value); });
+  input.addEventListener('focus', function(){ if(input.value.trim()) render(input.value); });
+  input.addEventListener('keydown', function(e){
+    if(e.key==='Escape'){ box.classList.remove('show'); return; }
+    if(!shown.length) return;
+    if(e.key==='ArrowDown'){ e.preventDefault(); sel = Math.min(shown.length-1, sel+1); highlight(); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); sel = Math.max(0, sel-1); highlight(); }
+    else if(e.key==='Enter'){ e.preventDefault(); var rows = box.querySelectorAll('.gs-row'); var r = rows[sel>=0 ? sel : 0]; if(r && !r.querySelector('.gs-add').disabled) addRow(r); }
+  });
+  box.addEventListener('input', function(e){ var r = e.target.closest && e.target.closest('.gs-row'); if(r) liveRow(r); });
+  box.addEventListener('change', function(e){ var r = e.target.closest && e.target.closest('.gs-row'); if(r) liveRow(r); });
+  box.addEventListener('click', function(e){ var b = e.target.closest && e.target.closest('.gs-add'); if(!b || b.disabled) return; addRow(b.closest('.gs-row')); });
+  box.addEventListener('keydown', function(e){ if(e.key==='Enter' && e.target.classList.contains('gs-qty')){ e.preventDefault(); var b = e.target.closest('.gs-row').querySelector('.gs-add'); if(!b.disabled) addRow(b.closest('.gs-row')); } });
+  document.addEventListener('click', function(e){ if(!wrap.contains(e.target)) box.classList.remove('show'); });
+  // قیمت زنده: با تغییر «تاریخچه قیمت» / مدیریت قیمت، فهرست باز هر ۳۰ ثانیه و با رویداد storage تازه می‌شود
+  function refresh(){
+    if(!box.classList.contains('show') || !shown.length) return;
+    if(document.activeElement && document.activeElement.closest && document.activeElement.closest('#'+cfg.results)) return;
+    render(input.value);
+  }
+  window.addEventListener('storage', refresh);
+  document.addEventListener('click', function(e){ if(e.target.closest && e.target.closest('#bfPriceHistory')) setTimeout(refresh, 50); });
+  setInterval(refresh, 30000);
+  return { rebuild: function(){ CAT = null; }, norm: norm };
+}
+
+/* ===== 🔎 جستجوی سریع همه موتورها (جنتلرایز / داینا لیفت / هوبر) + فلکه هرزگرد پرهام — قیمت زنده + افزودن مستقیم به سبد سفارش ===== */
+(function(){
+  'use strict';
+  var TYPE_FA = { disk:'دیسکی (WT1-B)', drum:'بشکه‌ای (WT2-P)' };
+  function pushItem(item){
+    // برچسب «قیمت قدیمی» مثل insertOrUpdateOrderItem؛ اما همیشه ردیف جدید (حالت ویرایش ردیف دیگر به‌هم نمی‌خورد)
+    if(typeof BF_PH!=='undefined' && BF_PH[item.brand]){
+      item.priceSet = BF_PH[item.brand].set;
+      item.priceIsOld = (item.priceSet !== BF_PH_CURRENT[item.brand]);
+    }
+    orderItems.push(item);
+    renderOrder();
+  }
+  function gdItem(brand, r, type, ratio, q, withPack, pr){
+    var sheaveLine = sheaveSpecLine(r.sheave, r.ropes);
+    var specsLine = 'Power ' + dispDec(r.power) + 'kw | Current ' + dispDec(r.current) + 'A | Poles(2P) ' + r.poles2P + ' | ' + r.ropes + ' | Pitch ' + r.pitch + ' | ' + r.groove + ' | IP' + r.protection + ' | γ' + r.gammaAngle + ' | β' + r.betaAngle + ' | ' + r.encoder + (sheaveLine ? ' | ' + sheaveLine : '');
+    if(brand==='dyna'){
+      return { brand:'dyna', type:type, ratio:ratio, desc:'موتور داینا لیفت — ' + TYPE_FA[type] + ' — ظرفیت ' + fmt(r.kg) + 'kg',
+        qtyMotor:q, unitPrice:pr, qtyPack: withPack ? q : 0, packUnitPrice:0, packLabel:'پک خدماتی (درخت سیم 7 متری)',
+        packContents: withPack ? 'محتویات پک: درخت سیم 7 متری' : '', lineTotal: pr*q, specsLine:specsLine,
+        specs: Object.assign({}, r), specTable: gentelriseSpecTable(r, type, ratio) };
+    }
+    var pk = withPack && r.packPrice!=null;
+    return { brand:'gentelrise', type:type, ratio:ratio, desc:'موتور جنتلرایز — ' + TYPE_FA[type] + ' — ظرفیت ' + fmt(r.kg) + 'kg',
+      qtyMotor:q, unitPrice:pr, qtyPack: pk ? q : 0, packUnitPrice: r.packPrice||0, packLabel:'پک خدماتی (Service Pack)',
+      packContents: pk ? ('محتویات پک خدماتی: ' + PACK_CONTENTS[type].join('، ')) : '', lineTotal: pr*q + (pk ? r.packPrice*q : 0), specsLine:specsLine,
+      specs: Object.assign({}, r), specTable: gentelriseSpecTable(r, type, ratio) };
+  }
+
+  bfSmartSearch({
+    input:'gsInput', results:'gsResults', wrap:'gsBox',
+    example:'جنتل دیسکی 630 1.6 ، داینا بشکه‌ای 8 نفر ، هوبر T32L ، 630kg 1:1 ، فلکه 320',
+    colors:{ gentelrise:'#0f6e56', dyna:'#1f5fbf', huber:'#b3261e', falake:'#8a6d00' },
+    synonyms:[
+      ['(\\d) ?: ?(\\d)','$1to$2'],
+      ['جنتل ?رایز|جنتل|gentle ?rise|gentel ?rise|gentel|gentle','gentelrise'],
+      ['داینا ?لیفت|داینا|دینا|dyna ?lift|dina|dyna','dyna'], ['هوبر|huber|hober','huber'],
+      ['دیسکی|دیسک|disk|disc|wt 1-b|wt1-b|wt1','disk'], ['بشکه ?ای|بشکه|درامی|درام|drum|wt 2-p|wt2-p|wt2','drum'],
+      ['فلکه ?هرزگرد|فلکه|هرزگرد|پرهام|pulley|idler','falake'],
+      ['گیرلس|gearless|موتور|motor',' '],
+      ['کیلو(گرم)?|kilo','kg'], ['نفره|نفر|person|persons|pers','نفر'], ['متر بر ثانیه|m ?/ ?s|mps','ms'],
+      ['پک ?خدماتی|درخت ?سیم|service ?pack|rope ?tree','pack']
+    ],
+    build:function(add){
+      // --- جنتلرایز و داینا لیفت (هر نوع / سیستم آویز / سرعت / ظرفیت)
+      [['gentelrise', DATA, 'جنتلرایز'], ['dyna', DATA_DYNA, 'داینا لیفت']].forEach(function(b){
+        var brand = b[0], D = b[1], bfa = b[2];
+        Object.keys(D).forEach(function(type){
+          Object.keys(D[type]).forEach(function(ratio){
+            D[type][ratio].forEach(function(r){
+              var cap = String(capacityLabelForRow(r, type, ratio)).replace('سایز فلکه','Sheave');
+              var persons = String(r.poles||'').replace(/p$/i,'');
+              add({ cat:brand, tag:bfa, name:'موتور ' + bfa + ' ' + TYPE_FA[type] + ' — ' + fmt(r.kg) + 'kg (' + persons + ' نفر) — \u2066' + dispDec(r.speed) + ' m/s\u2069 — آویز \u2066' + ratio + '\u2069',
+                spec:'سیستم آویز ' + ratio + ' · Power ' + dispDec(r.power) + 'kW · Current ' + dispDec(r.current) + 'A · Sheave ' + dispDec(r.sheave) + 'mm · ' + r.ropes + ' · ظرفیت ' + cap,
+                extra: brand + ' ' + type + ' ' + r.kg + ' kg ' + persons + ' نفر ' + r.speed + ' ms ' + ratio + ' ' + r.sheave + ' ' + r.poles,
+                unitLbl:'ریال / دستگاه', price:function(){ return r.motorPrice; },
+                opt: brand==='dyna'
+                  ? { label:'پک خدماتی (درخت سیم ۷ متری)', title:'شامل قیمت موتور داینا', price:function(){ return 0; } }
+                  : { label:'پک خدماتی', title: 'پک خدماتی: ' + PACK_CONTENTS[type].join('، '), price:function(){ return r.packPrice; } },
+                make:function(q, withPack, pr){ return gdItem(brand, r, type, ratio, q, withPack, pr); } });
+            });
+          });
+        });
+      });
+      // --- هوبر
+      DATA_HUBER.forEach(function(r){
+        add({ cat:'huber', tag:'هوبر', name:'موتور هوبر ' + r.model + ' — ' + fmt(r.capacityKg) + 'kg (' + r.capacityPerson + ' نفر) — \u2066' + dispDec(r.speed) + ' m/s\u2069',
+          spec:'Power ' + dispDec(r.power) + 'kW · Ampere ' + dispDec(r.ampere) + 'A · Sheave ' + dispDec(r.sheave) + 'mm · ' + r.ropeCount + ' بکسل · Static Load ' + fmt(r.staticLoad) + 'kg',
+          extra:'huber ' + r.model + ' ' + r.capacityKg + ' kg ' + r.capacityPerson + ' نفر ' + r.speed + ' ms ' + r.sheave,
+          unitLbl:'ریال / دستگاه', price:function(){ return r.motorPrice; },
+          opt:{ label:'درخت سیم', title:'محتویات پک: ' + HUBER_PACK_CONTENTS.join('، '), price:function(){ return r.ropeTreePrice; } },
+          make:function(q, withRope, pr){
+            var qR = withRope ? q : 0;
+            var sheaveLine = (r.sheave!=null && r.ropeCount!=null) ? (dispDec(r.sheave) + ' - ' + r.ropeCount + ' بکسل (Sheave)') : '';
+            var ropesStr = (r.ropeCount!=null && r.ropeDia!=null) ? (r.ropeCount + '*' + r.ropeDia + 'mm') : '';
+            return { brand:'huber', desc:'موتور هوبر — ' + r.model + ' — ظرفیت ' + fmt(r.capacityKg) + 'kg (' + r.capacityPerson + ' نفر)',
+              qtyMotor:q, unitPrice:pr, qtyPack:qR, packUnitPrice:r.ropeTreePrice, packLabel:'درخت سیم (Rope Tree Set)',
+              packContents: withRope ? ('محتویات پک: ' + HUBER_PACK_CONTENTS.join('، ')) : '',
+              lineTotal: pr*q + r.ropeTreePrice*qR,
+              specsLine: 'Power ' + dispDec(r.power) + 'kw | Ampere ' + dispDec(r.ampere) + 'A | سایز فلکه ' + dispDec(r.sheave) + 'mm | تعداد بکسل ' + r.ropeCount + (sheaveLine ? ' | ' + sheaveLine : '') + ' | Poles(2P) ' + r.poles2P + ' | Static Load ' + fmt(r.staticLoad) + 'kg | IP' + r.protection + ' | ' + ropesStr + ' | Pitch ' + r.pitch + ' | ' + r.groove + ' | γ' + r.gammaAngle + ' | β' + r.betaAngle + ' | ' + r.encoder,
+              specs: Object.assign({}, r), specTable: huberSpecTable(r) };
+          } });
+      });
+      // --- فلکه هرزگرد پرهام صنعت (+ بلبرینگ ژاپن اختیاری)
+      FALAKE_DATA.forEach(function(r){
+        add({ cat:'falake', tag:'فلکه پرهام', name:'فلکه هرزگرد پرهام صنعت — قطر ' + dispDec(r.sheave) + 'mm — ' + r.grooveCount + ' شیار — بکسل ' + dispDec(r.ropeSize) + 'mm',
+          spec:'ردیف ' + r.row + ' · ' + r.cabinCapacity + ' نفره · عرض ' + dispDec(r.width) + 'mm · شفت ' + dispDec(r.shaftDia) + 'mm · بلبرینگ ' + r.bearingCount + '×' + dispDec(r.bearingSize) + 'mm · گام ' + dispDec(r.pitch) + 'mm',
+          extra:'falake ' + r.sheave + ' ' + r.cabinCapacity + ' نفر ' + r.grooveCount + ' شیار',
+          unitLbl:'ریال / عدد', price:function(){ return r.price; },
+          opt:{ label:'بلبرینگ ژاپن', def:false, title:'بلبرینگ ژاپن سایز ' + dispDec(r.bearingSize) + 'mm — سفارشی', price:function(){ return FALAKE_JP_BEARING_PRICE; } },
+          make:function(q, withB, pr){
+            var bq = withB ? q : 0, bp = withB ? FALAKE_JP_BEARING_PRICE : 0;
+            return { brand:'falake', desc:'فلکه هرزگرد پرهام صنعت — قطر ' + dispDec(r.sheave) + 'mm',
+              qtyMotor:q, unitPrice:pr, qtyPack:bq, packUnitPrice:bp,
+              packLabel: withB ? ('بلبرینگ ژاپن (اختیاری) — سایز ' + dispDec(r.bearingSize) + 'mm') : '',
+              packContents: withB ? ('بلبرینگ ژاپن سایز ' + dispDec(r.bearingSize) + 'mm — به‌صورت سفارشی تهیه می‌شود') : '',
+              lineTotal: q*pr + bq*bp, specsLine: falakeSpecsLine(r), specs: Object.assign({}, r) };
+          } });
+      });
+    },
+    onAdd:function(o, q, withOpt, pr){ pushItem(o.make(q, withOpt, pr)); },
+    scrollTo:function(){ var b = document.getElementById('orderBody'); return b ? (b.closest('.card') || b) : null; }
+  });
+})();
+
+</script>
+<script id="bfTypeSwapJs">
+/* ===== [BF-TYPESWAP] تعویض «دیسکی ⇄ بشکه‌ای» بدون پریدن بقیهٔ انتخاب‌ها (جنتلرایز و داینا لیفت) =====
+   با عوض‌کردن نوع موتور، همان سیستم آویز، سرعت و ظرفیت (kg) روی نوع جدید دوباره انتخاب و قیمت داده می‌شود.
+   اگر همان ترکیب در نوع جدید نباشد، هشدار + گزینه‌های موجود نمایش داده می‌شود (بقیهٔ انتخاب‌ها حفظ می‌شود).
+   بالای کارت نتیجه هم قیمت «همین مشخصات در نوع دیگر» با اختلاف قیمت و دکمهٔ جابه‌جایی نمایش داده می‌شود. */
+(function(){
+  const TF = { disk:'دیسکی (WT1-B)', drum:'بشکه‌ای (WT2-P)' };
+  const B = [
+    { key:'gentelrise', name:'جنتلرایز', data:()=>DATA, type:motorTypeEl, ratio:ratioEl, speed:speedEl, cap:capacityEl, card:resultCard },
+    { key:'dyna', name:'داینا لیفت', data:()=>DATA_DYNA, type:motorTypeDynaEl, ratio:ratioDynaEl, speed:speedDynaEl, cap:capacityDynaEl, card:resultCardDyna }
+  ];
+  const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const ppl = r => String((r && r.poles) || '').replace(/p$/i,'');
+  function capRow(b){ if(b.cap.value==='') return null; try{ return JSON.parse(b.cap.dataset.rows||'[]')[b.cap.value] || null; }catch(e){ return null; } }
+  function rowsFor(b, type, ratio, speed){ const D = b.data(); return (D[type] && D[type][ratio]) ? D[type][ratio].filter(r=>String(r.speed)===String(speed)) : []; }
+  function bestIdx(rows, want){
+    if(!want) return -1;
+    let i = rows.findIndex(r=>Number(r.kg)===Number(want.kg) && String(r.sheave)===String(want.sheave));
+    if(i<0) i = rows.findIndex(r=>Number(r.kg)===Number(want.kg));
+    return i;
+  }
+  function setVal(sel, v){ if([...sel.options].some(o=>String(o.value)===String(v))){ sel.value = String(v); sel.dispatchEvent(new Event('change')); return true; } return false; }
+  function note(b, html){
+    let n = document.getElementById('swapNote_'+b.key);
+    if(!n){ n = document.createElement('div'); n.id = 'swapNote_'+b.key; n.className = 'bf-swap-note no-print';
+      const grid = b.type.closest('.grid') || b.type.parentNode; grid.parentNode.insertBefore(n, grid.nextSibling); }
+    n.innerHTML = html || ''; n.style.display = html ? '' : 'none';
+  }
+  function snapOf(b){ return { from: b.type.dataset.prevType || '', ratio: b.ratio.value, speed: b.speed.value, row: capRow(b) }; }
+
+  /* بازگردانی انتخاب‌های قبلی روی نوع جدید (بعد از ریست هندلر اصلی) */
+  function restore(b, s, to){
+    b.type.dataset.prevType = to;
+    if(!s || !to || !s.ratio){ note(b,''); return; }
+    const D = b.data()[to] || {}, lost = [];
+    if(b.ratio.value!==s.ratio && !setVal(b.ratio, s.ratio))
+      lost.push('سیستم آویز <b>'+esc(s.ratio)+'</b> — در این نوع فقط: '+Object.keys(D).map(esc).join('، '));
+    if(s.speed && b.ratio.value && String(b.speed.value)!==String(s.speed) && !setVal(b.speed, s.speed)){
+      const sp = [...new Set((D[b.ratio.value]||[]).map(r=>r.speed))].sort((x,y)=>x-y).map(dispDec);
+      lost.push('سرعت <b>'+dispDec(s.speed)+' m/s</b> — موجود: '+sp.join('، ')+' m/s');
+    }
+    if(s.row && b.speed.value){
+      const rows = rowsFor(b, to, b.ratio.value, b.speed.value), i = bestIdx(rows, s.row);
+      if(i>=0){ b.cap.value = String(i); b.cap.dispatchEvent(new Event('change')); }
+      else lost.push('ظرفیت <b>'+fmt(s.row.kg)+'kg ('+esc(ppl(s.row))+' نفر)</b> — موجود در این سرعت: '+(rows.map(r=>fmt(r.kg)+'kg').join('، ')||'هیچ'));
+    }
+    if(lost.length){
+      note(b, '⚠️ <b>موتور '+b.name+' '+TF[to]+'</b> با مشخصات قبلی موجود نیست:<br>• '+lost.join('<br>• ')+
+        '<br><small>انتخاب‌های موجود حفظ شد؛ مورد ناموجود را از لیست انتخاب کنید'+(s.from&&s.from!==to?' — یا <a href="#" data-swapgo="'+b.key+'|'+s.from+'">برگشت به '+TF[s.from]+'</a>':'')+'.</small>');
+      if(typeof bfToast==='function') bfToast('⚠️ این مدل در '+b.name+' '+TF[to]+' موجود نیست', 'info');
+    } else {
+      const r = capRow(b);
+      note(b, (r && r.motorPrice==null) ? '⚠️ این مدل در '+b.name+' '+TF[to]+' هست اما <b>قیمت ثبت‌شده ندارد</b>.' : '');
+    }
+  }
+
+  const snap = {};
+  // فاز capture روی document قبل از هندلر اصلی اجرا می‌شود ← انتخاب‌های فعلی پیش از ریست ذخیره می‌شود
+  document.addEventListener('change', e=>{ B.forEach(b=>{ if(e.target===b.type) snap[b.key] = snapOf(b); }); }, true);
+  B.forEach(b=>{
+    b.type.addEventListener('change', e=>{
+      if(!e.isTrusted){ b.type.dataset.prevType = b.type.value; note(b,''); return; }   // بازگردانی ویرایش ردیف سبد ← دست نمی‌زنیم
+      restore(b, snap[b.key], b.type.value);
+    });
+    b.cap.addEventListener('change', ()=>setTimeout(()=>alt(b), 0));
+    b.speed.addEventListener('change', ()=>setTimeout(()=>alt(b), 0));
+  });
+
+  /* «همین مشخصات در نوع دیگر» بالای کارت نتیجه */
+  function alt(b){
+    let box = document.getElementById('swapAlt_'+b.key);
+    if(!box){ box = document.createElement('div'); box.id = 'swapAlt_'+b.key; box.className = 'bf-swap-alt no-print'; b.card.insertBefore(box, b.card.firstChild); }
+    const cur = b.type.value, r = capRow(b);
+    if(!cur || !r){ box.style.display='none'; return; }
+    const to = cur==='disk' ? 'drum' : 'disk', ratio = b.ratio.value, rows = rowsFor(b, to, ratio, b.speed.value), i = bestIdx(rows, r);
+    const capT = fmt(r.kg)+'kg ('+ppl(r)+' نفر) · '+dispDec(r.speed)+' m/s · '+ratio;
+    if(i<0){
+      const D = b.data()[to] || {}, ok = Object.keys(D).filter(ra=>D[ra].some(x=>Number(x.kg)===Number(r.kg) && String(x.speed)===String(r.speed)));
+      box.innerHTML = '🔁 '+b.name+' <b>'+TF[to]+'</b> با همین مشخصات ('+capT+') <b class="no">موجود نیست</b>'+(ok.length?' — فقط با سیستم آویز '+ok.join('، '):'');
+    } else {
+      const o = rows[i], p = o.motorPrice, d = (p!=null && r.motorPrice!=null) ? p - r.motorPrice : null;
+      box.innerHTML = '🔁 همین مشخصات در <b>'+TF[to]+'</b> ('+capT+'): '+(p==null ? '<b class="no">بدون قیمت</b>' : '<b>'+fmt(p)+'</b> ریال'+(d ? ' <span class="'+(d>0?'up':'dn')+'">('+(d>0?'+':'−')+fmt(Math.abs(d))+')</span>' : ' <span>(هم‌قیمت)</span>'))+
+        ' <button type="button" class="bf-swap-go" data-swapgo="'+b.key+'|'+to+'">نمایش '+TF[to]+'</button>';
+    }
+    box.style.display='';
+  }
+  document.addEventListener('click', e=>{
+    const g = e.target.closest && e.target.closest('[data-swapgo]'); if(!g) return; e.preventDefault();
+    const p = g.dataset.swapgo.split('|'), b = B.find(x=>x.key===p[0]); if(!b) return;
+    const s = snapOf(b); b.type.value = p[1]; b.type.dispatchEvent(new Event('change')); restore(b, s, p[1]);
+  });
+  const st = document.createElement('style');
+  st.textContent = '.bf-swap-note{margin:10px 0 0;padding:9px 12px;border-radius:10px;font-size:13px;line-height:1.9;background:#fff4dc;color:#7a4b00;border:1.5px solid #f0c060}.bf-swap-note a{color:#0f6e56;font-weight:800}'+
+    '.bf-swap-alt{margin:0 0 10px;padding:8px 12px;border-radius:10px;background:#eef7f5;border:1px dashed #0f6e56;font-size:13px;line-height:1.9}.bf-swap-alt .no{color:#b3261e}.bf-swap-alt .up{color:#b3261e;font-weight:800}.bf-swap-alt .dn{color:#0b6b3a;font-weight:800}'+
+    '.bf-swap-go{margin-inline-start:8px;border:1px solid #0f6e56;background:#0f6e56;color:#fff;border-radius:8px;padding:3px 10px;font-family:inherit;font-weight:800;font-size:12px;cursor:pointer}@media print{.bf-swap-note,.bf-swap-alt{display:none!important}}';
+  document.head.appendChild(st);
+})();
+</script>
 </body>
 </html>

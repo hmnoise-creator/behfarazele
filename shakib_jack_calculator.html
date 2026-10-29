@@ -2,6 +2,53 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script id="bfPassGate">
+/* ===================== [BF-GATE] رمز ورود نسخهٔ آنلاین (GitHub Pages) =====================
+   قبل از نمایش هر صفحه رمز خواسته می‌شود. بعد از ورود درست، همین مرورگر رمز را به خاطر می‌سپارد.
+   رمز به‌صورت هش SHA-256 نگه داشته می‌شود (خود رمز داخل کد نیست).
+   برای تغییر رمز، مقدار HASH را با هش رمز جدید عوض کنید (همهٔ دستگاه‌ها دوباره رمز می‌خواهند).
+   برای خروج: localStorage.removeItem('bf_gate_v1') یا دکمهٔ «خروج از نسخهٔ آنلاین» در کنسول. */
+(function(){
+  var HASH = '9309e4219a24dab704eda32ce860f233b3a398ecc62d142112c34eba6e5362ba', KEY = 'bf_gate_v1';
+  function ok(){ try{ return localStorage.getItem(KEY) === HASH; }catch(e){ return false; } }
+  window.bfGateLogout = function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); };
+  if(ok()) return;
+  var de = document.documentElement; de.classList.add('bf-locked');
+  var st = document.createElement('style'); st.id = 'bfGateStyle';
+  st.textContent = 'html.bf-locked body>*:not(#bfGate){display:none!important}html.bf-locked,html.bf-locked body{overflow:hidden!important;background:#0f3d3a!important}'
+   + '#bfGate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f3d3a,#1f6f66);font-family:Vazirmatn,Tahoma,sans-serif;direction:rtl;padding:16px}'
+   + '#bfGate form{background:#fff;border-radius:18px;padding:28px 24px;width:100%;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center}'
+   + '#bfGate h2{margin:0 0 6px;color:#0f3d3a;font-size:20px}#bfGate p{margin:0 0 18px;color:#5b6b69;font-size:13px}'
+   + '#bfGate input{width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #cfdcda;border-radius:12px;font-size:16px;text-align:center;direction:ltr;outline:none}'
+   + '#bfGate input:focus{border-color:#1f8a7f}#bfGate button{margin-top:12px;width:100%;padding:12px;border:0;border-radius:12px;background:#0f3d3a;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}'
+   + '#bfGate .err{color:#c0392b;font-size:13px;min-height:18px;margin-top:10px}';
+  (document.head || de).appendChild(st);
+  function unlock(){ de.classList.remove('bf-locked'); var g = document.getElementById('bfGate'); if(g) g.remove(); var s = document.getElementById('bfGateStyle'); if(s) s.remove(); try{ window.dispatchEvent(new Event('resize')); }catch(e){} }
+  function sha(t){
+    if(window.crypto && crypto.subtle && window.TextEncoder)
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)).then(function(b){ return Array.prototype.map.call(new Uint8Array(b), function(x){ return ('0'+x.toString(16)).slice(-2); }).join(''); });
+    return Promise.reject(new Error('nocrypto'));
+  }
+  window.addEventListener('storage', function(e){ if(e.key === KEY && ok()) unlock(); });
+  function show(){
+    if(document.getElementById('bfGate')) return;
+    var g = document.createElement('div'); g.id = 'bfGate';
+    g.innerHTML = '<form autocomplete="off"><h2>سامانهٔ بهفراز</h2><p>برای ورود، رمز را وارد کنید</p>'
+      + '<input type="password" id="bfGatePw" placeholder="رمز ورود" autofocus><button type="submit">ورود</button><div class="err" id="bfGateErr"></div></form>';
+    document.body.appendChild(g);
+    var inp = g.querySelector('input'), err = g.querySelector('.err');
+    setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 50);
+    g.querySelector('form').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      sha(inp.value).then(function(h){
+        if(h === HASH){ try{ localStorage.setItem(KEY, HASH); }catch(e){} unlock(); }
+        else { err.textContent = 'رمز اشتباه است'; inp.select(); }
+      }, function(){ err.textContent = 'مرورگر شما پشتیبانی نمی‌کند — صفحه را با https باز کنید'; });
+    });
+  }
+  if(document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+})();
+</script>
 <script id="bfStaticMode">
 /* ===================== [BF-STATIC] نسخهٔ آنلاین بدون سرور (GitHub Pages) =====================
    این بلوک قبل از هر کد دیگری اجرا می‌شود و یک «سرور محلی» داخل مرورگر می‌سازد:
@@ -3616,7 +3663,7 @@ const resultEl = document.getElementById('result');
 
 let state = { floor:null, cap:null, travel:null, valve:'belin' };
 let qty = { jack:1, pu:1, fitting:3, rupturePkg:1, staticCap:null, staticPersons:null, speed:null, maxTravel:null }; // تعداد جک، پاوریونیت، اتصالات (مغزی) و پکیج رپچر (رپچر + شلنگ تخلیه روغن و زانویی) — قابل تنظیم پیش از صدور پیش‌فاکتور — پیش‌فرض تعداد اتصالات (مغزی) همیشه ۳ عدد — staticCap: مقدار دستی ظرفیت استاتیک (kg)، وقتی null باشد از مقدار پیش‌فرض ترکیب انتخابی استفاده می‌شود — staticPersons: مقدار دستی تعداد نفرات، وقتی null باشد از مقدار پیش‌فرض ترکیب انتخابی استفاده می‌شود
-const FITTING_UNIT_PRICE = 5000000; // قیمت واحد اتصالات (مغزی) — ریال
+let FITTING_UNIT_PRICE = 5000000; // (let: از «مدیریت قیمت» ادمین/مدیریت قابل تغییر است) // قیمت واحد اتصالات (مغزی) — ریال
 
 // ===================== ماژول روکش کروم جک (آبکاری کروم) — اختیاری، بر اساس سایز (قطر) جک و متراژ دستی =====================
 // منبع: جدول قیمت نهایی هر متر آبکاری کروم جک شکیب — تاریخ به‌روزرسانی: 1405.07.12
@@ -11777,5 +11824,434 @@ window.bfFpRepriceImpl = function(snap){
 })();
 </script>
 
+<!-- [BF-PRICE-MGR] start: کد مشترک مدیریت قیمت (منبع واحد؛ در همهٔ صفحه‌ها یکسان) -->
+<script>
+/* ===== [BF-PRICE-MGR] 🛠️ مدیریت قیمت محصولات — موتور مشترک همهٔ صفحه‌ها (فلکه، شکیب، ویتور، کارسلینگ، پنل شاسی) =====
+   - فقط ادمین و مدیریت این بخش را می‌بینند (سرور هم کنترل می‌کند؛ دفتر تغییرات برای بقیه 403 است).
+   - هر تغییر (تکی یا گروهی) با «علت اجباری» در دفتر دائمی سرور (price_log) ثبت می‌شود.
+   - فیلتر هوشمند: گروه محصول + زیرگروه + جست‌وجو (اعداد فارسی/انگلیسی) + «فقط قیمت‌های ویژه».
+   - تغییر گروهی (درصدی / مبلغ ثابت / بازگشت به پایه) دقیقاً روی همان ردیف‌های فیلترشده اعمال می‌شود.
+   - قیمت ویژه فقط روی «نرخ جاری» (همان نرخ پیش‌فرض تاریخچه قیمت) اعمال می‌شود؛ نرخ‌های قدیمی دست‌نخورده می‌مانند.
+   - اگر یک محصول در چند جدول صفحه تکرار شده باشد (مثلاً جک ۸۰×۵×۲۰۰۰ در محاسبه سریع + کاتالوگ)، یک ردیف می‌شود
+     و تغییرش همه‌جا اعمال می‌شود (فقط وقتی قیمت پایهٔ آن‌ها یکی باشد). */
+(function(){
+  'use strict';
+  if(window.BFPriceMgr) return;
+  var CSS = ''+
+  '.bfpm{direction:rtl;background:#fff;border:1px solid #e2e8f0;border-radius:16px;margin:18px 0;box-shadow:0 4px 18px rgba(15,23,42,.06);color:#0f172a;font-family:inherit;display:none}'+
+  '.bfpm.on{display:block}'+
+  '.bfpm>summary{cursor:pointer;list-style:none;padding:14px 18px;font-weight:800;font-size:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:linear-gradient(135deg,#0f766e,#14532d);color:#fff;border-radius:16px}'+
+  '.bfpm[open]>summary{border-radius:16px 16px 0 0}'+
+  '.bfpm>summary::-webkit-details-marker{display:none}'+
+  '.bfpm>summary small{font-weight:400;opacity:.9;font-size:12.5px}'+
+  '.bfpm>summary .bfpm-lock{margin-inline-start:auto;font-size:11.5px;font-weight:600;background:rgba(255,255,255,.18);padding:3px 10px;border-radius:20px}'+
+  '.bfpm-in{padding:14px 16px}'+
+  '.bfpm label.l{display:block;font-size:12.5px;margin:8px 0 4px;color:#334155}'+
+  '.bfpm input,.bfpm select,.bfpm-box input,.bfpm-box select,.bfpm-box textarea{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;font-size:14px;background:#fff;color:#0f172a}'+
+  '.bfpm input.num,.bfpm-box input.num{direction:ltr;text-align:left;font-variant-numeric:tabular-nums}'+
+  '.bfpm .b,.bfpm-box .b{padding:8px 14px;border-radius:9px;border:1px solid #cbd5e1;background:#f8fafc;font:inherit;font-size:13.5px;cursor:pointer;color:#0f172a;white-space:nowrap}'+
+  '.bfpm .b.pri,.bfpm-box .b.pri{background:#0f766e;color:#fff;border-color:#0f766e}'+
+  '.bfpm .b:disabled,.bfpm-box .b:disabled{opacity:.5;cursor:not-allowed}'+
+  '.bfpm-chips{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}'+
+  '.bfpm-chip{border:1px solid #cbd5e1;background:#fff;border-radius:20px;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer;color:#0f172a}'+
+  '.bfpm-chip b{font-weight:400;opacity:.7;margin-inline-start:4px;font-size:11.5px}'+
+  '.bfpm-chip.on{background:#0f766e;color:#fff;border-color:#0f766e}'+
+  '.bfpm-chip.ov.on{background:#b45309;border-color:#b45309}'+
+  '.bfpm-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}'+
+  '.bfpm-bar>*{flex:0 0 auto;width:auto}'+
+  '.bfpm-bar .q{flex:1 1 220px;min-width:180px}'+
+  '.bfpm-bulk{border:1px solid #fcd34d;background:#fffbeb;border-radius:12px;padding:12px;margin:0 0 12px}'+
+  '.bfpm-bulk>b{display:block;margin-bottom:2px}'+
+  '.bfpm-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}'+
+  '.bfpm-grid>div{min-width:0}'+
+  '@media (max-width:760px){.bfpm-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}'+
+  '.bfpm-prev{font-size:12.5px;margin-top:8px;line-height:1.9;min-height:18px}'+
+  '.bfpm-err{color:#b91c1c;font-size:13px;margin-top:6px;min-height:16px}'+
+  '.bfpm-warn{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:10px;padding:7px 10px;font-size:12.5px;margin-bottom:8px}'+
+  '.bfpm-wrap{max-height:70vh;overflow:auto;border:1px solid #e2e8f0;border-radius:10px}'+
+  '.bfpm-tbl{width:100%;border-collapse:collapse;font-size:12.5px}'+
+  '.bfpm-tbl th,.bfpm-tbl td{border-bottom:1px solid #eef2f7;padding:6px;text-align:right;vertical-align:middle}'+
+  '.bfpm-tbl th{background:#f8fafc;position:sticky;top:0;z-index:1;font-weight:700;white-space:nowrap}'+
+  '.bfpm-tbl td.n{direction:ltr;text-align:left;white-space:nowrap;font-variant-numeric:tabular-nums}'+
+  '.bfpm-tbl tr.ov td.n.c{background:#fffbeb}'+
+  '.bfpm-tbl tr.blk td{opacity:.55}'+
+  '.bfpm-tbl td.g{white-space:nowrap;color:#475569;font-size:11.5px}'+
+  '.bfpm-tbl td .s{display:block;color:#64748b;font-size:11px}'+
+  '.bfpm-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.22);margin-inline-end:6px;vertical-align:middle}'+
+  '.bfpm-up{color:#b91c1c}.bfpm-dn{color:#15803d}'+
+  '.bfpm-pen{border:1px solid #cbd5e1;background:#fff;border-radius:7px;font:inherit;font-size:12px;padding:2px 8px;cursor:pointer}'+
+  '.bfpm-more{display:block;margin:8px auto}'+
+  '.bfpm-tag{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11px;background:#e0f2fe;color:#075985;white-space:nowrap}'+
+  '.bfpm-tag.file{background:#ede9fe;color:#5b21b6}.bfpm-tag.undo{background:#fee2e2;color:#991b1b}.bfpm-tag.reset{background:#dcfce7;color:#166534}.bfpm-tag.bulk{background:#fef3c7;color:#92400e}'+
+  '.bfpm-ov{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:16px}'+
+  '.bfpm-box{background:#fff;color:#0f172a;border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);direction:rtl;font-family:inherit;text-align:right}'+
+  '.bfpm-box.wide{max-width:1150px}'+
+  '.bfpm-box h3{margin:0 0 10px;font-size:17px}'+
+  '.bfpm-box label{display:block;font-size:13px;margin:10px 0 4px;color:#334155}'+
+  '.bfpm-info{background:#f1f5f9;border-radius:10px;padding:10px;font-size:13px;line-height:1.9}'+
+  '.bfpm-row{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}'+
+  '.bfpm-undo{white-space:nowrap;border:1px solid #fca5a5;color:#b91c1c;background:#fff;border-radius:7px;font:inherit;font-size:11.5px;padding:2px 7px;cursor:pointer}'+
+  '.bfpm-toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#0f766e;color:#fff;padding:10px 18px;border-radius:10px;z-index:2147483001;font-family:inherit;box-shadow:0 8px 24px rgba(0,0,0,.25);direction:rtl}'+
+  '@media print{.bfpm,.bfpm-ov,.bfpm-toast{display:none !important}}';
+  function addCss(){ if(document.getElementById('bfpmCss')) return; var st=document.createElement('style'); st.id='bfpmCss'; st.textContent=CSS; document.head.appendChild(st); }
+
+  function hdr(){ var h={'Content-Type':'application/json'}; try{ var a=(typeof bfAuthHeaders==='function')?bfAuthHeaders():{}; for(var k in a) h[k]=a[k]; }catch(e){} return h; }
+  function js(r){ var ct=(r.headers.get('content-type')||''); if(ct.indexOf('json')<0) throw new Error('سرور هنوز نسخهٔ جدید را اجرا نمی‌کند — پنجرهٔ سرور را ببندید و server.js را دوباره اجرا کنید'); return r.json(); }
+  function getJ(url){ return fetch(url,{headers:hdr(),cache:'no-store'}).then(function(r){ return js(r).then(function(j){ if(!r.ok||!j||!j.ok) throw new Error((j&&j.error)||'خطا'); return j; }); }); }
+  function post(url, body){ return fetch(url,{method:'POST',headers:hdr(),body:JSON.stringify(body)}).then(function(r){ return js(r).then(function(j){ if(!r.ok||!j.ok) throw new Error((j&&j.error)||'ذخیره نشد'); return j; }); }); }
+  function f(n){ return (n==null||!isFinite(n))?'—':Math.round(n).toLocaleString('en-US'); }
+  function fa(n){ return (n==null||!isFinite(n))?'—':Math.round(n).toLocaleString('fa-IR'); }
+  function jd(iso){ try{ return new Date(iso).toLocaleString('fa-IR-u-ca-persian',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch(e){ return iso; } }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function pct(a,b){ if(!a||b==null) return ''; var p=(b-a)/a*100; return (p>=0?'+':'')+p.toFixed(1)+'٪'; }
+  function pctH(a,b){ var t=pct(a,b); if(!t) return ''; return '<span class="'+(b>a?'bfpm-up':(b<a?'bfpm-dn':''))+'">'+t+'</span>'; }
+  function toEn(v){ return String(v==null?'':v).replace(/[۰-۹]/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);}).replace(/[٠-٩]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d);}); }
+  function norm(v){ return toEn(v).toLowerCase().replace(/[×x\*]/g,'*').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/‌/g,' ').replace(/\s+/g,' ').trim(); }
+  function toast(m){ var t=document.createElement('div'); t.className='bfpm-toast'; t.textContent=m; document.body.appendChild(t); setTimeout(function(){ t.remove(); },2800); }
+  function overlay(html, wide){ addCss(); var ov=document.createElement('div'); ov.className='bfpm-ov'; ov.innerHTML='<div class="bfpm-box'+(wide?' wide':'')+'">'+html+'</div>'; ov.addEventListener('click',function(e){ if(e.target===ov) ov.remove(); }); document.body.appendChild(ov); return ov; }
+  var ACT={set:['تغییر','set'],reset:['بازگشت به پایه','reset'],undo:['برگشت','undo'],file:['ثبت در فایل','file'],bulk:['گروهی','bulk']};
+  var PAGE_FA={motors:'موتور',falake:'فلکه هرزگرد',shakib:'شکیب',wittur:'ویتور',karasling:'کارسلینگ',panel:'پنل شاسی'};
+
+  /* 📜 دفتر تغییرات قیمت — pages: آرایهٔ صفحه‌ها یا 'all' ؛ ctx (اختیاری) = نمونهٔ مدیر قیمت برای «برگشت» */
+  function openLog(pages, ctx, title){
+    var scopeOwn = (pages==='all') ? null : pages.join(',');
+    var ov=overlay('<h3>📜 دفتر تغییرات قیمت'+(title?' — '+esc(title):'')+'</h3>'+
+      '<div class="bfpm-bar" style="margin:0">'+
+        (scopeOwn?'<select id="bfpmLS" style="width:auto"><option value="own">فقط همین بخش</option><option value="all">همهٔ محصولات (همه‌جا)</option></select>':'')+
+        '<select id="bfpmLP" style="width:auto"><option value="">همهٔ صفحه‌ها</option></select>'+
+        '<input id="bfpmLQ" class="q" placeholder="جست‌وجو: محصول، کاربر، علت، عدد ...">'+
+        '<button type="button" class="b" id="bfpmLX">⬇️ خروجی اکسل</button><button type="button" class="b" id="bfpmLC">بستن</button></div>'+
+      '<div id="bfpmLL" style="margin-top:8px">در حال بارگذاری...</div>', true);
+    var rows=[], LASTID={};
+    ov.querySelector('#bfpmLC').onclick=function(){ ov.remove(); };
+    function scope(){ var s=ov.querySelector('#bfpmLS'); return (!scopeOwn || (s && s.value==='all')) ? 'all' : scopeOwn; }
+    function draw(){
+      var q=norm(ov.querySelector('#bfpmLQ').value), pg=ov.querySelector('#bfpmLP').value;
+      var list=rows.filter(function(r){ if(pg && r.page!==pg) return false; return !q || q.split(' ').every(function(w){ return norm([r.label,r.operator,r.reason,r.pkey,r.new_price,r.old_price,PAGE_FA[r.page]].join(' ')).indexOf(w)>=0; }); });
+      var shown=list.slice(0,1500);
+      ov.querySelector('#bfpmLL').innerHTML = list.length ? '<div style="font-size:12px;color:#64748b;margin-bottom:6px">'+fa(list.length)+' ردیف'+(list.length>shown.length?' (نمایش '+fa(shown.length)+' ردیف آخر — برای بقیه جست‌وجو یا خروجی اکسل)':'')+'</div><div class="bfpm-wrap"><table class="bfpm-tbl"><thead><tr><th>#</th><th>تاریخ و ساعت</th><th>کاربر</th><th>بخش</th><th>محصول</th><th>قیمت قبلی</th><th>قیمت جدید</th><th>تغییر</th><th>نوع</th><th>علت</th><th></th></tr></thead><tbody>'+
+        shown.map(function(r){ var a=ACT[r.action]||[r.action,'']; var isLast=LASTID[r.page+'§'+r.pkey]===r.id;
+          var can = isLast && r.old_price!=null && r.action!=='file';
+          return '<tr><td>'+fa(r.id)+'</td><td style="white-space:nowrap">'+esc(jd(r.created_at))+'</td><td>'+esc(r.operator||'')+'</td><td class="g">'+esc(PAGE_FA[r.page]||r.page)+'</td><td>'+esc(r.label||r.pkey)+'</td><td class="n">'+f(r.old_price)+'</td><td class="n"><b>'+f(r.new_price)+'</b></td><td class="n">'+pctH(r.old_price,r.new_price)+'</td><td><span class="bfpm-tag '+a[1]+'">'+a[0]+'</span></td><td>'+esc(r.reason)+'</td><td>'+(can?'<button type="button" class="bfpm-undo" data-id="'+r.id+'">↩️ برگشت</button>':'')+'</td></tr>'; }).join('')+'</tbody></table></div>' : '<p>موردی ثبت نشده است.</p>';
+      ov.querySelectorAll('.bfpm-undo').forEach(function(btn){ btn.onclick=function(){ undo(rows.find(function(x){ return String(x.id)===btn.dataset.id; })); }; });
+    }
+    function undo(r){
+      if(!r) return; var why=prompt('برگشت «'+r.label+'» از '+f(r.new_price)+' به '+f(r.old_price)+' ریال.\nعلت برگشت (اجباری):','');
+      if(why==null) return; if(why.trim().length<3){ alert('علت برگشت اجباری است.'); return; }
+      var base=null, inst=null;
+      INSTANCES.forEach(function(m){ var it=m._find(r.page, r.pkey); if(it){ base=it.base; inst=m; } });
+      if(base==null && window.bfPriceOvr && r.page==='motors'){ /* موتورها: پایه را صفحهٔ موتور خودش می‌داند */ }
+      post('/api/price-overrides',{page:r.page,key:r.pkey,label:r.label,price:r.old_price,base:base,old:r.new_price,reason:'برگشت ردیف #'+r.id+' — '+why.trim(),undoOf:r.id})
+        .then(fetchRows).then(function(){ INSTANCES.forEach(function(m){ m.load(); }); try{ if(window.bfPriceOvr) window.bfPriceOvr.load(); }catch(e){} toast('↩️ قیمت برگشت داده شد و در دفتر ثبت شد'); })
+        .catch(function(e){ alert('❌ '+e.message); });
+    }
+    function fetchRows(){
+      return getJ('/api/price-log?pages='+encodeURIComponent(scope())).then(function(j){
+        rows=j.rows||[]; LASTID={}; rows.forEach(function(r){ var k=r.page+'§'+r.pkey; if(!(k in LASTID) || LASTID[k]<r.id) LASTID[k]=r.id; });
+        var sel=ov.querySelector('#bfpmLP'), cur=sel.value, pgs={}; rows.forEach(function(r){ pgs[r.page]=1; });
+        sel.innerHTML='<option value="">همهٔ صفحه‌ها</option>'+Object.keys(pgs).map(function(p){ return '<option value="'+p+'"'+(p===cur?' selected':'')+'>'+esc(PAGE_FA[p]||p)+'</option>'; }).join('');
+        draw();
+      }).catch(function(e){ ov.querySelector('#bfpmLL').textContent='❌ '+e.message; });
+    }
+    ov.querySelector('#bfpmLQ').addEventListener('input',draw);
+    ov.querySelector('#bfpmLP').addEventListener('change',draw);
+    var ls=ov.querySelector('#bfpmLS'); if(ls) ls.addEventListener('change',fetchRows);
+    ov.querySelector('#bfpmLX').onclick=function(){
+      var H=['ردیف','تاریخ و ساعت','کاربر','بخش','محصول','کلید','قیمت قبلی (ریال)','قیمت جدید (ریال)','درصد تغییر','نوع','علت'];
+      var L=[H].concat(rows.map(function(r){ return [r.id,jd(r.created_at),r.operator||'',PAGE_FA[r.page]||r.page,r.label||'',r.pkey,r.old_price==null?'':r.old_price,r.new_price,pct(r.old_price,r.new_price),(ACT[r.action]||[r.action])[0],r.reason]; }));
+      var csv='﻿'+L.map(function(a){ return a.map(function(v){ v=String(v==null?'':v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }).join(','); }).join('\r\n');
+      var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='price-log-'+(scope()==='all'?'all':scope().replace(/,/g,'-'))+'.csv'; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500);
+    };
+    fetchRows();
+  }
+
+  var INSTANCES=[];
+  /* cfg:
+     id, title, page (صفحهٔ پیش‌فرض در سرور), pages (همهٔ صفحه‌هایی که خوانده می‌شوند)
+     groups: [{id,label}]  ·  refs(): [{id,page,group,sub,label,unit,o,k | get,set, setg, src}]
+     isCurrent(ref) → آیا این ردیف روی نرخ جاری است؟  ·  after(changed, initial) → بازسازی/نمایش دوباره
+     mount(el) → جای بخش در صفحه  ·  wrap(reapply) → بستن تابع «تاریخچه قیمت» صفحه تا بعد از تعویض نرخ دوباره اعمال شود */
+  function create(cfg){
+    addCss();
+    var M={cfg:cfg}, ITEMS=[], BYK={}, OVR={}, LAST={}, CAN=false, LOADED=false;
+    var GROUPS=cfg.groups||[], GL={}; GROUPS.forEach(function(g){ GL[g.id]=g.label; });
+    var F={g:'all', sub:'', q:'', ov:false}, LIMIT=300;
+
+    // ۱) ساخت فهرست محصولات از روی ارجاع‌های صفحه (ردیف‌های تکراری با قیمت پایهٔ یکسان یکی می‌شوند)
+    function build(){
+      ITEMS=[]; BYK={}; var seen={}, used={};
+      var refs=[]; try{ refs=cfg.refs()||[]; }catch(e){ console.warn('[BF-PRICE-MGR] refs', e); }
+      refs.forEach(function(r){
+        if(!r || !r.id) return;
+        if(!r.get){ (function(o,k){ r.get=function(){ return o[k]; }; r.set=function(v){ o[k]=v; }; })(r.o, r.k); }
+        var b; try{ b=r.get(); }catch(e){ return; }
+        if(typeof b!=='number' || !isFinite(b)) return;
+        var page=r.page||cfg.page, sid=page+'§'+r.id, list=seen[sid]||(seen[sid]=[]);
+        var hit=null; list.some(function(it){ if(it.base===b){ hit=it; return true; } });
+        if(hit){ hit.refs.push(r); return; }
+        var key=r.id; if(list.length) key=r.id+'|'+(r.src||('v'+(list.length+1)));
+        var kk=page+'§'+key, n=2; while(used[kk]){ key=r.id+'|v'+(n++); kk=page+'§'+key; }
+        used[kk]=1;
+        var it={key:key, page:page, group:r.group||'other', sub:r.sub||'', label:r.label||r.id, unit:r.unit||'ریال', base:b, refs:[r], cur:b};
+        it._s=norm([it.label, it.sub, GL[it.group]||'', it.key].join(' '));
+        list.push(it); ITEMS.push(it); BYK[kk]=it;
+      });
+    }
+    function cur(it){ return (it.refs[0].setg && cfg.isCurrent) ? cfg.isCurrent(it.refs[0]) : true; }
+    // ۲) اعمال قیمت‌های ویژه (فقط روی نرخ جاری)
+    function apply(initial){
+      var changed=0;
+      ITEMS.forEach(function(it){
+        var o=OVR[it.page+'§'+it.key], v=o?o.price:it.base;
+        it.ovr=o||null;
+        it.refs.forEach(function(r){ if(cfg.isCurrent && r.setg && !cfg.isCurrent(r)) return; try{ if(r.get()!==v){ r.set(v); changed++; } }catch(e){} });
+        try{ it.cur=it.refs[0].get(); }catch(e){}
+        it.blocked=!cur(it);
+      });
+      if(cfg.after){ try{ cfg.after(changed>0, !!initial); }catch(e){ console.warn('[BF-PRICE-MGR] after', e); } }
+      drawAll();
+      return changed;
+    }
+    M.reapply=function(){ return apply(false); };
+    M._find=function(page,key){ return BYK[page+'§'+key]||null; };
+
+    // ۳) بارگذاری از سرور
+    var waitN=0;
+    function later(){ if(waitN++<300) setTimeout(load, Math.min(10000, 1200+waitN*300)); }
+    function load(){
+      var pages=(cfg.pages||[cfg.page]).join(',');
+      // هنوز وارد نشده (پنجرهٔ ورود باز است) → بعد از ورود خودکار دوباره تلاش می‌شود
+      if(!hdr()['x-operator-token']){ later(); return Promise.resolve(); }
+      return getJ('/api/price-overrides?pages='+encodeURIComponent(pages)).then(function(j){
+        OVR={}; LAST={};
+        (j.overrides||[]).forEach(function(o){ OVR[o.page+'§'+o.pkey]=o; });
+        (j.last||[]).forEach(function(l){ LAST[l.page+'§'+l.pkey]=l; });
+        CAN=!!j.canEdit; LOADED=true;
+        if(EL) EL.classList.toggle('on', CAN);
+        apply(true);
+      }).catch(function(e){ console.warn('[BF-PRICE-MGR] load', e); if(/وارد شوید/.test(e.message)) later(); });
+    }
+    M.load=load;
+
+    // ۴) بخش «مدیریت قیمت» آخر صفحه — فقط ادمین/مدیریت
+    var EL=document.createElement('details'); EL.className='bfpm no-print'; EL.id=cfg.id||('bfpm_'+cfg.page);
+    EL.innerHTML='<summary>🛠️ مدیریت قیمت محصولات — '+esc(cfg.title||'')+' <small class="bfpm-cnt"></small><span class="bfpm-lock">🔒 فقط ادمین و مدیریت</span></summary>'+
+      '<div class="bfpm-in">'+
+        (cfg.note?'<div style="font-size:12.5px;color:#475569;margin-bottom:8px;line-height:1.9">'+cfg.note+'</div>':'')+
+        '<div class="bfpm-chips bfpm-g"></div>'+
+        '<div class="bfpm-bar"><select class="bfpm-sub" style="min-width:170px"></select><input class="q bfpm-q" placeholder="جست‌وجو: سایز، مدل، 80*5*2000، 7.7، شلنگ ..."><button type="button" class="bfpm-chip ov bfpm-ovb">⭐ فقط قیمت‌های ویژه</button><button type="button" class="b bfpm-logb">📜 دفتر تغییرات قیمت</button></div>'+
+        '<div class="bfpm-bulk">'+
+          '<b>📈 تغییر گروهی روی <span class="bfpm-nf">۰</span> ردیفِ فیلترشدهٔ فعلی</b><div style="font-size:12px;color:#92400e">اول با دکمه‌های گروه/زیرگروه/جست‌وجو ردیف‌ها را محدود کنید؛ تغییر فقط روی همان‌ها اعمال می‌شود.</div>'+
+          '<div class="bfpm-grid">'+
+            '<div><label class="l">نوع تغییر</label><select class="bfpm-bm"><option value="pct">درصدی (٪)</option><option value="amt">مبلغ ثابت (ریال)</option><option value="base">بازگشت به قیمت پایه</option></select></div>'+
+            '<div><label class="l bfpm-bvl">درصد (منفی = کاهش)</label><input class="num bfpm-bv" inputmode="decimal" placeholder="مثلاً 5 یا -3"></div>'+
+            '<div><label class="l">گرد کردن</label><select class="bfpm-br"><option value="1">بدون گرد کردن</option><option value="1000">۱٬۰۰۰ ریال</option><option value="100000">۱۰۰٬۰۰۰ ریال</option><option value="1000000" selected>۱٬۰۰۰٬۰۰۰ ریال</option><option value="10000000">۱۰٬۰۰۰٬۰۰۰ ریال</option></select></div>'+
+            '<div><label class="l">مبنای محاسبه</label><select class="bfpm-bb"><option value="cur">قیمت فعلی</option><option value="base">قیمت پایه (لیست اصلی)</option></select></div>'+
+          '</div>'+
+          '<label class="l">علت (اجباری)</label><input class="bfpm-bwhy" placeholder="مثلاً: افزایش ۵٪ طبق اعلام تأمین‌کننده مورخ ...">'+
+          '<div class="bfpm-prev"></div><div class="bfpm-err"></div>'+
+          '<div class="bfpm-row" style="margin-top:6px"><button type="button" class="b pri bfpm-go">اعمال روی ردیف‌های فیلترشده و ثبت در دفتر</button></div>'+
+        '</div>'+
+        '<div class="bfpm-wb"></div>'+
+        '<div class="bfpm-wrap bfpm-t"></div>'+
+      '</div>';
+    function $(c){ return EL.querySelector(c); }
+    function place(){ try{ if(cfg.mount) cfg.mount(EL); else document.body.appendChild(EL); }catch(e){ document.body.appendChild(EL); } }
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',place); else place();
+
+    function filtered(){
+      var q=norm(F.q), ws=q?q.split(' '):[];
+      return ITEMS.filter(function(it){
+        if(F.g!=='all' && it.group!==F.g) return false;
+        if(F.sub && it.sub!==F.sub) return false;
+        if(F.ov && !it.ovr) return false;
+        return !ws.length || ws.every(function(w){ return it._s.indexOf(w)>=0; });
+      });
+    }
+    function drawChips(){
+      var cnt={}, ovn=0; ITEMS.forEach(function(it){ cnt[it.group]=(cnt[it.group]||0)+1; if(it.ovr) ovn++; });
+      var gs=GROUPS.filter(function(g){ return cnt[g.id]; });
+      $('.bfpm-g').innerHTML='<button type="button" class="bfpm-chip'+(F.g==='all'?' on':'')+'" data-g="all">همه<b>'+fa(ITEMS.length)+'</b></button>'+
+        gs.map(function(g){ return '<button type="button" class="bfpm-chip'+(F.g===g.id?' on':'')+'" data-g="'+g.id+'">'+esc(g.label)+'<b>'+fa(cnt[g.id])+'</b></button>'; }).join('');
+      $('.bfpm-g').querySelectorAll('[data-g]').forEach(function(c){ c.onclick=function(){ F.g=c.dataset.g; F.sub=''; LIMIT=300; drawAll(); }; });
+      var subs={}; ITEMS.forEach(function(it){ if((F.g==='all'||it.group===F.g) && it.sub) subs[it.sub]=(subs[it.sub]||0)+1; });
+      var sk=Object.keys(subs);
+      $('.bfpm-sub').innerHTML='<option value="">همهٔ زیرگروه‌ها</option>'+sk.map(function(s){ return '<option value="'+esc(s)+'"'+(s===F.sub?' selected':'')+'>'+esc(s)+' ('+fa(subs[s])+')</option>'; }).join('');
+      $('.bfpm-sub').style.display=sk.length?'':'none';
+      $('.bfpm-ovb').classList.toggle('on',F.ov);
+      $('.bfpm-cnt').textContent=ovn?('· '+fa(ovn)+' قیمت ویژه'):'';
+    }
+    function lastOf(it){ return LAST[it.page+'§'+it.key]; }
+    function drawTable(){
+      var list=filtered(), w=$('.bfpm-t');
+      $('.bfpm-nf').textContent=fa(list.length);
+      var blk=ITEMS.filter(function(it){ return it.blocked; }).length;
+      $('.bfpm-wb').innerHTML=blk?'<div class="bfpm-warn">⚠️ در «📈 تاریخچه قیمت» برای بخشی از محصولات ('+fa(blk)+' ردیف) نرخ قدیمی انتخاب شده است؛ قیمت ویژه فقط روی نرخ جاری قابل تغییر و اعمال است (ردیف‌های کم‌رنگ).</div>':'';
+      var shown=list.slice(0,LIMIT);
+      w.innerHTML='<table class="bfpm-tbl"><thead><tr><th>#</th><th>گروه</th><th>محصول / شرح</th><th>قیمت فعلی</th><th>قیمت پایه</th><th>تغییر</th><th>آخرین تغییر</th><th></th></tr></thead><tbody>'+
+        shown.map(function(it,i){ var l=lastOf(it);
+          return '<tr class="'+(it.ovr?'ov ':'')+(it.blocked?'blk':'')+'"><td>'+fa(i+1)+'</td><td class="g">'+esc(GL[it.group]||it.group)+(it.page!==cfg.page?'<span class="s">'+esc(PAGE_FA[it.page]||it.page)+' (مشترک)</span>':'')+'</td>'+
+            '<td>'+esc(it.label)+(it.sub?'<span class="s">'+esc(it.sub)+(it.refs.length>1?' · '+fa(it.refs.length)+' جای صفحه':'')+'</span>':(it.refs.length>1?'<span class="s">'+fa(it.refs.length)+' جای صفحه</span>':''))+'</td>'+
+            '<td class="n c">'+(it.ovr?'<span class="bfpm-dot" title="قیمت ویژه"></span>':'')+'<b>'+f(it.cur)+'</b>'+(it.unit!=='ریال'?' <small>'+esc(it.unit)+'</small>':'')+'</td>'+
+            '<td class="n" style="color:#64748b">'+f(it.base)+'</td><td class="n">'+(it.ovr?pctH(it.base,it.cur):'')+'</td>'+
+            '<td style="font-size:11px;color:#475569">'+(l?esc(jd(l.created_at))+' · '+esc(l.operator||'')+'<span class="s" title="'+esc(l.reason)+'">'+esc(String(l.reason||'').slice(0,40))+'</span>':'')+'</td>'+
+            '<td>'+(it.blocked?'':'<button type="button" class="bfpm-pen" data-i="'+ITEMS.indexOf(it)+'">✏️</button>')+'</td></tr>'; }).join('')+
+        '</tbody></table>'+(list.length?'':'<p style="padding:10px">موردی پیدا نشد.</p>')+(list.length>shown.length?'<button type="button" class="b bfpm-more">نمایش '+fa(Math.min(300,list.length-shown.length))+' ردیف بیشتر (از '+fa(list.length-shown.length)+')</button>':'');
+      w.querySelectorAll('.bfpm-pen').forEach(function(b){ b.onclick=function(){ openEdit(ITEMS[+b.dataset.i]); }; });
+      var mo=w.querySelector('.bfpm-more'); if(mo) mo.onclick=function(){ LIMIT+=300; drawTable(); };
+    }
+    function drawAll(){ if(!EL) return; drawChips(); drawTable(); bulkPreview(); }
+    $('.bfpm-sub').onchange=function(){ F.sub=this.value; LIMIT=300; drawAll(); };
+    var qt=null; $('.bfpm-q').oninput=function(){ var v=this.value; clearTimeout(qt); qt=setTimeout(function(){ F.q=v; LIMIT=300; drawTable(); bulkPreview(); },150); };
+    $('.bfpm-ovb').onclick=function(){ F.ov=!F.ov; LIMIT=300; drawAll(); };
+    $('.bfpm-logb').onclick=function(){ openLog(cfg.pages||[cfg.page], M, cfg.title); };
+
+    // ۵) ویرایش تکی
+    function openEdit(it){
+      if(!CAN){ alert('فقط ادمین و مدیریت می‌توانند قیمت را تغییر دهند.'); return; }
+      if(it.blocked){ alert('برای این محصول در «تاریخچه قیمت» نرخ قدیمی انتخاب شده؛ اول نرخ جاری را انتخاب کنید.'); return; }
+      var l=lastOf(it);
+      var ov=overlay('<h3>✏️ قیمت ویژه — '+esc(GL[it.group]||'')+'</h3>'+
+        '<div class="bfpm-info">محصول: <b>'+esc(it.label)+'</b>'+(it.sub?'<br>زیرگروه: '+esc(it.sub):'')+'<br>قیمت فعلی: <b>'+f(it.cur)+'</b> '+esc(it.unit)+(it.ovr?' <span class="bfpm-tag bulk">ویژه</span>':'')+
+        '<br>قیمت پایه (لیست اصلی): <b>'+f(it.base)+'</b>'+(it.refs.length>1?'<br>این قیمت در '+fa(it.refs.length)+' جای صفحه (جدول‌های مختلف) یکسان به‌روز می‌شود.':'')+(it.page!==cfg.page?'<br>⚠️ مشترک با صفحهٔ دیگر ('+esc(PAGE_FA[it.page]||it.page)+') — همان‌جا هم اعمال می‌شود.':'')+
+        (l?'<br>آخرین تغییر: '+esc(jd(l.created_at))+' · '+esc(l.operator||''):'')+'</div>'+
+        '<label>قیمت جدید ('+esc(it.unit)+')</label><input class="num" id="bfpmP" inputmode="numeric" value="'+f(it.cur)+'">'+
+        '<div class="bfpm-prev" id="bfpmD"></div>'+
+        '<label>علت تغییر (اجباری)</label><textarea id="bfpmR" rows="2" placeholder="مثلاً: لیست جدید تأمین‌کننده مورخ ..."></textarea>'+
+        '<div class="bfpm-err" id="bfpmE"></div>'+
+        '<div class="bfpm-row"><button type="button" class="b pri" id="bfpmS">ثبت و ذخیره در دفتر</button>'+(it.ovr?'<button type="button" class="b" id="bfpmB">بازگشت به قیمت پایه</button>':'')+'<button type="button" class="b" id="bfpmC">انصراف</button></div>');
+      var P=ov.querySelector('#bfpmP'), D=ov.querySelector('#bfpmD'), E=ov.querySelector('#bfpmE'), R=ov.querySelector('#bfpmR');
+      function num(){ var s=toEn(P.value).replace(/[^\d]/g,''); return s?Number(s):NaN; }
+      function upd(){ var n=num(); D.innerHTML = isFinite(n)&&n>0 ? ('= '+fa(Math.round(n/10))+' تومان · تغییر: <b>'+pctH(it.cur,n)+'</b> ('+(n-it.cur>=0?'+':'')+f(n-it.cur)+')') : ''; }
+      P.addEventListener('input',function(){ var n=num(); if(isFinite(n)){ var pos=P.value.length-P.selectionStart; P.value=f(n); try{ var q=Math.max(0,P.value.length-pos); P.setSelectionRange(q,q);}catch(e){} } upd(); }); upd();
+      setTimeout(function(){ P.focus(); P.select(); },30);
+      ov.querySelector('#bfpmC').onclick=function(){ ov.remove(); };
+      function go(price, reason){
+        E.textContent=''; if(!(price>0) && !(price===0 && it.base===0)){ E.textContent='قیمت نامعتبر است'; return; }
+        if(String(reason||'').trim().length<3){ E.textContent='علت تغییر را بنویسید (اجباری).'; R.focus(); return; }
+        if(price===it.cur){ E.textContent='قیمت جدید با قیمت فعلی یکی است.'; return; }
+        if(!confirm('ثبت قیمت '+f(price)+' برای «'+it.label+'»؟\nاین تغییر با علت در دفتر تغییرات قیمت ثبت می‌شود.')) return;
+        post('/api/price-overrides',{page:it.page,key:it.key,label:(GL[it.group]?GL[it.group]+' — ':'')+it.label,price:price,base:it.base,old:it.cur,reason:reason.trim()})
+          .then(function(){ ov.remove(); return reloadAll(); }).then(function(){ toast('✅ قیمت ثبت شد و در دفتر تغییرات قیمت ذخیره شد'); })
+          .catch(function(e){ E.textContent='❌ '+e.message; });
+      }
+      ov.querySelector('#bfpmS').onclick=function(){ go(num(), R.value); };
+      var B=ov.querySelector('#bfpmB'); if(B) B.onclick=function(){ go(it.base, R.value||'بازگشت به قیمت پایه'); };
+    }
+    function reloadAll(){ return Promise.all(INSTANCES.map(function(m){ return m.load(); })); }
+
+    // ۶) تغییر گروهی روی ردیف‌های فیلترشده
+    function bulkItems(){
+      var mode=$('.bfpm-bm').value, v=Number(toEn($('.bfpm-bv').value).replace(/[^\d.\-]/g,'')), rd=Number($('.bfpm-br').value)||1, from=$('.bfpm-bb').value;
+      var list=filtered().filter(function(it){ return !it.blocked; }), out=[];
+      list.forEach(function(it){
+        var src=(from==='base')?it.base:it.cur, np;
+        if(mode==='base'){ if(!it.ovr) return; np=it.base; }
+        else { if(!(isFinite(v)&&v!==0) || !(src>0)) return; np = mode==='pct' ? src*(1+v/100) : src+v; np=Math.round(np/rd)*rd; }
+        if(!(np>0) || np===it.cur) return;
+        out.push({page:it.page,key:it.key,label:(GL[it.group]?GL[it.group]+' — ':'')+it.label,price:np,base:it.base,old:it.cur,_it:it});
+      });
+      return {items:out,mode:mode,v:v,skipped:filtered().length-list.length};
+    }
+    function bulkPreview(){
+      var m=$('.bfpm-bm').value; $('.bfpm-bvl').textContent = m==='pct'?'درصد (منفی = کاهش)':(m==='amt'?'مبلغ (ریال، منفی = کاهش)':'—'); $('.bfpm-bv').disabled=(m==='base');
+      var el=$('.bfpm-prev'), B=bulkItems();
+      if(!B.items.length){ el.innerHTML=(m==='base'?'در ردیف‌های فیلترشده قیمت ویژه‌ای برای برگشت نیست.':'')+(B.skipped?' ⚠️ '+fa(B.skipped)+' ردیف روی نرخ قدیمی است و شامل نمی‌شود.':''); return; }
+      var s=B.items[0], so=B.items.reduce(function(a,i){return a+i.old;},0), sn=B.items.reduce(function(a,i){return a+i.price;},0);
+      el.innerHTML='پیش‌نمایش: <b>'+fa(B.items.length)+'</b> ردیف تغییر می‌کند · مثال: '+esc(s._it.label)+' : '+f(s.old)+' ← <b>'+f(s.price)+'</b> ('+pctH(s.old,s.price)+') · میانگین واقعی: '+pctH(so,sn)+(B.skipped?' · ⚠️ '+fa(B.skipped)+' ردیف (نرخ قدیمی) شامل نمی‌شود':'');
+    }
+    ['.bfpm-bm','.bfpm-bv','.bfpm-br','.bfpm-bb'].forEach(function(c){ var e=$(c); e.addEventListener('input',bulkPreview); e.addEventListener('change',bulkPreview); });
+    $('.bfpm-go').onclick=function(){
+      var E=$('.bfpm-err'); E.textContent=''; var B=bulkItems(), reason=$('.bfpm-bwhy').value.trim();
+      if(!B.items.length){ E.textContent=B.mode==='base'?'ردیفی برای برگشت نیست.':'مقدار معتبر وارد کنید (مثلاً 5 یا -3).'; return; }
+      if(reason.length<3){ E.textContent='علت را بنویسید (اجباری).'; return; }
+      var scope=[F.g==='all'?'همه':(GL[F.g]||F.g)]; if(F.sub) scope.push(F.sub); if(F.q) scope.push('«'+F.q+'»'); if(F.ov) scope.push('فقط ویژه');
+      var title=(B.mode==='base'?'بازگشت به قیمت پایه':(B.mode==='pct'?((B.v>0?'+':'')+B.v+'٪'):((B.v>0?'+':'')+f(B.v)+' ریال')))+' — '+scope.join(' / ');
+      if(!confirm('اعمال «'+title+'» روی '+B.items.length+' ردیف؟\nهمهٔ تغییرها با علت در دفتر تغییرات قیمت ثبت می‌شود و هر ردیف جداگانه قابل برگشت است.')) return;
+      var btn=this; btn.disabled=true;
+      post('/api/price-overrides/bulk',{page:cfg.page,items:B.items.map(function(x){ return {page:x.page,key:x.key,label:x.label,price:x.price,base:x.base,old:x.old}; }),reason:reason,title:title})
+        .then(function(j){ $('.bfpm-bv').value=''; $('.bfpm-bwhy').value=''; return reloadAll().then(function(){ toast('✅ '+fa(j.count)+' ردیف به‌روز شد و در دفتر ثبت شد'); }); })
+        .catch(function(e){ E.textContent='❌ '+e.message; }).then(function(){ btn.disabled=false; });
+    };
+
+    build();
+    if(cfg.wrap){ try{ cfg.wrap(function(){ apply(false); }); }catch(e){ console.warn('[BF-PRICE-MGR] wrap', e); } }
+    INSTANCES.push(M);
+    M.items=function(){ return ITEMS; }; M.state=function(){ return {CAN:CAN,LOADED:LOADED,OVR:OVR}; };
+    load();
+    return M;
+  }
+  window.BFPriceMgr={create:create, openLog:function(p,t){ openLog(p||'all', null, t); }, instances:INSTANCES, norm:norm};
+})();
+
+</script>
+<script>
+/* ===== [BF-PRICE-MGR:shakib] مدیریت قیمت محصولات شکیب + متعلقات + کارسلینگ (کارسلینگ مشترک با ویتور) ===== */
+(function(){
+  if(!window.BFPriceMgr || typeof JACK_FULL_PRICE_TABLE==='undefined') return;
+  function T(t){ return (t==null||t==='توپر')?'s':String(t); }
+  function TL(t){ return (t==null||t==='توپر'||t==='s')?'توپر':t; }
+  function jid(d,t,L){ return 'jack|'+d+'|'+T(t)+'|'+L; }
+  function jlab(d,t,L){ return 'جک '+d+'×'+TL(t)+'×'+L; }
+  function rupLabelOf(size){ return size==='1 اینچ'?'رپچر 1 اینچ شکیب':(size==='1*1/2 اینچ'?'رپچر 1*1/2 شکیب':null); }
+  BFPriceMgr.create({
+    id:'bfPriceMgrShakib', page:'shakib', pages:['shakib','karasling'], title:'شکیب (جک، پاوریونیت، موتور خشک، متعلقات و کارسلینگ)',
+    note:'هر جک فقط یک ردیف دارد و تغییرش در «محاسبه سریع، فنی، سفارشی، بر اساس جک، موتور خشک و سفارش تکی» یکجا اعمال می‌شود. قیمت شیر «محاسبه سریع» خودکار از جدول پاوریونیت به‌روز می‌شود. کارسلینگ با ویتور مشترک است (تغییر در یکی = هر دو).',
+    groups:[{id:'jack',label:'جک (یک‌تکه)'},{id:'stage',label:'جک استیج'},{id:'pu',label:'پاوریونیت'},{id:'drypu',label:'پاوریونیت موتور خشک'},{id:'acc',label:'متعلقات'},{id:'kar',label:'کارسلینگ'}],
+    refs:function(){
+      var out=[];
+      // جک: کاتالوگ کامل + بر اساس جک (غیرمستقیم/مستقیم) + محاسبه سریع (DATA) + موتور خشک
+      Object.keys(JACK_FULL_PRICE_TABLE).forEach(function(d){ var g=JACK_FULL_PRICE_TABLE[d];
+        Object.keys(g.sizes).forEach(function(L){ out.push({id:jid(d,g.thickness,L), group:'jack', sub:'قطر '+d, label:jlab(d,g.thickness,L)+' (غیرمستقیم)', o:g.sizes, k:L, setg:'pkg', src:'full'}); }); });
+      Object.keys(JACK_BYJACK_TABLE).forEach(function(d){ JACK_BYJACK_TABLE[d].forEach(function(v){
+        Object.keys(v.indirect||{}).forEach(function(L){ out.push({id:jid(d,v.thickness,L), group:'jack', sub:'قطر '+d, label:jlab(d,v.thickness,L)+' (غیرمستقیم)', o:v.indirect, k:L, setg:'pkg', src:'byjack'}); });
+        if(v.direct) Object.keys(v.direct).forEach(function(L){ out.push({id:'jackd|'+d+'|'+T(v.thickness)+'|'+L, group:'jack', sub:'قطر '+d, label:jlab(d,v.thickness,L)+' (مستقیم)', o:v.direct, k:L, setg:'pkg'}); });
+      }); });
+      DATA.forEach(function(r){ var p=String(r.pipeSize||'').split('*'); if(p.length===3 && typeof r.pipePrice==='number') out.push({id:jid(p[0],p[1],p[2]), group:'jack', sub:'قطر '+p[0], label:jlab(p[0],p[1],p[2])+' (غیرمستقیم)', o:r, k:'pipePrice', setg:'pkg', src:'quick'}); });
+      DRY_MOTOR_DATA.forEach(function(r){ out.push({id:jid(r.shaftSize,r.shaftType,r.stroke), group:'jack', sub:'قطر '+r.shaftSize, label:jlab(r.shaftSize,r.shaftType,r.stroke)+' (غیرمستقیم / موتور خشک)', o:r, k:'price', setg:'pkg', src:'dry'}); });
+      JACK_STAGE_TABLE.forEach(function(r){ out.push({id:'stage|'+r.stages+'|'+r.type+'|'+(r.twoPiece?'2p':'')+'|'+r.from+'-'+r.to, group:'stage', sub:(r.stages===3?'سه استیج':'دو استیج'), label:'جک '+(r.stages===3?'سه':'دو')+' استیج '+(r.twoPiece?'دو تیکه ':'')+r.type+' · کورس '+r.from+' تا '+r.to, o:r, k:'price'}); });
+      // پاوریونیت (شیر بلین / شکیب)
+      SHAKIB_PU_PRICE_LIST.forEach(function(r){ var nm=r.kw+'kW-'+r.pumps.join('/')+'L · '+r.type+(r.note?' · '+r.note:'');
+        if(typeof r.belin==='number') out.push({id:'pu|'+r.kw+'|'+r.pumps.join('/')+'|'+r.type+'|belin', group:'pu', sub:'شیر بلین آلمان', label:'پاوریونیت '+nm+' — شیر بلین', o:r, k:'belin', setg:'pkg'});
+        if(typeof r.shakib==='number') out.push({id:'pu|'+r.kw+'|'+r.pumps.join('/')+'|'+r.type+'|shakib', group:'pu', sub:'شیر شکیب', label:'پاوریونیت '+nm+' — شیر شکیب', o:r, k:'shakib', setg:'pkg'}); });
+      // پاوریونیت موتور خشک (آبجکت valves در تاریخچه قیمت عوض می‌شود → دسترسی از روی ردیف)
+      DRY_PU_DATA.forEach(function(r){ Object.keys(r.valves).forEach(function(vk){
+        out.push({id:'drypu|'+r.family+'|'+r.hp+'|'+r.coilType+'|'+vk, group:'drypu', sub:(r.family==='gear'?'پمپ دنده‌ای':'پمپ اسکرو'), label:'پاوریونیت موتور خشک '+(r.family==='gear'?'دنده‌ای':'اسکرو')+' '+r.hp+' اسب · '+(DRY_COIL_LABELS[r.coilType]||r.coilType)+' · '+(DRY_VALVE_LABELS[vk]||vk)+' ('+r.code+')',
+          get:function(){ return r.valves[vk]; }, set:function(v){ r.valves[vk]=v; }, setg:'dry'}); });
+        out.push({id:'flow|'+r.flowSize, group:'acc', sub:'رپچر / فلو', label:'فلو '+r.flowSize, o:r, k:'flowPrice', setg:'acc'}); });
+      // متعلقات
+      RUPTURE_CHOICES.forEach(function(c){ var fl=/^فلو (\S+)$/.exec(c.label); out.push({id:fl?('flow|'+fl[1]):('rup|'+c.label), group:'acc', sub:'رپچر / فلو', label:c.label, o:c, k:'price', setg:fl?'acc':null}); });
+      DATA.forEach(function(r){ var lb=rupLabelOf(r.ruptureSize); if(lb && typeof r.rupturePrice==='number') out.push({id:'rup|'+lb, group:'acc', sub:'رپچر / فلو', label:lb, o:r, k:'rupturePrice', src:'quick'}); });
+      HOSE_TABLE.forEach(function(h){ out.push({id:'hose|'+h.product+'|'+h.size, group:'acc', sub:'شلنگ (هر متر)', label:h.product+' سایز '+h.size+' اینچ · '+h.fitting, unit:'ریال / متر', o:h, k:'price', setg:(h.product==='شلنگ استاندارد شکیب'?'acc':null)}); });
+      Object.keys(CHROME_PRICE_PER_METER).forEach(function(d){ out.push({id:'chrome|'+d, group:'acc', sub:'روکش کروم (هر متر)', label:'روکش کروم جک قطر '+d, unit:'ریال / متر', o:CHROME_PRICE_PER_METER, k:d, setg:'pkg'}); });
+      VALVE_ACC_DATA.valve.forEach(function(x){ out.push({id:'va|valve|'+x.label, group:'acc', sub:'شیر (سفارش تکی)', label:x.label, o:x, k:'price'}); });
+      VALVE_ACC_DATA.acc.forEach(function(x){ out.push({id:'va|acc|'+x.label, group:'acc', sub:'کولینگ / هندپمپ / پرشر / هیتر', label:x.label, o:x, k:'price'}); });
+      Object.keys(OIL_BRANDS).forEach(function(k){ var b=OIL_BRANDS[k]; if(typeof b.price==='number') out.push({id:'oil|'+k, group:'acc', sub:'روغن هیدرولیک (هر لیتر)', label:'روغن H68 '+b.label, unit:'ریال / لیتر', o:b, k:'price'}); });
+      out.push({id:'fitting|unit', group:'acc', sub:'اتصالات', label:'اتصالات (مغزی) — هر عدد', unit:'ریال / عدد', get:function(){ return FITTING_UNIT_PRICE; }, set:function(v){ FITTING_UNIT_PRICE=v; }});
+      // کارسلینگ (مشترک با ویتور)
+      KARASLING_GROUPS.forEach(function(g){ var sk=(g.company==='شکیب')?'kar':null;
+        out.push({id:'kar|'+g.company+'|'+(g.model||'')+'|'+g.capacity+'|'+(g.railOpenings||[]).join('/'), page:'karasling', group:'kar', sub:'شرکت '+g.company, label:'کارسلینگ '+g.company+(g.model?' '+g.model:'')+' · '+g.capacity+' · دهانه '+(g.railOpenings||[]).join('، '), o:g, k:'price', setg:sk});
+        if(g.columnPrices){ [3,4].forEach(function(m){ out.push({id:'karcol|'+g.company+'|'+m, page:'karasling', group:'kar', sub:'پایه جک (قوطی زیر جک)', label:'پایه جک (قوطی زیر جک) '+m+' متری — کارسلینگ '+g.company, get:function(){ return g.columnPrices[m]; }, set:function(v){ g.columnPrices[m]=v; if(m===4) g.columnPrice=v; }, setg:'kar'}); }); }
+        else if(typeof g.columnPrice==='number') out.push({id:'karcol1|'+g.company+'|'+(g.model||'')+'|'+g.capacity, page:'karasling', group:'kar', sub:'پایه جک (قوطی زیر جک)', label:'پایه جک — کارسلینگ '+g.company+' '+g.capacity, o:g, k:'columnPrice'});
+      });
+      return out;
+    },
+    isCurrent:function(r){ return !r.setg || BF_PH_STATE[r.setg]==='new'; },
+    wrap:function(reapply){
+      var orig=bfPhApplySet;
+      bfPhApplySet=function(group, which){ orig(group, which); reapply(); };
+    },
+    after:function(changed, initial){
+      try{ bfPhSyncDataValves(); bfPhRebuildDerived(); }catch(e){}
+      if(!changed) return;
+      if(initial){ try{ updateResult(); }catch(e){} return; }
+      try{ var m=calcMode; calcMode=null; switchCalcMode(m); }catch(e){ try{ updateResult(); }catch(e2){} }
+    },
+    mount:function(el){ var w=document.querySelector('.wrap'); (w||document.body).appendChild(el); }
+  });
+})();
+
+</script>
+<!-- [BF-PRICE-MGR] end -->
 </body>
 </html>

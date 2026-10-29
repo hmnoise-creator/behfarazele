@@ -2,14 +2,61 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script id="bfPassGate">
+/* ===================== [BF-GATE] رمز ورود نسخهٔ آنلاین (GitHub Pages) =====================
+   قبل از نمایش هر صفحه رمز خواسته می‌شود. بعد از ورود درست، همین مرورگر رمز را به خاطر می‌سپارد.
+   رمز به‌صورت هش SHA-256 نگه داشته می‌شود (خود رمز داخل کد نیست).
+   برای تغییر رمز، مقدار HASH را با هش رمز جدید عوض کنید (همهٔ دستگاه‌ها دوباره رمز می‌خواهند).
+   برای خروج: localStorage.removeItem('bf_gate_v1') یا دکمهٔ «خروج از نسخهٔ آنلاین» در کنسول. */
+(function(){
+  var HASH = '9309e4219a24dab704eda32ce860f233b3a398ecc62d142112c34eba6e5362ba', KEY = 'bf_gate_v1';
+  function ok(){ try{ return localStorage.getItem(KEY) === HASH; }catch(e){ return false; } }
+  window.bfGateLogout = function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); };
+  if(ok()) return;
+  var de = document.documentElement; de.classList.add('bf-locked');
+  var st = document.createElement('style'); st.id = 'bfGateStyle';
+  st.textContent = 'html.bf-locked body>*:not(#bfGate){display:none!important}html.bf-locked,html.bf-locked body{overflow:hidden!important;background:#0f3d3a!important}'
+   + '#bfGate{position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f3d3a,#1f6f66);font-family:Vazirmatn,Tahoma,sans-serif;direction:rtl;padding:16px}'
+   + '#bfGate form{background:#fff;border-radius:18px;padding:28px 24px;width:100%;max-width:340px;box-shadow:0 20px 60px rgba(0,0,0,.35);text-align:center}'
+   + '#bfGate h2{margin:0 0 6px;color:#0f3d3a;font-size:20px}#bfGate p{margin:0 0 18px;color:#5b6b69;font-size:13px}'
+   + '#bfGate input{width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #cfdcda;border-radius:12px;font-size:16px;text-align:center;direction:ltr;outline:none}'
+   + '#bfGate input:focus{border-color:#1f8a7f}#bfGate button{margin-top:12px;width:100%;padding:12px;border:0;border-radius:12px;background:#0f3d3a;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}'
+   + '#bfGate .err{color:#c0392b;font-size:13px;min-height:18px;margin-top:10px}';
+  (document.head || de).appendChild(st);
+  function unlock(){ de.classList.remove('bf-locked'); var g = document.getElementById('bfGate'); if(g) g.remove(); var s = document.getElementById('bfGateStyle'); if(s) s.remove(); try{ window.dispatchEvent(new Event('resize')); }catch(e){} }
+  function sha(t){
+    if(window.crypto && crypto.subtle && window.TextEncoder)
+      return crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)).then(function(b){ return Array.prototype.map.call(new Uint8Array(b), function(x){ return ('0'+x.toString(16)).slice(-2); }).join(''); });
+    return Promise.reject(new Error('nocrypto'));
+  }
+  window.addEventListener('storage', function(e){ if(e.key === KEY && ok()) unlock(); });
+  function show(){
+    if(document.getElementById('bfGate')) return;
+    var g = document.createElement('div'); g.id = 'bfGate';
+    g.innerHTML = '<form autocomplete="off"><h2>سامانهٔ بهفراز</h2><p>برای ورود، رمز را وارد کنید</p>'
+      + '<input type="password" id="bfGatePw" placeholder="رمز ورود" autofocus><button type="submit">ورود</button><div class="err" id="bfGateErr"></div></form>';
+    document.body.appendChild(g);
+    var inp = g.querySelector('input'), err = g.querySelector('.err');
+    setTimeout(function(){ try{ inp.focus(); }catch(e){} }, 50);
+    g.querySelector('form').addEventListener('submit', function(ev){
+      ev.preventDefault();
+      sha(inp.value).then(function(h){
+        if(h === HASH){ try{ localStorage.setItem(KEY, HASH); }catch(e){} unlock(); }
+        else { err.textContent = 'رمز اشتباه است'; inp.select(); }
+      }, function(){ err.textContent = 'مرورگر شما پشتیبانی نمی‌کند — صفحه را با https باز کنید'; });
+    });
+  }
+  if(document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>کاتالوگ و فرم‌های فنی | بهفراز گروپ</title>
 <!-- [BF-ICON] آیکون بهفراز برای «افزودن به صفحهٔ اصلی» در آیفون / اندروید -->
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-title" content="بهفراز">
 <meta name="theme-color" content="#0f3d3a">
+<title>دبیرخانه دیجیتال | بهفراز گروپ</title>
 <style>
   :root{
     --teal:#0f3d3a;
@@ -96,6 +143,57 @@
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#0f3d3a;color:#fff;padding:10px 18px;border-radius:10px;font-size:.82rem;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease;z-index:70;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   @media (max-width:560px){body{padding:12px}.cat-actions{width:100%}.cat-btn{flex:1;justify-content:center}}
+  /* [BF-BANK] تب شماره حساب‌ها */
+  .tabs{grid-template-columns:repeat(3,1fr)}
+  .tab[data-tab="bank"].on{background:linear-gradient(135deg,#7a2a12,#c2410c);border-color:transparent}
+  .bk-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:-4px 0 14px}
+  .bk-add{border:0;background:linear-gradient(135deg,#c2410c,#ea580c);color:#fff;border-radius:11px;padding:9px 16px;font:inherit;font-size:.85rem;font-weight:800;cursor:pointer;box-shadow:0 6px 16px rgba(194,65,12,.25)}
+  .bk-note{font-size:.76rem;color:var(--muted);flex:1 1 200px}
+  .bk-list{display:flex;flex-direction:column;gap:12px}
+  .bk{background:#fff;border:1.5px solid var(--line);border-radius:16px;overflow:hidden;display:flex;transition:.15s}
+  .bk:hover{box-shadow:0 8px 22px rgba(15,61,58,.10);border-color:#cfd9d7}
+  .bk-strip{flex:0 0 8px;background:var(--bc,#0f3d3a)}
+  .bk-in{flex:1;min-width:0;padding:12px 14px}
+  .bk-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .bk-logo{flex:0 0 40px;height:40px;border-radius:12px;background:var(--bc,#0f3d3a);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.95rem}
+  .bk-who{flex:1 1 180px;min-width:0}
+  .bk-who b{display:block;font-size:.98rem;color:#1a2b29}
+  .bk-who small{color:var(--muted);font-size:.76rem}
+  .bk-tag{display:inline-block;background:#fff7ed;color:#9a3412;border:1px solid #fed7aa;border-radius:999px;padding:1px 9px;font-size:.72rem;font-weight:700;margin-inline-start:6px}
+  .bk-acts{display:flex;gap:6px;flex-wrap:wrap}
+  .bk-f{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;background:#f7f9f9;margin-top:6px;flex-wrap:wrap}
+  .bk-f .k{flex:0 0 78px;font-size:.75rem;color:var(--muted);font-weight:700}
+  .bk-f .v{flex:1 1 200px;direction:ltr;text-align:left;font-family:Consolas,"Courier New",monospace;font-size:1.02rem;font-weight:700;letter-spacing:.5px;color:#13302d;word-break:break-all}
+  .bk-f .v.fa{direction:rtl;text-align:right;font-family:inherit;font-size:.86rem;letter-spacing:0;font-weight:600}
+  .bk-cp{border:1.5px solid var(--line);background:#fff;color:var(--teal);border-radius:9px;padding:5px 12px;font:inherit;font-size:.76rem;font-weight:800;cursor:pointer;white-space:nowrap}
+  .bk-cp:hover{border-color:var(--teal);background:#eaf4f2}
+  .bk-cp.copied{background:#0f6e56;color:#fff;border-color:#0f6e56}
+  .bk-all{background:var(--teal);color:#fff;border-color:var(--teal)}
+  .bk-meta{font-size:.7rem;color:#9aa8a6;margin-top:6px}
+  .bk-mini{border:1px solid var(--line);background:#fff;border-radius:8px;padding:4px 9px;font:inherit;font-size:.74rem;cursor:pointer;color:#33413f}
+  .bk-mini.del{color:#b91c1c;border-color:#fecaca}
+  .bk-form label{display:block;font-size:.8rem;color:#33413f;margin:9px 0 4px;font-weight:700}
+  .bk-form input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:.9rem}
+  .bk-form input.ltr{direction:ltr;text-align:left;font-family:Consolas,monospace;letter-spacing:.5px}
+  .bk-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .bk-hint{font-size:.74rem;min-height:16px;margin-top:3px}
+  .bk-hint.ok{color:#0f6e56}.bk-hint.bad{color:#b91c1c}
+  .bk-err{color:#b91c1c;font-size:.8rem;min-height:18px;margin-top:8px}
+  .modal.wide{max-width:560px;max-height:92vh;overflow:auto}
+  @media(max-width:560px){.bk-f .k{flex-basis:100%}.bk-form .row2{grid-template-columns:1fr}.tab .tt b{font-size:.78rem}}
+  .bk-sec{background:#fff;border:1.5px solid var(--line);border-radius:16px;margin:0 0 12px;overflow:hidden}
+  .bk-sec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;padding:13px 16px;user-select:none}
+  .bk-sec>summary::-webkit-details-marker{display:none}
+  .bk-sec>summary:hover{background:#f7faf9}
+  .bk-sec[open]>summary{border-bottom:1.5px solid var(--line);background:linear-gradient(135deg,#fff7ed,#fff)}
+  .bk-si{flex:0 0 38px;height:38px;border-radius:12px;background:#fff1e6;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+  .bk-st{font-weight:900;color:#1a2b29;font-size:.95rem;white-space:nowrap}
+  .bk-sn{background:#c2410c;color:#fff;border-radius:999px;min-width:24px;height:24px;padding:0 7px;display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800}
+  .bk-sp{flex:1;min-width:0;color:var(--muted);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bk-chev{transition:transform .2s;color:var(--muted);font-size:1.1rem}
+  .bk-sec[open] .bk-chev{transform:rotate(180deg)}
+  .bk-sec .bk-list{padding:12px}
+  @media(max-width:560px){.bk-sp{display:none}.bk-st{white-space:normal}}
 </style>
 <style id="bfMobileFix">
 /* [BF-MOBILE] نمایش درست روی آیفون / موبایل: هیچ بخشی از صفحه از عرض گوشی بیرون نزند و نیازی به کشیدن صفحه به کنار نباشد.
@@ -125,13 +223,14 @@
 
   <div class="wrap">
     <div class="head">
-      <h1>📚 کاتالوگ و فرم‌های فنی</h1>
-      <p>کاتالوگ محصولات را نمایش دهید، لینکش را برای مشتری بفرستید یا PDF آن را دانلود کنید — فرم‌های فنی را با یک کلیک چاپ یا دانلود کنید</p>
+      <h1>🗂️ دبیرخانه دیجیتال</h1>
+      <p>کاتالوگ محصولات، فرم‌های فنی و شماره حساب‌های مجموعه — همه در یک‌جا؛ نمایش، دانلود، چاپ و کپی سریع برای ارسال.</p>
     </div>
 
     <div class="tabs" id="tabs">
       <button type="button" class="tab on" data-tab="cat"><span class="ti">📚</span><span class="tt"><b>کاتالوگ‌ها</b><small>کاتالوگ محصولات · مشاهده و دانلود PDF</small></span><span class="n" id="nCat"></span></button>
       <button type="button" class="tab" data-tab="form"><span class="ti">📝</span><span class="tt"><b>فرم‌های فنی</b><small>فرم کاراسلینگ · پشت‌برگ‌ها · فرم‌های داخلی</small></span><span class="n" id="nForm"></span></button>
+      <button type="button" class="tab" data-tab="bank"><span class="ti">💳</span><span class="tt"><b>شماره حساب‌ها</b><small>کارت · شبا · حساب — کپی سریع برای ارسال</small></span><span class="n" id="nBank"></span></button>
     </div>
 
     <div class="search">
@@ -200,7 +299,7 @@
   function fileName(p){ return String(p||'').split('/').pop(); }
 
   /* ---- مودال ---- */
-  function modal(html){ $('modal').innerHTML=html; $('modalBg').classList.add('show'); }
+  function modal(html){ $('modal').classList.remove('wide'); $('modal').innerHTML=html; $('modalBg').classList.add('show'); }
   function closeModal(){ $('modalBg').classList.remove('show'); }
   $('modalBg').addEventListener('click', e=>{ if(e.target.id==='modalBg' || e.target.closest('[data-close]')) closeModal(); });
 
@@ -297,7 +396,9 @@
     document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on', b.dataset.tab===tab));
     $('nCat').textContent = CATALOGS.length.toLocaleString('fa-IR');
     $('nForm').textContent = FORMS.length.toLocaleString('fa-IR');
+    $('nBank').textContent = BK.rows.length.toLocaleString('fa-IR');
     $('grpChips').style.display = tab==='form' ? '' : 'none';
+    if(tab==='bank'){ $('grpChips').innerHTML=''; $('list').innerHTML = bkHtml(); $('qClr').style.display = q ? 'inline-block' : 'none'; return; }
     $('grpChips').innerHTML = [{id:'',t:'همه'}].concat(GROUPS).map(g=>`<button type="button" class="chip${grp===g.id?' on':''}" data-grp="${g.id}">${g.t}</button>`).join('');
     $('list').innerHTML = tab==='cat' ? catHtml() : formHtml();
     $('qClr').style.display = q ? 'inline-block' : 'none';
@@ -308,7 +409,9 @@
   $('q').addEventListener('input', e=>{ q=e.target.value; clearTimeout(render._t); render._t=setTimeout(()=>{
     /* اگر چیزی فقط در تب دیگر پیدا شد، خودکار به همان تب برود */
     if(q){ const inCat=CATALOGS.some(c=>match([c.title,c.desc,fileName(c.pdf),c.dl].join(' '))), inForm=FORMS.some(f=>match([f.title,f.desc,fileName(f.file),f.tags].join(' ')));
-      if(tab==='cat'&&!inCat&&inForm){ tab='form'; grp=''; } else if(tab==='form'&&!inForm&&inCat){ tab='cat'; } }
+      const inBank=BK.rows.some(bkMatch);
+      if(tab!=='bank'){ if(tab==='cat'&&!inCat&&inForm){ tab='form'; grp=''; } else if(tab==='form'&&!inForm&&inCat){ tab='cat'; } else if(!inCat&&!inForm&&inBank){ tab='bank'; } }
+      else if(!inBank&&(inCat||inForm)){ tab=inCat?'cat':'form'; } }
     render(); },150); });
   $('qClr').addEventListener('click', ()=>{ q=''; $('q').value=''; render(); $('q').focus(); });
   $('viewerActs').addEventListener('click', e=>{ if(e.target.id==='viewerClose') closeViewer(); });
@@ -316,6 +419,7 @@
 
   $('list').addEventListener('click', e=>{
     const b=e.target.closest('[data-act]'); if(!b) return; const i=+b.dataset.i, act=b.dataset.act;
+    if(act.indexOf('bk')===0){ bkAction(act, b); return; }
     if(act==='cview'){ const c=CATALOGS[i]; openViewer(c.title, c.url, `<a href="${esc(c.url)}" target="_blank" rel="noopener">🔗 باز کردن در تب جدید</a>`); return; }
     if(act==='ccopy'){ copyLink(CATALOGS[i].url, b); return; }
     if(act==='cdl'){ const c=CATALOGS[i]; exists(c.pdf).then(ok=>{ if(ok) download(c.pdf, c.dl); else missing(c.pdf, c.dl, c); }); return; }
@@ -326,7 +430,155 @@
     if(act==='fview'){ openViewer(f.title, f.file, `<button type="button" data-vact="print" data-i="${i}">🖨️ چاپ</button><button type="button" data-vact="dl" data-i="${i}">⬇️ دانلود PDF</button><a href="${esc(f.file)}" target="_blank" rel="noopener">🔗 تب جدید</a>`); return; }
   });
 
-  $('q').value = q; render();
+  /* ===================== [BF-BANK] 💳 شماره حساب‌ها =====================
+     ذخیره روی سرور (همهٔ کاربران واردشده ثبت می‌کنند؛ ویرایش/حذف: ثبت‌کننده یا مدیریت).
+     اگر سرور در دسترس نباشد (نسخهٔ آفلاین)، همین فهرست پیش‌فرض فقط‌خواندنی نشان داده می‌شود. */
+  const BK_FALLBACK = [
+    { id:'f1', cat:'کارت‌های مجموعه (کارت به کارت)', title:'صادرات تسهیلات', bank:'بانک صادرات ایران', owner:'ناصر سیمنی', card:'6037698108071684', sheba:'IR840190000000219548562006', account:'', branch:'', note:'انقضا ۱۴۰۸/۰۸' },
+    { id:'f2', cat:'کارت‌های مجموعه (کارت به کارت)', title:'صادرات سپرده', bank:'بانک صادرات ایران', owner:'ناصر سیمنی', card:'6037697508202246', sheba:'IR530190000000215258814000', account:'', branch:'', note:'' },
+    { id:'f3', cat:'کارت‌های مجموعه (کارت به کارت)', title:'صادرات', bank:'بانک صادرات ایران', owner:'ناصر سیمنی', card:'6037697516547053', sheba:'IR650190000000112764620003', account:'', branch:'', note:'' },
+    { id:'f4', cat:'کارت‌های مجموعه (کارت به کارت)', title:'رفاه', bank:'بانک رفاه کارگران', owner:'ساغر دهقان نژاد قهفرخی', card:'5894631876300161', sheba:'IR340130100000000076451628', account:'', branch:'', note:'' },
+    { id:'f9', cat:'حساب‌های شخصی آقای سیمنی', title:'رفاه شخصی آقای سیمنی', bank:'بانک رفاه کارگران', owner:'ناصر سیمنی', card:'5894631143162246', sheba:'IR830130100000000075884460', account:'', branch:'', note:'' },
+    { id:'f10', cat:'حساب‌های شخصی آقای سیمنی', title:'پارسیان شخصی (خانم دهقان نژاد)', bank:'بانک پارسیان', owner:'ساغر دهقان نژاد قهفرخی', card:'6221061047683547', sheba:'IR260540207580001742837005', account:'', branch:'', note:'' },
+    { id:'f7', cat:'کارت‌های کارکنان شرکت', title:'ملی بهفراز', bank:'بانک ملی ایران', owner:'خانم زمردی', card:'', sheba:'IR030170000000364710848007', account:'', branch:'', note:'' },
+    { id:'f8', cat:'کارت‌های کارکنان شرکت', title:'صادرات', bank:'بانک صادرات ایران', owner:'غزاله هاشمی', card:'', sheba:'IR820190000000317909428004', account:'', branch:'', note:'' },
+    { id:'f5', cat:'حساب‌های رسمی تأمین‌کنندگان', title:'رسمی شکیب', bank:'بانک توسعه', owner:'شرکت آسانبر صعود البرز (داود پاکانیان)', card:'', sheba:'IR100220170701117148944001', account:'', branch:'', note:'' },
+    { id:'f6', cat:'حساب‌های رسمی تأمین‌کنندگان', title:'رسمی 110', bank:'بانک پارسیان', owner:'فن آفرین سداد بین الملل', card:'', sheba:'IR400540100720100732623601', account:'100720100732623601', branch:'شعبه کریمخان — کد شعبه 1007', note:'' }
+  ];
+  const BK_CAT_ORDER = ['کارت‌های مجموعه (کارت به کارت)','حساب‌های شخصی آقای سیمنی','کارت‌های کارکنان شرکت','حساب‌های رسمی تأمین‌کنندگان'];
+  const BK_CAT_ICON = c => /شخصی/.test(c)?'👤':/کارکنان/.test(c)?'👥':(/رسمی/.test(c)?'🏛️':'💳');
+  let BK_OPEN = {}; try{ BK_OPEN = JSON.parse(localStorage.getItem('bf_bank_open')||'{}')||{}; }catch(e){}
+
+  const BK = { rows: BK_FALLBACK.slice(), online:false, me:'', mgr:false, loaded:false };
+  // تشخیص بانک از ۶ رقم اول کارت (BIN) و کد بانک در شبا
+  const BK_BIN = {'603769':'صادرات ایران','589463':'رفاه کارگران','610433':'ملت','991975':'ملت','603799':'ملی ایران','589210':'سپه','627353':'تجارت','585983':'تجارت','627412':'اقتصاد نوین','502229':'پاسارگاد','639347':'پاسارگاد','621986':'سامان','627488':'کارآفرین','502908':'توسعه تعاون','627961':'صنعت و معدن','603770':'کشاورزی','639217':'کشاورزی','628023':'مسکن','639607':'سرمایه','636214':'آینده','502806':'شهر','504706':'شهر','627648':'توسعه صادرات','207177':'توسعه صادرات','505785':'ایران زمین','639346':'سینا','606373':'قرض‌الحسنه مهر ایران','505416':'گردشگری','636949':'حکمت ایرانیان','507677':'نور','504172':'رسالت','505801':'کوثر','606256':'ملل','628157':'موسسه توسعه','622106':'پارسیان','639194':'پارسیان','627884':'پارسیان','627760':'پست بانک','502938':'دی','585947':'خاورمیانه','636795':'مرکزی'};
+  const BK_IBAN = {'010':'مرکزی','011':'صنعت و معدن','012':'ملت','013':'رفاه کارگران','014':'مسکن','015':'سپه','016':'کشاورزی','017':'ملی ایران','018':'تجارت','019':'صادرات ایران','020':'توسعه صادرات','021':'پست بانک','022':'توسعه تعاون','051':'موسسه توسعه','053':'کارآفرین','054':'پارسیان','055':'اقتصاد نوین','056':'سامان','057':'پاسارگاد','058':'سرمایه','059':'سینا','060':'قرض‌الحسنه مهر ایران','061':'شهر','062':'آینده','064':'گردشگری','065':'حکمت ایرانیان','066':'دی','069':'ایران زمین','070':'رسالت','073':'کوثر','075':'ملل','078':'خاورمیانه','080':'نور'};
+  const BK_COLOR = {'صادرات':'#1e3a8a','رفاه':'#9d174d','پارسیان':'#7f1d1d','توسعه':'#0e7490','ملت':'#b91c1c','ملی':'#1d4ed8','سپه':'#0369a1','تجارت':'#1e40af','کشاورزی':'#15803d','مسکن':'#c2410c','سامان':'#0284c7','پاسارگاد':'#a16207','اقتصاد نوین':'#7c3aed','آینده':'#ea580c','شهر':'#be123c'};
+  function bkToEn(v){ return String(v==null?'':v).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)); }
+  function bkDig(v){ return bkToEn(v).replace(/\D/g,''); }
+  function bkLuhn(c){ if(!/^\d{16}$/.test(c)) return false; let t=0; c.split('').reverse().forEach((x,i)=>{ let d=+x; if(i%2){ d*=2; if(d>9) d-=9; } t+=d; }); return t%10===0; }
+  function bkIbanOk(s){ if(!/^IR\d{24}$/.test(s)) return false; const r=s.slice(4)+'1827'+s.slice(2,4); let m=0; for(const ch of r){ m=(m*10+ +ch)%97; } return m===1; }
+  function bkBankOf(card, sheba){ if(card && BK_BIN[card.slice(0,6)]) return 'بانک '+BK_BIN[card.slice(0,6)]; if(sheba && sheba.length>=7 && BK_IBAN[sheba.slice(4,7)]) return 'بانک '+BK_IBAN[sheba.slice(4,7)]; return ''; }
+  function bkColor(bank){ const k=Object.keys(BK_COLOR).find(k=>String(bank||'').indexOf(k)>=0); return k?BK_COLOR[k]:'#0f3d3a'; }
+  function bkInitial(bank){ const n=String(bank||'').replace(/^بانک\s*/,'').trim(); return n?n.charAt(0):'🏦'; }
+  function fmtCard(c){ return c ? c.replace(/(\d{4})(?=\d)/g,'$1 ') : ''; }
+  function fmtSheba(s){ return s ? s.slice(0,4)+' '+s.slice(4).replace(/(\d{4})(?=\d)/g,'$1 ') : ''; }
+  function bkMatch(r){ return match([r.cat,r.title,r.bank,r.owner,r.card,fmtCard(r.card),r.sheba,r.account,r.branch,r.note].join(' ')); }
+  function bkTok(){ try{ const o=JSON.parse(sessionStorage.getItem('bf_operator_session_v1')||'null'); return o&&o.token||''; }catch(e){ return ''; } }
+  function bkApi(method, url, body){
+    const h={'Content-Type':'application/json'}, t=bkTok(); if(t) h['x-operator-token']=t;
+    return fetch(url,{method, headers:h, body: body?JSON.stringify(body):undefined, cache:'no-store'}).then(r=>{
+      const ct=r.headers.get('content-type')||''; if(ct.indexOf('json')<0) throw new Error('سرور هنوز نسخهٔ جدید را اجرا نمی‌کند — server.js را دوباره اجرا کنید');
+      return r.json().then(j=>{ if(!r.ok||!j.ok) throw new Error(j.error||'خطا'); return j; }); });
+  }
+  let bkTries=0;
+  function bkLoad(){
+    if(location.protocol==='file:'){ render(); return; }
+    if(!bkTok()){ if(bkTries++<200) setTimeout(bkLoad, 3000); render(); return; }
+    bkApi('GET','/api/bank-accounts').then(j=>{ BK.rows=j.rows||[]; BK.online=true; BK.me=j.me; BK.mgr=!!j.isManager; BK.loaded=true; render(); })
+      .catch(e=>{ console.warn('[BF-BANK]', e); BK.loaded=true; render(); });
+  }
+  function bkCanEdit(r){ return BK.online && BK.mgr; }   // ویرایش و حذف فقط ادمین و مدیریت؛ بقیه فقط ثبت
+  function bkText(r){
+    const L=[ (r.bank||'')+' — به نام '+r.owner ];
+    if(r.card) L.push('شماره کارت: '+fmtCard(r.card).replace(/ /g,'-'));
+    if(r.sheba) L.push('شماره شبا: '+r.sheba);
+    if(r.account) L.push('شماره حساب: '+r.account);
+    if(r.branch) L.push(r.branch);
+    return L.join('\n');
+  }
+  function bkField(label, show, copyVal, i, kind, fa){
+    return `<div class="bk-f"><span class="k">${label}</span><span class="v${fa?' fa':''}">${hl(show)}</span>${copyVal?`<button type="button" class="bk-cp" data-act="bkcopy" data-i="${i}" data-k="${kind}">📋 کپی</button>`:''}</div>`;
+  }
+  function bkHtml(){
+    $('nBank').textContent = BK.rows.length.toLocaleString('fa-IR');
+    const L = BK.rows.map((r,i)=>({r,i})).filter(x=>bkMatch(x.r));
+    const bar = `<div class="bk-bar"><button type="button" class="bk-add" data-act="bkadd" data-i="-1">➕ ثبت شماره حساب جدید</button><span class="bk-note">${BK.online?'روی هر بخش بزنید تا باز شود؛ «📋 کپی» یا «کپی همه» را بزنید و در پیام‌رسان بفرستید.'+(BK.mgr?' · شما (مدیریت) ویرایش و حذف هم دارید.':' · ثبت حساب جدید برای همه آزاد است؛ ویرایش و حذف با مدیریت.'):(location.protocol==='file:'||!bkTok()?'نسخهٔ آفلاین — فقط مشاهده و کپی. ثبت حساب جدید بعد از ورود به سامانه.':'در حال بارگذاری از سرور…')}</span></div>`;
+    if(!L.length) return bar+'<div class="empty">حسابی'+(q?' با «'+esc(q)+'»':'')+' پیدا نشد.</div>';
+    const cats=[]; L.forEach(x=>{ if(cats.indexOf(x.r.cat)<0) cats.push(x.r.cat); });
+    cats.sort((a,b)=>{ const ia=BK_CAT_ORDER.indexOf(a), ib=BK_CAT_ORDER.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib); });
+    return bar + cats.map(c=>{ const G=L.filter(x=>x.r.cat===c), open = q || BK_OPEN[c];
+      return '<details class="bk-sec" data-cat="'+esc(c)+'"'+(open?' open':'')+'><summary><span class="bk-si">'+BK_CAT_ICON(c)+'</span><span class="bk-st">'+esc(c)+'</span><span class="bk-sn">'+G.length.toLocaleString('fa-IR')+'</span><span class="bk-sp">'+G.map(x=>esc(x.r.title||x.r.owner)).slice(0,4).join(' · ')+(G.length>4?' …':'')+'</span><span class="bk-chev">▾</span></summary><div class="bk-list">'+G.map(({r,i})=>`
+        <div class="bk" style="--bc:${bkColor(r.bank)}"><div class="bk-strip"></div><div class="bk-in">
+          <div class="bk-top"><div class="bk-logo">${esc(bkInitial(r.bank))}</div>
+            <div class="bk-who"><b>${hl(r.title||r.owner)}${r.note?`<span class="bk-tag">${hl(r.note)}</span>`:''}</b><small>${r.title?'به نام '+hl(r.owner)+' · ':''}${hl(r.bank||'')}${r.branch?' · '+hl(r.branch):''}</small></div>
+            <div class="bk-acts"><button type="button" class="bk-cp bk-all" data-act="bkcopy" data-i="${i}" data-k="all">📋 کپی همه برای ارسال</button>
+              ${bkCanEdit(r)?`<button type="button" class="bk-mini" data-act="bkedit" data-i="${i}">✏️ ویرایش</button><button type="button" class="bk-mini del" data-act="bkdel" data-i="${i}">🗑️</button>`:''}</div></div>
+          ${r.card?bkField('شماره کارت', fmtCard(r.card), 1, i, 'card'):''}
+          ${r.sheba?bkField('شماره شبا', fmtSheba(r.sheba), 1, i, 'sheba'):''}
+          ${r.account?bkField('شماره حساب', r.account, 1, i, 'account'):''}
+          ${BK.online&&r.created_by&&r.created_by!=='سیستم'?`<div class="bk-meta">ثبت: ${esc(r.created_by)}${r.updated_by&&r.updated_by!==r.created_by?' · ویرایش: '+esc(r.updated_by):''}</div>`:''}
+        </div></div>`).join('')+'</div></details>';
+    }).join('');
+  }
+  function bkCopy(text, btn, msg){
+    const done=()=>{ showToast(msg||'کپی شد ✅'); if(btn){ const o=btn.innerHTML; btn.innerHTML='✅ کپی شد'; btn.classList.add('copied'); setTimeout(()=>{ btn.innerHTML=o; btn.classList.remove('copied'); },1500); } };
+    if(navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext){ navigator.clipboard.writeText(text).then(done).catch(()=>fallbackCopy(text,done)); } else fallbackCopy(text,done);
+  }
+  function bkAction(act, b){
+    const i=+b.dataset.i, r=BK.rows[i];
+    if(act==='bkcopy'){ const k=b.dataset.k;
+      if(k==='all') return bkCopy(bkText(r), b, 'متن کامل حساب کپی شد ✅');
+      if(k==='card') return bkCopy(r.card, b, 'شماره کارت کپی شد ✅');
+      if(k==='sheba') return bkCopy(r.sheba, b, 'شبا کپی شد ✅');
+      if(k==='account') return bkCopy(r.account, b, 'شماره حساب کپی شد ✅');
+    }
+    if(act==='bkadd' || act==='bkedit'){
+      if(!BK.online){ modal('<h3>💳 ثبت شماره حساب</h3><p>برای ثبت حساب جدید باید از داخل سامانه (بعد از ورود) و روی شبکهٔ دفتر باشید.</p><div class="acts"><button type="button" class="cat-btn" data-close="1">بستن</button></div>'); return; }
+      return bkForm(act==='bkedit'?r:null);
+    }
+    if(act==='bkdel'){
+      if(!confirm('حذف حساب «'+(r.title||r.owner)+' — '+r.owner+'»؟\n(در تاریخچهٔ سرور ثبت می‌شود)')) return;
+      bkApi('DELETE','/api/bank-accounts/'+r.id).then(()=>{ showToast('🗑️ حذف شد'); bkLoad(); }).catch(e=>alert('❌ '+e.message));
+    }
+  }
+  function bkForm(r){
+    const cats=[]; BK.rows.forEach(x=>{ if(x.cat && cats.indexOf(x.cat)<0) cats.push(x.cat); });
+    const v=r||{cat:cats[0]||'کارت‌های مجموعه (کارت به کارت)',title:'',bank:'',owner:'',card:'',sheba:'',account:'',branch:'',note:''};
+    modal(`<h3>${r?'✏️ ویرایش شماره حساب':'➕ ثبت شماره حساب جدید'}</h3>
+      <div class="bk-form">
+        <label>عنوان حساب (همان اسمی که صدایش می‌زنیم)</label><input id="bkTitle" value="${esc(v.title||'')}" placeholder="مثلاً: صادرات تسهیلات، صادرات سپرده، ملی بهفراز">
+        <label>نام صاحب حساب *</label><input id="bkOwner" value="${esc(v.owner)}" placeholder="مثلاً: ناصر سیمنی یا نام شرکت">
+        <label>شماره کارت (۱۶ رقم)</label><input id="bkCard" class="ltr" inputmode="numeric" value="${esc(fmtCard(v.card))}" placeholder="6037 6975 ...."><div class="bk-hint" id="bkCardH"></div>
+        <label>شماره شبا</label><input id="bkSheba" class="ltr" value="${esc(v.sheba)}" placeholder="IR..."><div class="bk-hint" id="bkShebaH"></div>
+        <div class="row2"><div><label>شماره حساب</label><input id="bkAcc" class="ltr" inputmode="numeric" value="${esc(v.account)}"></div>
+          <div><label>نام بانک</label><input id="bkBank" value="${esc(v.bank)}" placeholder="خودکار از کارت/شبا"></div></div>
+        <label>شعبه / کد شعبه</label><input id="bkBranch" value="${esc(v.branch)}">
+        <div class="row2"><div><label>دسته‌بندی</label><input id="bkCat" list="bkCats" value="${esc(v.cat)}"><datalist id="bkCats">${cats.concat(BK_CAT_ORDER.concat(['حساب‌های رسمی شرکت'])).filter((c,k,a)=>a.indexOf(c)===k).map(c=>`<option value="${esc(c)}">`).join('')}</datalist></div>
+          <div><label>برچسب / توضیح کوتاه</label><input id="bkNote" value="${esc(v.note)}" placeholder="مثلاً: رسمی شکیب"></div></div>
+        <div class="bk-err" id="bkErr"></div>
+      </div>
+      <div class="acts" style="margin-top:10px"><button type="button" class="cat-btn primary" id="bkSave">💾 ذخیره</button><button type="button" class="cat-btn" data-close="1">انصراف</button></div>`);
+    $('modal').classList.add('wide');
+    const C=$('bkCard'), S=$('bkSheba'), Bk=$('bkBank'); let bankTouched=!!v.bank;
+    Bk.addEventListener('input',()=>{ bankTouched=!!Bk.value.trim(); });
+    function chk(){
+      const c=bkDig(C.value), s=bkDig(S.value), sh=s?('IR'+s):'';
+      const ch=$('bkCardH'), sH=$('bkShebaH');
+      ch.className='bk-hint'+(c?(c.length===16&&bkLuhn(c)?' ok':' bad'):''); ch.textContent=!c?'':(c.length!==16?('⚠️ '+c.length+' رقم — باید ۱۶ رقم باشد'):(bkLuhn(c)?'✔ شماره کارت معتبر است'+(BK_BIN[c.slice(0,6)]?' — بانک '+BK_BIN[c.slice(0,6)]:''):'⚠️ رقم کنترل کارت درست نیست؛ دوباره بررسی کنید'));
+      sH.className='bk-hint'+(s?(bkIbanOk(sh)?' ok':' bad'):''); sH.textContent=!s?'':(s.length!==24?('⚠️ '+s.length+' رقم بعد از IR — باید ۲۴ رقم باشد'):(bkIbanOk(sh)?'✔ شبا معتبر است'+(BK_IBAN[sh.slice(4,7)]?' — بانک '+BK_IBAN[sh.slice(4,7)]:''):'⚠️ رقم کنترل شبا درست نیست؛ دوباره بررسی کنید'));
+      if(!bankTouched){ const b=bkBankOf(c.length>=6?c:'', s.length>=5?sh:''); if(b) Bk.value=b; }
+    }
+    C.addEventListener('input',()=>{ const d=bkDig(C.value).slice(0,16); C.value=fmtCard(d); chk(); });
+    S.addEventListener('input',()=>{ const d=bkDig(S.value).slice(0,24); S.value=d?('IR'+d):''; chk(); });
+    chk(); setTimeout(()=>$('bkTitle').focus(),30);
+    $('bkSave').onclick=function(){
+      const body={ title:$('bkTitle').value.trim(), owner:$('bkOwner').value.trim(), card:bkDig(C.value), sheba:bkDig(S.value), account:bkDig($('bkAcc').value), bank:Bk.value.trim(), branch:$('bkBranch').value.trim(), cat:$('bkCat').value.trim(), note:$('bkNote').value.trim() };
+      const E=$('bkErr'); E.textContent='';
+      if(!body.owner){ E.textContent='نام صاحب حساب را وارد کنید.'; return; }
+      if(!body.card && !body.sheba && !body.account){ E.textContent='حداقل یکی از شماره کارت، شبا یا حساب را وارد کنید.'; return; }
+      if(body.card && body.card.length!==16){ E.textContent='شماره کارت باید ۱۶ رقم باشد.'; return; }
+      if(body.sheba && body.sheba.length!==24){ E.textContent='شبا باید IR + ۲۴ رقم باشد.'; return; }
+      if((body.card && !bkLuhn(body.card)) || (body.sheba && !bkIbanOk('IR'+body.sheba))){ if(!confirm('رقم کنترل کارت یا شبا درست نیست (احتمال اشتباه تایپی). با این حال ذخیره شود؟')) return; }
+      this.disabled=true;
+      (r ? bkApi('PUT','/api/bank-accounts/'+r.id, body) : bkApi('POST','/api/bank-accounts', body))
+        .then(()=>{ closeModal(); $('modal').classList.remove('wide'); showToast(r?'✅ ویرایش ذخیره شد':'✅ حساب جدید ثبت شد'); bkLoad(); })
+        .catch(e=>{ E.textContent='❌ '+e.message; this.disabled=false; });
+    };
+  }
+  document.addEventListener('toggle', e=>{ const d=e.target; if(!d.classList || !d.classList.contains('bk-sec') || q) return; BK_OPEN[d.dataset.cat]=d.open; try{ localStorage.setItem('bf_bank_open', JSON.stringify(BK_OPEN)); }catch(_){} }, true);
+
+  $('q').value = q; render(); bkLoad();
 </script>
 </body>
 </html>

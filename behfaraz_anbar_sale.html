@@ -6373,6 +6373,36 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
 .pb-det{grid-column:1/-1;border:2px solid #0E6B66;border-radius:18px;background:#fff;padding:10px;box-shadow:0 14px 30px -20px rgba(14,107,102,.8)}
 .pb-det h4{margin:2px 6px 10px;display:flex;gap:8px;align-items:center}
 .pb-det h4 .sp{flex:1}
+.pb-card .pb-hd{cursor:pointer;align-items:center;padding:12px 16px;user-select:none}
+.pb-card .pb-hd:hover{background:#FAFCFB}
+.pb-card .pb-hd:focus-visible{outline:3px solid #0E6B66;outline-offset:-3px}
+.pb-ic{font-size:1.25rem}
+.pb-hd .pj{font-weight:600;color:#5b6b69}
+.pb-hd .due{color:#B4321F}
+.pb-mini{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:4px;font-size:.72rem;font-weight:700;color:#355}
+.pb-mini span{display:inline-flex;align-items:center;gap:4px;unicode-bidi:plaintext}
+.pb-mini span::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--wc)}
+.pb-dots{display:flex;gap:3px}
+.pb-dots i{font-style:normal;font-size:.68rem;font-weight:900;color:#fff;background:var(--wc);border-radius:999px;min-width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+.pb-arr{font-size:.9rem;color:#0E6B66;transition:transform .2s}
+.pb-card.open{grid-column:1/-1;border-color:var(--st);box-shadow:0 16px 34px -22px rgba(0,0,0,.5)}
+.pb-card.open .pb-arr{transform:rotate(180deg)}
+.pb-card.open .pb-hd{border-bottom:1px solid #EEF2F1;background:var(--stb)}
+.pb-card.open .pb-slots{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+.pb-body{padding-top:10px}
+.pb-body .sbt-wrap{margin:0 12px 10px}
+.pb-sec{margin:6px 16px 8px;font-size:.8rem;font-weight:800;color:#24403D}
+.pb-notes{margin:0 16px 10px;background:#FFFBEA;border:1.5px solid #F2D27A;border-radius:12px;padding:8px 12px;font-size:.8rem}
+.pb-notes ul{margin:4px 0 0;padding-inline-start:18px;line-height:1.9}
+.pb-tools2{display:flex;gap:10px;align-items:center;margin:-4px 0 10px;font-size:.76rem}
+.pb-tools2 button{font:inherit;font-size:.76rem;font-weight:700;border:1.5px solid #CFE0DC;background:#fff;color:#0E6B66;border-radius:999px;padding:5px 12px;cursor:pointer}
+.pb-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))!important;gap:10px!important;grid-auto-flow:row dense}
+.pb-card .pb-hd b.co{white-space:normal;overflow:visible;line-height:1.6}
+.pb-out{display:flex;gap:6px;align-items:center;font-size:.78rem;font-weight:700;color:#5b6b69}
+.pb-out input{width:auto;margin:0}
+.cp-it{cursor:pointer}.cp-it:hover{background:#FAFCFB}.cp-it.on{background:color-mix(in srgb,var(--cc) 10%,#fff);box-shadow:inset -4px 0 0 var(--cc)}
+#t-stock:not(.shkv):not(.miscv) .shk-filt>span,#t-stock:not(.shkv):not(.miscv) .shk-filt [data-sf]{display:none}
+@media (max-width:560px){.pb-grid{grid-template-columns:minmax(0,1fr)!important}.pb-hd .pb-dots{display:none}.pb-body .sbt-wrap{margin:0 6px 10px;overflow-x:auto}}
 .pb-empty{padding:30px;text-align:center;color:#7a8a88;background:#fff;border-radius:16px;border:1.5px dashed #CBD6D4}
 /* سرمایه انبار */
 .cp-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
@@ -6408,8 +6438,8 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
    «سرمایه انبار» هم به‌صورت ستون‌های دسته‌بندی‌شده با تعداد، بدون نیاز به جستجو. جدول کامل و حواله مثل قبل در نمای سوم. */
 (function(){
   if(!document.getElementById('statCards'))return;
-  var pbView='proj',pbF='',pbQ='',pbOpen='';
-  try{var v=localStorage.getItem('bf_pb_view');if(v==='proj'||v==='cap'||v==='tbl')pbView=v}catch(e){}
+  var pbView='proj',pbF='',pbQ='',pbOpen={},cpOpen='';
+  try{var v=localStorage.getItem('bf_pb_view');if(v==='proj'||v==='cap')pbView=v}catch(e){}
   var tableBoard=window.renderBoard;
   var WH={bf:{n:'در انبار بهفراز',c:'#1F8A4C',b:'#E8F6EE',d:'#BFE5CF'},a110:{n:'در انبار ۱۱۰ (هنوز تحویل نشده)',c:'#D9631E',b:'#FFF1E6',d:'#F6C7A6'},shakib:{n:'در انبار شکیب (هنوز تحویل نشده)',c:'#2F6BD8',b:'#EAF1FF',d:'#BCD0F5'},
     misc:{n:'خرید متفرقه (هنوز وارد نشده)',c:'#8C6BB8',b:'#F3EEFA',d:'#D9CBEC'},out:{n:'تحویل مشتری شد',c:'#6B7C7A',b:'#F1F4F3',d:'#DCE3E1'},need:{n:'خریداری‌نشده — باید خرید',c:'#C0392B',b:'#FDECEA',d:'#F2B8AE'}};
@@ -6426,7 +6456,7 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
     function push(o,src){
       var f=o.f||{};if(isAm(o))return;var r=rm[o.rid]||{};
       var it={cat:o.cat,f:f,slot:slotOf(o.cat,f),main:main(o.cat,f),brand:brandOf(o.cat,f),spec:(typeof boardSpec==='function'?boardSpec(f):f.spec)||'',
-        qty:src.qty,unit:src.unit,wh:src.wh,serial:src.serial||'',date:r.date||'',sup:canonSup(r.supplier||''),rid:o.rid,opening:!!r.opening&&!r.company};
+        qty:src.qty,unit:src.unit,wh:src.wh,serial:src.serial||'',date:r.date||'',sup:canonSup(r.supplier||''),rid:o.rid,opening:!!r.opening&&!r.company,cm:(o.cmts||[]),note:r.note||'',rno:r.no,inv:r.invNo||''};
       if(f.company){var p=proj(f.company,f.project);p.items.push(it);if(!it.opening&&it.date>p.date)p.date=it.date;p.ts=Math.max(p.ts,r.ts||0)}
       else if(src.wh!=='out')CAP.push(it);
     }
@@ -6435,7 +6465,7 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
       if(l.rem>0)push(l,{qty:l.rem,unit:l.unit,wh:whOf(l.f,false),serial:(l.f||{}).bser||''});
       if(out>0&&l.f&&l.f.company)push(l,{qty:out,unit:l.unit,wh:'out'})});
     (DB.sales||[]).forEach(function(s){if(s.void||s.kind!=='nostock'||s.resolved||!s.company)return;var p=proj(s.company,s.project);if(s.date>p.date)p.date=s.date;p.ts=Math.max(p.ts,s.ts||0);
-      (s.items||[]).forEach(function(i){var f=i.f||{brand:i.brand,spec:i.spec};p.items.push({cat:i.cat,f:f,slot:slotOf(i.cat,f),main:i.name||i.title||'',brand:i.brand||'',spec:i.spec||'',qty:+i.qty||1,unit:i.unit||'عدد',wh:'need',saleNo:s.no,date:s.date})})});
+      (s.items||[]).forEach(function(i){var f=i.f||{brand:i.brand,spec:i.spec};p.items.push({cat:i.cat,f:f,slot:slotOf(i.cat,f),main:i.name||i.title||'',brand:i.brand||'',spec:i.spec||'',qty:+i.qty||1,unit:i.unit||'عدد',wh:'need',saleNo:s.no,date:s.date,note:[s.settle,s.delivery&&s.delivery!=='—'?'تحویل: '+s.delivery:''].filter(Boolean).join(' · '),sno:s.no})})});
     (DB.rsvNeeds||[]).forEach(function(n){if(n.status!=='open'||!n.co||n.co==='انبار')return;var p=proj(n.co,n.pj);var f=n.f||{};
       p.items.push({cat:n.cat,f:f,slot:slotOf(n.cat,f),main:main(n.cat,f)||n.title||'',brand:brandOf(n.cat,f),spec:f.spec||'',qty:+n.qty||1,unit:n.unit||'عدد',wh:'need',rsv:1,date:n.date})});
     /* مالی هر پروژه */
@@ -6454,24 +6484,35 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
     var q=i.unit&&i.unit!=='عدد'?' · '+fa(i.qty)+' '+i.unit:(i.qty>1?' ×'+fa(i.qty):'');
     return '<div class="pb-slot" style="--sb:'+w.b+';--sbd:'+w.d+';--wc:'+w.c+'" title="'+esc([lbl,i.brand,i.main,i.spec,i.serial?'سریال '+i.serial:'',w.n].filter(Boolean).join(' · '))+'">'+
       '<span class="h">'+(lk?bfLogo(lk,'sm'):icon)+' '+lbl+(i.brand?' '+esc(i.brand):'')+more+'</span><span class="m">'+esc(i.main||'—')+'</span><span class="s">'+esc([i.spec,i.serial?'سریال '+i.serial:''].filter(Boolean).join(' · ')||' ')+esc(q)+'</span><span class="w">'+WHS[i.wh]+'</span></div>'}
+  function notesHtml(p){var seen={},L=[];
+    p.items.forEach(function(i){var lbl=[(CATS[i.cat]||{}).name,i.brand,i.main].filter(Boolean).join(' ');
+      if(i.note){var k=(i.rno!=null?'r'+i.rno:'s'+i.sno)+'|'+i.note;if(!seen[k]){seen[k]=1;L.push('<li>'+(i.rno!=null?'🧾 سفارش '+esc(fa(i.rno))+(i.inv?' · استعلام/فاکتور '+esc(fa(i.inv)):''):'🏷️ فروش '+esc(fa(i.sno)))+' — '+esc(i.note)+'</li>')}}
+      (i.cm||[]).forEach(function(c){L.push('<li>💬 <b>'+esc(lbl)+'</b>: '+esc(c.x)+' <small class="o">('+esc(c.u||'—')+' · '+fdate(c.d)+')</small></li>')})});
+    return L.length?'<div class="pb-notes"><b>📝 یادداشت‌ها و نکات</b><ul>'+L.join('')+'</ul></div>':''}
   function card(p){
-    var st=STATE[p.state],by={};p.items.forEach(function(i){(by[i.slot]=by[i.slot]||[]).push(i)});
+    var st=STATE[p.state],by={},op=!!pbOpen[p.k];p.items.forEach(function(i){(by[i.slot]=by[i.slot]||[]).push(i)});
+    var c=p.cnt,dots=['bf','a110','shakib','misc','need','out'].filter(function(k){return c[k]}).map(function(k){return '<i style="--wc:'+WH[k].c+'" title="'+esc(WH[k].n)+'">'+fa(c[k])+'</i>'}).join('');
+    var mini=SLOTS.concat([['motor','🧲','موتور']]).filter(function(s){return by[s[0]]}).map(function(s){var i=by[s[0]][0];return '<span style="--wc:'+WH[i.wh].c+'">'+s[1]+' '+esc(i.main||s[2])+'</span>'}).join('');
+    var hd='<div class="pb-hd" data-pbtog="'+esc(p.k)+'" role="button" tabindex="0" aria-expanded="'+op+'"><span class="pb-ic">🏷️</span><div class="t"><b class="co" title="'+esc(p.co+(p.pj?' / '+p.pj:''))+'">'+esc(p.co)+(p.pj?' <span class="pj">/ '+esc(p.pj)+'</span>':'')+'</b><small><b class="bdate">'+fdate(p.date)+'</b> · '+fa(p.items.length)+' قلم</small></div><span class="pb-st">'+st[0]+'</span><span class="pb-arr">▾</span></div>';
+    if(!op)return '<div class="pb-card" style="--st:'+st[1]+';--stb:'+st[2]+'" data-pbk="'+esc(p.k)+'">'+hd+'</div>';
     var hyd=by.jack||by.pu||by.oil,slots=[];
     if(hyd)SLOTS.forEach(function(s){slots.push(slotHtml(s[2],s[1],by[s[0]]||[]))});
     if(by.motor)slots.push(slotHtml('موتور','🧲',by.motor));
-    var x=(by.x||[]).concat(hyd?[]:[]),extra=hyd?'':'';
+    var x=by.x||[];
     var pay='';if(p.sell){var pd=p.paid||0,pc=Math.max(0,Math.min(100,Math.round(pd/p.sell*100))),due=p.sell-pd;
-      pay='<div class="pb-pay"><div class="pb-bar"><i style="width:'+pc+'%"></i></div><div class="l"><span>فروش <b>'+fmm(p.sell)+'</b></span><span>دریافت '+fa(pc)+'٪</span><span class="'+(due>0?'due':'')+'">'+(due>0?'مانده <b class="due">'+fmm(due)+'</b>':due<0?'بستانکار '+fmm(-due):'✔ تسویه')+'</span></div></div>'}
-    var c=p.cnt,sum=['bf','a110','shakib','misc','need','out'].filter(function(k){return c[k]}).map(function(k){return '<span style="color:'+WH[k].c+'">● '+fa(c[k])+' '+WHS[k]+'</span>'}).join(' &nbsp;');
-    var hasBf=p.items.some(function(i){return i.wh==='bf'}),hasNeed=p.items.some(function(i){return i.wh==='need'&&i.saleNo!=null});
-    return '<div class="pb-card" style="--st:'+st[1]+';--stb:'+st[2]+'" data-pbk="'+esc(p.k)+'"><div class="pb-hd"><span style="font-size:1.4rem">🏷️</span><div class="t"><b class="co" title="'+esc(p.co+(p.pj?' / '+p.pj:''))+'">'+esc(p.co)+(p.pj?' <span style="font-weight:600;color:#5b6b69">/ '+esc(p.pj)+'</span>':'')+'</b><small>آخرین سفارش: <b class="bdate">'+fdate(p.date)+'</b> · '+fa(p.items.length)+' قلم</small></div><span class="pb-st">'+st[0]+'</span></div>'+pay+
+      pay='<div class="pb-pay"><div class="pb-bar"><i style="width:'+pc+'%"></i></div><div class="l"><span>فروش <b>'+fmm(p.sell)+'</b></span><span>دریافت <b>'+fmm(pd)+'</b> ('+fa(pc)+'٪)</span><span class="'+(due>0?'due':'')+'">'+(due>0?'مانده <b class="due">'+fmm(due)+'</b>':due<0?'بستانکار '+fmm(-due):'✔ تسویه')+'</span></div></div>'}
+    var all=window.sbItems?sbItems():[],L=all.filter(function(it){return it.f&&it.f.company&&key(it.f.company,it.f.project)===p.k});
+    var tbl='';try{tbl=L.length?'<div class="pb-sec">🏭 کالاهای داخل انبار بهفراز — حواله، ویرایش، حذف، تاریخچه و حسابداری</div>'+sbTable(L):''}catch(e){}
+    var oth=p.items.filter(function(i){return i.wh!=='bf'});
+    var othH=oth.length?'<div class="pb-sec">📍 بقیهٔ اقلام این پروژه</div><div class="pb-more">'+oth.map(function(i){var w=WH[i.wh];return '<span class="pb-chip" style="--sb:'+w.b+';--sbd:'+w.d+';--wc:'+w.c+'">'+(CATS[i.cat]?CATS[i.cat].icon:'📦')+' '+esc([(CATS[i.cat]||{}).name,i.brand,i.main].filter(Boolean).join(' '))+(i.serial?' · سریال '+esc(i.serial):'')+' ×'+fa(i.qty)+(i.unit!=='عدد'?' '+esc(i.unit):'')+' — <b>'+WHS[i.wh]+'</b></span>'}).join('')+'</div>':'';
+    var go2=[];['a110','shakib','misc'].forEach(function(w){if(c[w])go2.push('<button type="button" data-pbwh="'+w+'">'+({a110:'🟠 رفتن به انبار ۱۱۰',shakib:'🔵 رفتن به انبار شکیب',misc:'🧺 رفتن به خرید متفرقه'})[w]+'</button>')});
+    var hasNeed=p.items.some(function(i){return i.wh==='need'&&i.saleNo!=null});
+    return '<div class="pb-card open" style="--st:'+st[1]+';--stb:'+st[2]+'" data-pbk="'+esc(p.k)+'">'+hd+'<div class="pb-body">'+pay+
       (slots.length?'<div class="pb-slots">'+slots.join('')+'</div>':'')+
       (x.length?'<div class="pb-more">'+x.map(function(i){var w=WH[i.wh];return '<span class="pb-chip" style="--sb:'+w.b+';--sbd:'+w.d+';--wc:'+w.c+'" title="'+esc(w.n)+'">'+(CATS[i.cat]?CATS[i.cat].icon:'📦')+' '+esc([i.main||(CATS[i.cat]||{}).name,i.cat==='acc'?'':i.brand].filter(Boolean).join(' '))+(i.qty>1||i.unit!=='عدد'?' ×'+fa(i.qty)+(i.unit!=='عدد'?' '+esc(i.unit):''):'')+'</span>'}).join('')+'</div>':'')+
-      '<div class="pb-ft"><span class="sum">'+sum+'</span>'+(hasNeed&&!ro2()?'<button type="button" data-pbsale="1">🛒 خرید</button>':'')+(hasBf?'<button type="button" class="'+(pbOpen===p.k?'pri':'')+'" data-pbdet="'+esc(p.k)+'">'+(pbOpen===p.k?'▲ بستن':'🚚 جزئیات و حواله')+'</button>':'')+'</div></div>'}
+      notesHtml(p)+tbl+othH+
+      '<div class="pb-ft"><span class="sum">'+['bf','a110','shakib','misc','need','out'].filter(function(k){return c[k]}).map(function(k){return '<span style="color:'+WH[k].c+'">● '+fa(c[k])+' '+WHS[k]+'</span>'}).join(' &nbsp;')+'</span>'+go2.join('')+(hasNeed&&!ro2()?'<button type="button" data-pbsale="1">🛒 خرید از شرکت مادر</button>':'')+'<button type="button" class="pri" data-pbtog="'+esc(p.k)+'">▲ بستن</button></div></div></div>'}
   function ro2(){try{return typeof BF_WH_RO!=='undefined'&&BF_WH_RO}catch(e){return false}}
-  function detHtml(p){var all=window.sbItems?sbItems():[],L=all.filter(function(it){return it.f&&it.f.company&&key(it.f.company,it.f.project)===p.k});
-    var tbl='';try{tbl=L.length?sbTable(L):'<div class="o" style="padding:10px">کالایی از این پروژه در انبار بهفراز نیست.</div>'}catch(e){tbl=''}
-    return '<div class="pb-det"><h4>🏷️ '+esc(p.co)+(p.pj?' / '+esc(p.pj):'')+' <small class="o">— کالاهای داخل انبار بهفراز (حواله، ویرایش، تاریخچه)</small><span class="sp"></span><button type="button" class="btn sm ghost" data-pbdet="'+esc(p.k)+'">✕ بستن</button></h4>'+tbl+'</div>'}
   function projView(D){
     var L=D.L.slice(),q=norm(pbQ);
     var cnt={all:L.length,need:0,wait:0,ready:0,done:0};L.forEach(function(p){cnt[p.state]++});
@@ -6482,8 +6523,8 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
     var RK={need:0,wait:1,ready:2,done:3};
     L.sort(function(a,b){return RK[a.state]-RK[b.state]||String(b.date).localeCompare(String(a.date))||(b.ts-a.ts)});
     if(!L.length)return h+'<div class="pb-empty">پروژه‌ای با این فیلتر نیست.</div>';
-    var out=[];L.forEach(function(p){out.push(card(p));if(pbOpen===p.k)out.push(detHtml(p))});
-    return h+'<div class="pb-grid">'+out.join('')+'</div>'}
+    var anyOpen=L.some(function(p){return pbOpen[p.k]});
+    return h+'<div class="pb-tools2"><button type="button" data-pball="'+(anyOpen?'0':'1')+'">'+(anyOpen?'▲ بستن همه':'▼ باز کردن همه')+'</button><span class="o">روی نام هر پروژه بزنید تا جزئیات، یادداشت‌ها و حواله باز شود</span></div><div class="pb-grid">'+L.map(card).join('')+'</div>'}
   var CAPC=[['jack','🔩','جک','#E2572B'],['pu','⚙️','پاور یونیت','#C77D0A'],['motor','🧲','موتور','#5B4FB3'],['oil','🛢️','روغن','#0E7C9E'],['acc','🧰','متعلقات','#1F8A4C'],['x','📦','سایر','#46585E']];
   function capView(D){
     var G={};D.CAP.forEach(function(i){var c=i.cat==='acc'?'acc':CAPC.some(function(x){return x[0]===i.cat})?i.cat:'x';
@@ -6491,24 +6532,36 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
     var tot=0;Object.keys(G).forEach(function(c){tot+=Object.keys(G[c]).length});
     var h='<div class="pb-tools"><span class="o" style="font-size:.8rem">💼 کالای آزاد (بدون مشتری / پروژه) — <b>'+fa(tot)+'</b> نوع کالا. عدد بزرگ = موجودی کل؛ برچسب‌ها = محل نگهداری.</span></div>';
     if(!tot)return h+'<div class="pb-empty">سرمایه انبار خالی است.</div>';
-    return h+'<div class="cp-cols">'+CAPC.filter(function(c){return G[c[0]]}).map(function(c){var g=G[c[0]],ks=Object.keys(g).sort(function(a,b){return String(g[a].i.main).localeCompare(String(g[b].i.main),'fa',{numeric:true})});
+    var cols='<div class="cp-cols">'+CAPC.filter(function(c){return G[c[0]]}).map(function(c){var g=G[c[0]],ks=Object.keys(g).sort(function(a,b){return String(g[a].i.main).localeCompare(String(g[b].i.main),'fa',{numeric:true})});
       return '<div class="cp-col" style="--cc:'+c[3]+'"><h4>'+c[1]+' '+c[2]+'<small>'+fa(ks.length)+' نوع</small></h4>'+ks.map(function(k){var e=g[k],i=e.i,lk=brandLogoKey(i.brand||'');
-        return '<div class="cp-it"><span class="n">'+fa(e.q)+'<small>'+esc(i.unit)+'</small></span><span class="t"><b>'+esc(i.main||(CATS[i.cat]||{}).name||'—')+'</b><small>'+(lk?bfLogo(lk,'sm')+' ':'')+esc([i.brand,i.spec].filter(Boolean).join(' · ')||(CATS[i.cat]||{}).name||'')+'</small><span class="w">'+Object.keys(e.w).map(function(w){return '<span style="--sb:'+WH[w].b+';--wc:'+WH[w].c+'">'+WHS[w]+(Object.keys(e.w).length>1?' '+fa(e.w[w]):'')+'</span>'}).join('')+'</span></span></div>'}).join('')+'</div>'}).join('')+'</div>'}
+        return '<div class="cp-it'+(cpOpen===k?' on':'')+'" data-cpk="'+esc(k)+'" role="button" tabindex="0" title="برای حواله، ویرایش و تاریخچه بزنید"><span class="n">'+fa(e.q)+'<small>'+esc(i.unit)+'</small></span><span class="t"><b>'+esc(i.main||(CATS[i.cat]||{}).name||'—')+'</b><small>'+(lk?bfLogo(lk,'sm')+' ':'')+esc([i.brand,i.spec].filter(Boolean).join(' · ')||(CATS[i.cat]||{}).name||'')+'</small><span class="w">'+Object.keys(e.w).map(function(w){return '<span style="--sb:'+WH[w].b+';--wc:'+WH[w].c+'">'+WHS[w]+(Object.keys(e.w).length>1?' '+fa(e.w[w]):'')+'</span>'}).join('')+'</span></span></div>'}).join('')+'</div>'}).join('')+'</div>';
+    return h+cols+cpPanel(D)}
+  function cpKey(cat,f,unit){f=f||{};return [cat,norm(brandOf(cat,f)),norm(main(cat,f)),norm((typeof boardSpec==='function'?boardSpec(f):f.spec)||''),unit].join('|')}
+  function cpPanel(D){if(!cpOpen)return '';var all=window.sbItems?sbItems():[],L=all.filter(function(it){return !(it.f&&it.f.company)&&cpKey(it.cat,it.f,it.unit)===cpOpen});
+    var ex=D.CAP.filter(function(i){return cpKey(i.cat,i.f,i.unit)===cpOpen}),i0=ex[0]||{},oth=ex.filter(function(i){return i.wh!=='bf'});
+    var notes=[],seen={};ex.forEach(function(i){if(i.note&&!seen[i.rno+'|'+i.note]){seen[i.rno+'|'+i.note]=1;notes.push('<li>🧾 سفارش '+esc(fa(i.rno||'—'))+(i.inv?' · استعلام/فاکتور '+esc(fa(i.inv)):'')+' — '+esc(i.note)+'</li>')}(i.cm||[]).forEach(function(c){notes.push('<li>💬 '+esc(c.x)+' <small class="o">('+esc(c.u||'—')+' · '+fdate(c.d)+')</small></li>')})});
+    return '<div class="pb-det" id="cpPanel"><h4>'+((CATS[i0.cat]||{}).icon||'📦')+' '+esc([(CATS[i0.cat]||{}).name,i0.brand,i0.main].filter(Boolean).join(' '))+' <small class="o">— سرمایه انبار</small><span class="sp"></span><button type="button" class="btn sm ghost" data-cpk="'+esc(cpOpen)+'">✕ بستن</button></h4>'+
+      (notes.length?'<div class="pb-notes"><b>📝 یادداشت‌ها</b><ul>'+notes.join('')+'</ul></div>':'')+
+      (L.length?sbTable(L):'')+(oth.length?'<div class="pb-sec">📍 در انبارهای دیگر</div><div class="pb-more">'+oth.map(function(i){var w=WH[i.wh];return '<span class="pb-chip" style="--sb:'+w.b+';--sbd:'+w.d+';--wc:'+w.c+'">'+fa(i.qty)+' '+esc(i.unit)+' — <b>'+WHS[i.wh]+'</b></span>'}).join('')+'</div>':'')+'</div>'}
   function sw(D){var nP=D.L.length,nC=D.CAP.length;
-    return '<div class="pb-sw"><button type="button" data-pbv="proj" class="'+(pbView==='proj'?'on':'')+'">🏷️ پروژه‌ها <small>'+fa(nP)+'</small></button><button type="button" data-pbv="cap" class="'+(pbView==='cap'?'on':'')+'">💼 سرمایه انبار <small>'+fa(nC)+' قلم</small></button><button type="button" data-pbv="tbl" class="'+(pbView==='tbl'?'on':'')+'">📋 جدول کامل و حواله</button></div>'}
+    return '<div class="pb-sw"><button type="button" data-pbv="proj" class="'+(pbView==='proj'?'on':'')+'">🏷️ پروژه‌ها <small>'+fa(nP)+'</small></button><button type="button" data-pbv="cap" class="'+(pbView==='cap'?'on':'')+'">💼 سرمایه انبار <small>'+fa(nC)+' قلم</small></button><span class="sp"></span><label class="pb-out"><input type="checkbox" id="sbOut"'+(typeof sbOut!=='undefined'&&sbOut?' checked':'')+'> نمایش خارج‌شده / تمام‌شده در جدول‌ها</label></div>'}
   window.renderBoard=renderBoard=function(){
-    if(pbView==='tbl')return sw(collect())+tableBoard.apply(this,arguments);
     var D=collect();return sw(D)+'<div id="pbBody">'+(pbView==='cap'?capView(D):projView(D))+'</div><div id="sbDock">'+(typeof sbDock==='function'?sbDock():'')+'</div>'};
   /* جدول قدیم وقتی در نمای پروژه است، فقط جزئیات باز را تازه کند */
-  var _sbr=window.sbRefreshTable;window.sbRefreshTable=sbRefreshTable=function(){if(pbView==='tbl')return _sbr.apply(this,arguments);rs()};
+  window.sbRefreshTable=sbRefreshTable=function(){rs()};
   function rs(){var y=window.scrollY;try{renderStock()}catch(e){console.error(e)}window.scrollTo({top:y})}
   var sc=document.getElementById('statCards');
   sc.addEventListener('click',function(e){var t;
     if(t=e.target.closest('[data-pbv]')){pbView=t.dataset.pbv;try{localStorage.setItem('bf_pb_view',pbView)}catch(_){}rs();return}
     if(t=e.target.closest('[data-pbf]')){pbF=pbF===t.dataset.pbf?'':t.dataset.pbf;rs();return}
-    if(t=e.target.closest('[data-pbdet]')){pbOpen=pbOpen===t.dataset.pbdet?'':t.dataset.pbdet;rs();return}
+    if(e.target.closest('.sbt2, .pb-body button, .pb-body input, .pb-body a'))return;
+    if(t=e.target.closest('[data-pbtog]')){var k=t.dataset.pbtog;if(pbOpen[k])delete pbOpen[k];else pbOpen[k]=1;rs();if(pbOpen[k])setTimeout(function(){var c=document.querySelector('.pb-card.open[data-pbk="'+(window.CSS&&CSS.escape?CSS.escape(k):k)+'"]');if(c&&c.getBoundingClientRect().top<70)c.scrollIntoView({block:'start',behavior:'smooth'})},30);return}
+    if(t=e.target.closest('[data-pball]')){if(t.dataset.pball==='1')[].forEach.call(document.querySelectorAll('.pb-card[data-pbk]'),function(c){pbOpen[c.dataset.pbk]=1});else pbOpen={};rs();return}
+    if(t=e.target.closest('[data-cpk]')){cpOpen=cpOpen===t.dataset.cpk?'':t.dataset.cpk;rs();if(cpOpen)setTimeout(function(){var pn=document.getElementById('cpPanel');if(pn)pn.scrollIntoView({block:'start',behavior:'smooth'})},30);return}
+    if(t=e.target.closest('[data-pbwh]')){try{stkView=t.dataset.pbwh}catch(_){}var b=document.querySelector('.shk-whbar [data-wv="'+t.dataset.pbwh+'"]');if(b)b.click();return}
     if(t=e.target.closest('[data-pbsale]')){go('sale');return}
   });
+  sc.addEventListener('keydown',function(e){if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('[data-pbtog],[data-cpk]')){e.preventDefault();e.target.click()}});
   sc.addEventListener('input',function(e){if(e.target.id!=='pbQ')return;pbQ=e.target.value;clearTimeout(sc._pbt);sc._pbt=setTimeout(function(){rs();var q=document.getElementById('pbQ');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},250)});
   try{if(typeof curTab!=='undefined'&&curTab==='stock')renderStock()}catch(e){}
 })();

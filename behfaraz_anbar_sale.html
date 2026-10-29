@@ -36,7 +36,7 @@
       return crypto.subtle.deriveBits({ name:'PBKDF2', hash:'SHA-256', salt:e.encode('behfaraz-online-data-v1'), iterations:250000 }, k, 256);
     }).then(function(b){ return btoa(String.fromCharCode.apply(null, new Uint8Array(b))); });
   }
-  window.addEventListener('storage', function(e){ if(e.key === KEY && ok()) unlock(); });
+  window.addEventListener('storage', function(e){ if(e.key === KEY && ok()) location.reload(); });
   function show(){
     if(document.getElementById('bfGate')) return;
     var g = document.createElement('div'); g.id = 'bfGate';
@@ -48,7 +48,7 @@
     g.querySelector('form').addEventListener('submit', function(ev){
       ev.preventDefault();
       sha(inp.value).then(function(h){
-        if(h === HASH){ return dkey(inp.value).then(function(k){ try{ localStorage.setItem(DK, k); localStorage.setItem(KEY, HASH); }catch(e){} unlock(); }); }
+        if(h === HASH){ return dkey(inp.value).then(function(k){ try{ localStorage.setItem(DK, k); localStorage.setItem(KEY, HASH); }catch(e){} location.reload(); }); }
         else { err.textContent = 'رمز اشتباه است'; inp.select(); }
       }, function(){ err.textContent = 'مرورگر شما پشتیبانی نمی‌کند — صفحه را با https باز کنید'; });
     });
@@ -1556,7 +1556,7 @@ function sbTable(items){
   for(i=0;i<list.length;i++){var it=list[i],pk=it.sup+'#'+it.pk;
     if(it.tab!==prevTab){var tn=0;for(j=i;j<list.length&&list[j].tab===it.tab;j++)tn++;
       rows+='<tr class="sbt-g"><td colspan="11">'+esc(sbValLabel('type',it.tab))+' <span>('+fa(tn)+' ردیف)</span></td></tr>';prevTab=it.tab;prevP=''}
-    if(pk!==prevP){var rr0=(window.__sbRM||{})[it.rid]||{};rows+='<tr class="sbt-p'+sbSupCls(it.sup)+'"><td></td><td colspan="2"><b>'+esc(it.title)+'</b>'+(it.sub?' — '+esc(it.sub):'')+'</td><td colspan="2">جمع موجودی: <b>'+fa(pc[pk].q)+'</b> '+esc(pc[pk].unit)+'</td><td colspan="6">🧾 سفارش '+esc(fa(rr0.no||'—'))+(rr0.invNo?' · فاکتور '+esc(fa(rr0.invNo)):'')+(rr0.date?' · <b class="bdate">'+fdate(rr0.date)+'</b>':'')+' · '+esc(it.sup)+'</td></tr>'}
+    if(pk!==prevP&&pc[pk].n>1){var rr0=(window.__sbRM||{})[it.rid]||{};rows+='<tr class="sbt-p'+sbSupCls(it.sup)+'"><td></td><td colspan="2"><b>'+esc(it.title)+'</b>'+(it.sub?' — '+esc(it.sub):'')+'</td><td colspan="2">جمع موجودی: <b>'+fa(pc[pk].q)+'</b> '+esc(pc[pk].unit)+'</td><td colspan="6">🧾 سفارش '+esc(fa(rr0.no||'—'))+(rr0.invNo?' · فاکتور '+esc(fa(rr0.invNo)):'')+(rr0.date?' · <b class="bdate">'+fdate(rr0.date)+'</b>':'')+' · '+esc(it.sup)+'</td></tr>'}
     prevP=pk;n++;
     var f=it.f,cust=[f.company,f.project].filter(Boolean).join(' / ');
     var lv=it.k==='l'?boardLevel(it.qty,it.unit):'ok';
@@ -4161,7 +4161,7 @@ var TILES=[
 var TILES110=[
   {id:'jp',lg:'wittur',ic:'🔩',t:'جک و پاور',s:'جک و پاوریونیت ویتور',sub:[['jack','🔩 جک'],['pu','⚙️ پاور یونیت']]},
   {id:'mt',lg:'gentle',ic:'🧲',t:'موتورها',s:'جنتلرایز (بشکه‌ای / دیسکی) · هوبر',sub:[['motorG','🧲 جنتلرایز'],['motorH','🧲 هوبر']]},
-  {id:'pt',lg:'a110',ic:'🧩',t:'متعلقات',s:'متعلقات ۱۱۰ · فلکه · روغن · درب · ریل · تابلو …',sub:[['parts','🧩 متعلقات ۱۱۰'],['falake','فلکه'],['oil','روغن'],['door','درب'],['rail','ریل'],['panel','تابلو'],['elec','برق'],['setup','نصب']]}
+  {id:'pt',lg:'a110',ic:'🧩',t:'متعلقات',s:'کاراسلینگ · کولینگ · شلنگ · درخت سیم · روغن',sub:[['parts','🧩 متعلقات ۱۱۰ (کاراسلینگ، کولینگ، شلنگ…)'],['oil','🛢️ روغن']]}
 ];
 function TL(){return isA110()?TILES110:TILES}
 var ILL={
@@ -4235,28 +4235,32 @@ function destModal(){
   if(is110)dst=l0?'cust':'stock';
   openModal('<h3>'+(is110?'🧾 قیمت و فاکتور این سفارش آسانسور ۱۱۰ ('+fa(n)+' کالا)':'🎯 این سفارش ('+fa(n)+' کالا) برای کجاست؟')+'</h3>'+
     (is110?'<div class="note" style="font-size:.82rem">'+(l0?'🏷️ برای مشتری: <b>'+esc(l0.f.company)+(l0.f.project?' / '+esc(l0.f.project):'')+'</b>':'📦 برای انبار')+'</div>':
-    '<div class="dst"><button type="button" data-d="stock"><span>📦</span><b>برای انبار</b><small>'+(sup===SHK?'به انبار شکیب می‌رود':sup===A110?'به «انبار آسانسور ۱۱۰» می‌رود (تا انتقال به انبار بهفراز)':'به «انبار خرید متفرقه» می‌رود (هنوز وارد انبار نشده)')+' — پروژه اختیاری</small></button><button type="button" data-d="cust"><span>🏷️</span><b>برای مشتری</b><small>نام شرکت اجباری · قیمت خرید و فروش</small></button></div>')+
+    '<div class="dst"><button type="button" data-d="stock"><span>📦</span><b>برای انبار</b><small>'+(sup===SHK?'به انبار شکیب می‌رود':sup===A110?'به «انبار آسانسور ۱۱۰» می‌رود (تا انتقال به انبار بهفراز)':'به «انبار خرید متفرقه» می‌رود (هنوز وارد انبار نشده)')+' — پروژه اختیاری</small></button><button type="button" data-d="cust"><span>🏷️</span><b>برای مشتری</b><small>نام شرکت اجباری · قیمت خرید و فروش</small></button><button type="button" data-d="open"><span>📋</span><b>موجودی اول دوره</b><small>کالای موجود در انبار بهفراز — بدون فاکتور و قیمت · در حساب تأمین‌کننده ثبت نمی‌شود</small></button></div>')+
     '<div id="dF" style="'+(is110?'':'display:none')+'"><div class="grid g2">'+
-      (is110?'':'<div class="dC"><label class="f">نام شرکت / مشتری <span class="req">*</span></label><input id="dCo" list="dl_company" autocomplete="off"></div><div><label class="f">نام پروژه <span class="o">(اختیاری)</span></label><input id="dPj" list="dl_rproject" autocomplete="off"></div>')+
-      '<div><label class="f">شماره فاکتور خرید '+esc(sup===A110?'آسانسور ۱۱۰':sup===SHK?'شکیب':sup)+' <span class="req">*</span></label><input id="dInv" class="ltr" value="'+esc($('iDoc').value)+'" autocomplete="off"></div>'+
-      '<div><label class="f">جمع قیمت خرید کل کالاها (ریال) <span class="req">*</span></label><input id="dBuy" class="bf-money" inputmode="numeric" autocomplete="off"></div>'+
+      (is110?'':'<div class="dC dO"><label class="f">نام شرکت / مشتری <span class="req dReq">*</span><span class="o dOpt" style="display:none">(اختیاری — برای رزرو)</span></label><input id="dCo" list="dl_company" autocomplete="off"></div><div><label class="f">نام پروژه <span class="o">(اختیاری)</span></label><input id="dPj" list="dl_rproject" autocomplete="off"></div>')+
+      '<div class="dP"><label class="f">شماره فاکتور خرید '+esc(sup===A110?'آسانسور ۱۱۰':sup===SHK?'شکیب':sup)+' <span class="req">*</span></label><input id="dInv" class="ltr" value="'+esc($('iDoc').value)+'" autocomplete="off"></div>'+
+      '<div class="dP"><label class="f">جمع قیمت خرید کل کالاها (ریال) <span class="req">*</span></label><input id="dBuy" class="bf-money" inputmode="numeric" autocomplete="off"></div>'+
       '<div class="dC"><label class="f">جمع قیمت فروش به مشتری (ریال) <span class="req">*</span></label><input id="dSell" class="bf-money" inputmode="numeric" autocomplete="off"></div>'+
-      '<div><label class="f">🧾 فاکتور رسمی <span class="req">*</span></label>'+chipsRow('dOff',[['1','✅ دارد'],['0','❌ ندارد']])+'</div>'+
+      '<div class="dP"><label class="f">🧾 فاکتور رسمی <span class="req">*</span></label>'+chipsRow('dOff',[['1','✅ دارد'],['0','❌ ندارد']])+'</div>'+
       '<div class="dC"><label class="f">📍 محدوده <span class="req">*</span></label>'+chipsRow('dRng',[['in','🟢 داخل محدوده'],['out','🔴 خارج از محدوده']])+'</div>'+
-    '</div><div id="dProf"></div></div><div class="msg bad" id="dMsg"></div>'+
+    '</div><div id="dOpenNote" class="note" style="display:none;font-size:.8rem;margin-top:8px">📋 <b>موجودی اول دوره</b>: کالاها مستقیم در <b>انبار بهفراز</b> می‌نشینند (نه انبار '+esc(sup===A110?'آسانسور ۱۱۰':sup===SHK?'شکیب':'خرید متفرقه')+'). قیمت و فاکتور لازم نیست و هیچ مبلغی به حساب '+esc(sup)+' اضافه نمی‌شود. اگر کالا برای مشتری رزرو است، نام شرکت / پروژه را بنویسید.</div><div id="dProf"></div></div><div class="msg bad" id="dMsg"></div>'+
     '<div class="actions"><button type="button" class="btn grn" id="dOk"'+(is110?'':' disabled')+'>✓ ثبت نهایی سفارش</button><button type="button" class="btn ghost" onclick="closeModal()">انصراف</button></div>',function(){
-    function showC(){[].forEach.call(document.querySelectorAll('#dF .dC'),function(x){x.style.display=dst==='cust'?'':'none'})}
+    function showC(){[].forEach.call(document.querySelectorAll('#dF .dC'),function(x){x.style.display=(dst==='cust'||(dst==='open'&&x.classList.contains('dO')))?'':'none'});
+      [].forEach.call(document.querySelectorAll('#dF .dP'),function(x){x.style.display=dst==='open'?'none':''});
+      var on=$('dOpenNote');if(on)on.style.display=dst==='open'?'':'none';
+      [].forEach.call(document.querySelectorAll('#dF .dReq'),function(x){x.style.display=dst==='open'?'none':''});[].forEach.call(document.querySelectorAll('#dF .dOpt'),function(x){x.style.display=dst==='open'?'':'none'})}
     function prof(){var b=money($('dBuy').value),s=money($('dSell').value),p=$('dProf');if(dst!=='cust'||!b||!s){p.innerHTML='';return}
       p.innerHTML=s<b?'<div class="prof bad">⛔ قیمت فروش ('+fm(s)+') کمتر از قیمت خرید ('+fm(b)+') است — فروش زیر قیمت خرید مجاز نیست</div>':'<div class="prof ok">📈 سود: '+fm(s-b)+' ریال ('+fa(((s-b)/b*100).toFixed(1))+'٪)</div>'}
     if(is110)showC();
     var dsts=document.querySelector('.dst');if(dsts)dsts.addEventListener('click',function(e){var b=e.target.closest('[data-d]');if(!b)return;dst=b.dataset.d;
       [].forEach.call(document.querySelectorAll('.dst button'),function(x){x.classList.toggle('on',x===b)});
-      $('dF').style.display='';showC();$('dOk').disabled=false;showMsg('dMsg','');prof();(dst==='cust'?$('dCo'):$('dInv')).focus()});
+      $('dF').style.display='';showC();$('dOk').disabled=false;showMsg('dMsg','');prof();(dst==='stock'?$('dInv'):$('dCo')).focus()});
     chipsBind('dOff');chipsBind('dRng');
     ['dBuy','dSell'].forEach(function(i){$(i).addEventListener('input',prof)});
     $('dF').addEventListener('input',function(){showMsg('dMsg','')});$('dF').addEventListener('click',function(){showMsg('dMsg','')});
     $('dOk').onclick=function(){
       var co=is110?(l0?l0.f.company:''):$('dCo').value.trim(),pj=is110?(l0?(l0.f.project||''):''):$('dPj').value.trim(),inv=$('dInv').value.trim(),b=money($('dBuy').value),s=money($('dSell').value),off=chipsVal('dOff'),rng=chipsVal('dRng');
+      if(dst==='open'){closeModal();doSave({sup:sup,dst:'stock',open:true,co:co,pj:pj,inv:'',buy:0,sell:0,off:null,rng:''});return}
       if(dst==='cust'&&!co){showMsg('dMsg','نام شرکت / مشتری را بنویسید');$('dCo').focus();return}
       if(!inv){showMsg('dMsg','شماره فاکتور خرید را بنویسید');$('dInv').focus();return}
       if(!(b>0)){showMsg('dMsg','جمع قیمت خرید را بنویسید');$('dBuy').focus();return}
@@ -4271,16 +4275,21 @@ function destModal(){
   if(window.__bfSaleBuy&&window.bfSaleBuyDest)try{window.bfSaleBuyDest()}catch(e){console.error(e)}
 }
 function doSave(m){
-  var SB=window.__bfSaleBuy;if(SB&&m.dst==='stock'){m.co=SB.co;m.pj=SB.pj} /* [BF-SALE2] خرید برای فروش بدون خرید */
+  var SB=window.__bfSaleBuy;if(SB&&m.dst==='stock'){m.co=SB.tco!=null?SB.tco:SB.co;m.pj=SB.tpj!=null?SB.tpj:SB.pj} /* [BF-SALE2] خرید برای فروش بدون خرید — [BF-V0807] مقصد انتخابی کاربر */
   if(window.bfCanonCP&&m.co){var cc=bfCanonCP(m.co,m.pj);m.co=cc.c;m.pj=cc.p}else if(window.bfCanonCP&&m.pj){m.pj=bfCanonCP('',m.pj).p}
   var shk=m.sup===SHK,a11=m.sup===A110,mis=!shk&&!a11;
-  if(shk||mis||a11)inStaged.forEach(function(l){l.f.wh=shk?'shakib':a11?'a110':'misc';delete l.f.company;delete l.f.project;if(m.co)l.f.company=m.co;if(m.pj)l.f.project=m.pj});
+  if(shk||mis||a11)inStaged.forEach(function(l){if(m.open)delete l.f.wh;else l.f.wh=shk?'shakib':a11?'a110':'misc';delete l.f.company;delete l.f.project;if(m.co)l.f.company=m.co;if(m.pj)l.f.project=m.pj});
   $('iDoc').value=m.inv;
   var n0=DB.receipts.length;
   try{$('btnSaveIn').onclick()}catch(err){console.error(err)}
   if(DB.receipts.length<=n0)return;
   var rec=DB.receipts[DB.receipts.length-1];
   rec.kind=shk?'shk':mis?'misc':'ord';rec.dest=m.dst;rec.invNo=m.inv;rec.buyTotal=m.buy;rec.sellTotal=m.sell;rec.company=m.co;rec.project=m.pj;rec.official=m.off;rec.range=m.rng;
+  if(m.open){rec.opening=true;rec.kind='open';rec.recvDate=rec.date;rec.note=(rec.note?rec.note+' · ':'')+'موجودی اول دوره';
+    tileOn='';save();stkView='bf';applyStkView();try{renderStock()}catch(_){}
+    toast('✓ موجودی اول دوره ثبت شد — '+fa(rec.lines.length)+' ردیف در انبار بهفراز'+(m.co?' (رزرو '+m.co+(m.pj?' / '+m.pj:'')+')':'')+' · بدون قیمت و بدون اثر در حساب '+m.sup);
+    if(SB&&window.bfSaleBought)try{window.bfSaleBought(rec,m)}catch(e){console.error(e)}
+    return}
   rec.lines.forEach(function(l){if(!(l.cmts&&l.cmts.length))return;var k=lotKey(l.cat,l.f,l.unit);DB.lots.forEach(function(x){if(x.rid===rec.id&&x.key===k)x.cmts=clone(l.cmts)});DB.units.forEach(function(u){if(u.rid===rec.id&&(l.serials||[]).indexOf(u.serial)>=0)u.cmts=clone(l.cmts)})});
   tileOn='';save();if(shk){stkView='shk';applyStkView()}else if(a11){stkView='a110';famSel='jp';applyStkView()}else if(mis){stkView='misc';applyStkView()}
   toast('✓ سفارش '+(shk?'شکیب':mis?m.sup+' (انبار خرید متفرقه)':'آسانسور ۱۱۰ (انبار آسانسور ۱۱۰)')+' ثبت شد — '+(m.dst==='cust'?m.co:'انبار')+' · فاکتور '+fa(m.inv)+' · خرید '+fm(m.buy)+(m.sell?' · فروش '+fm(m.sell):'')+' ریال');
@@ -4304,7 +4313,7 @@ function editOrder(rid,after){
     var o=document.querySelector('#eoO [data-v="'+(r.official?'1':r.official===false?'0':'x')+'"]');if(o)o.classList.add('on');
     var g=document.querySelector('#eoR [data-v="'+(r.range||'x')+'"]');if(g)g.classList.add('on');
     $('eoOk').onclick=function(){var inv=$('eoI').value.trim(),b=money($('eoB').value),s=$('eoS')?money($('eoS').value):0;
-      if(!(b>0)){showMsg('eoMsg','قیمت خرید را بنویسید');return}
+      if(!(b>0)&&!r.opening){showMsg('eoMsg','قیمت خرید را بنویسید');return}
       if(r.dest==='cust'&&s<b){showMsg('eoMsg','⛔ فروش کمتر از خرید مجاز نیست');return}
       if(inv&&DB.receipts.some(function(x){return x!==r&&!x.void&&canonSup(x.supplier)===canonSup(r.supplier)&&norm(x.invNo||x.docNo||'')===norm(inv)})){showMsg('eoMsg','⛔ این شمارهٔ فاکتور تکراری است');return}
       var old=[r.invNo,r.buyTotal,r.sellTotal].join(' / ');
@@ -4503,7 +4512,7 @@ function supLedger(sup){
   var P=finDB().pays.filter(function(p){return !p.void&&payParty(p)===sup}),rows=[];
   var op=P.filter(function(p){return p.kind==='open'}).sort(function(a,b){return (b.ts||0)-(a.ts||0)})[0];
   if(op)rows.push({d:op.date||'',t:'مانده اول دوره',x:op.note||'',amt:op.dir==='cred'?-op.amount:op.amount,src:op});
-  DB.receipts.forEach(function(r){if(r.void||!(r.buyTotal>0)||canonSup(r.supplier)!==sup)return;rows.push({d:r.date,t:'فاکتور خرید '+(r.invNo||''),x:recTypesTxt(r)+(r.dest==='cust'?' · '+(r.company||''):' · انبار'),amt:r.buyTotal,rec:r,ts:r.ts})});
+  DB.receipts.forEach(function(r){if(r.void||r.opening||!(r.buyTotal>0)||canonSup(r.supplier)!==sup)return;rows.push({d:r.date,t:'فاکتور خرید '+(r.invNo||''),x:recTypesTxt(r)+(r.dest==='cust'?' · '+(r.company||''):' · انبار'),amt:r.buyTotal,rec:r,ts:r.ts})});
   P.forEach(function(p){
     if(p.kind==='out')rows.push({d:p.date,t:'پرداخت'+(p.via==='cust'?' از طرف مشتری':''),x:[p.method,p.ref?('شماره '+p.ref):'',p.via==='cust'?('👤 '+p.cust+(p.custPj?' / '+p.custPj:'')):'',p.note].filter(Boolean).join(' · '),amt:-p.amount,src:p,ts:p.ts});
     if(p.kind==='bounce')rows.push({d:p.date,t:'چک برگشتی (عودت از '+sup+')',x:['چک '+(p.ref||''),p.bank,p.due?'سررسید '+p.due:'',p.note].filter(Boolean).join(' · '),amt:p.amount,src:p,ts:p.ts});
@@ -4677,7 +4686,7 @@ function offKey(e){if(e.key==='Enter'&&e.target.dataset&&e.target.dataset.ofin){
 (function(){var sec=$('t-fin');if(sec)sec.addEventListener('keydown',offKey)})();
 var IF={rin:1,rout:1,rnone:1,jp:1,mt:1,ac:1},SF={sup:'',cus:'',typ:'',rng:''};
 function recFam(r){var t={};r.lines.forEach(function(l){t[(l.cat==='jack'||l.cat==='pu')?'jp':l.cat==='motor'?'mt':'ac']=1});return t}
-function invFiltered(sup){return DB.receipts.filter(function(r){if(r.void||!(r.buyTotal>0)||canonSup(r.supplier)!==sup)return false;
+function invFiltered(sup){return DB.receipts.filter(function(r){if(r.void||r.opening||!(r.buyTotal>0)||canonSup(r.supplier)!==sup)return false;
     var rk=r.range==='in'?'rin':r.range==='out'?'rout':'rnone';if(!IF[rk])return false;var f=recFam(r);return (f.jp&&IF.jp)||(f.mt&&IF.mt)||(f.ac&&IF.ac)})
   .sort(function(a,b){return String(b.date).localeCompare(String(a.date))||(b.ts||0)-(a.ts||0)})}
 function invFilterBar(){function c(k,t){return '<button type="button" class="chipb chk'+(IF[k]?' on':'')+'" data-if="'+k+'">'+(IF[k]?'☑ ':'☐ ')+t+'</button>'}
@@ -5538,7 +5547,7 @@ function nsCheckHtml(){var d=SF2.ns;if(!d||!d.name||!d.cat)return '';var R=nsMat
   var bf=R.filter(function(r){return r.wh==='bf'}).length,sh=R.length-bf;
   return '<div class="sl-ok">✅ این کالا موجود است: '+(bf?fa(bf)+' ردیف در انبار بهفراز ':'')+(sh?fa(sh)+' ردیف در انبار شکیب':'')+' — بهتر است از <button type="button" class="btn sm" data-sm="stock" data-sq2="'+esc(d.name)+'">🏭 فروش از انبار</button> استفاده کنید تا کالای انبار برای این مشتری علامت بخورد.</div>'}
 function alarmHtml(){var L=openNS();if(!L.length)return '';
-  return '<div class="sl-alarm"><h4>🚨 فروخته‌شده ولی خریداری‌نشده ('+fa(L.length)+') — این کالاها فروخته شده‌اند ولی در انبار نیستند؛ خرید یا تأمین کنید</h4>'+L.map(function(s){return '<div class="ar"><b class="bdate">'+fdate(s.date)+'</b><span>فروش '+esc(fa(s.no))+'</span><b>'+esc(s.company)+(s.project?' / '+esc(s.project):'')+'</b><span style="flex:1">'+s.items.map(function(i){return esc(i.name)+' ×'+fa(i.qty)}).join('، ')+'</span><span class="o">تحویل: '+esc(s.delivery||'—')+'</span>'+(ro()?'':'<button type="button" class="btn sm grn" data-slres="'+s.id+'">✓ خرید / تأمین شد</button> <button type="button" class="btn sm pri" data-slbuy="'+s.id+'" title="ثبت سفارش خرید از شکیب، آسانسور ۱۱۰ یا تأمین‌کنندهٔ دیگر — بعد از ثبت، این هشدار خودکار حذف می‌شود">🛒 خرید از شرکت مادر</button>')+'</div>'}).join('')+'</div>'}
+  return '<div class="sl-alarm"><h4>🚨 فروخته‌شده ولی خریداری‌نشده ('+fa(L.length)+') — این کالاها فروخته شده‌اند ولی در انبار نیستند؛ خرید یا تأمین کنید</h4>'+L.map(function(s){return '<div class="ar"><b class="bdate">'+fdate(s.date)+'</b><span>فروش '+esc(fa(s.no))+'</span><b>'+esc(s.company)+(s.project?' / '+esc(s.project):'')+'</b><span class="ns-its" style="flex:1">'+s.items.map(function(i){return nsItemHtml(i)}).join('')+'</span><span class="o">تحویل: '+esc(s.delivery||'—')+'</span>'+(ro()?'':'<button type="button" class="btn sm grn" data-slres="'+s.id+'">✓ خرید / تأمین شد</button> <button type="button" class="btn sm pri" data-slbuy="'+s.id+'" title="سیستم تأمین‌کنندهٔ اصلی همین برند را پیشنهاد می‌دهد؛ بعد از خرید می‌توانید کالا را به همین پروژه، پروژهٔ دیگر یا سرمایه انبار بدهید">🛒 خرید از شرکت مادر'+(function(){var g=saleSmartSup(s);return g.sup?' <small style="opacity:.85">← '+esc(g.sup)+'</small>':''})()+'</button>')+'</div>'}).join('')+'</div>'}
 function listHtml(){var T=toks(SLQ),L=sales().filter(function(s){return !s.void}).slice().sort(function(a,b){return (b.ts||0)-(a.ts||0)}).filter(function(s){return !T.length||hit([s.no,s.company,s.project,s.delivery,s.settle,s.items.map(function(i){return i.name||i.title||''}).join(' ')].join(' '),T)});
   return '<div class="fin-h" style="margin-top:16px"><h3>📒 فروش‌های ثبت‌شده ('+fa(L.length)+')</h3><span class="sp"></span><input data-slq="1" value="'+esc(SLQ)+'" placeholder="🔎 مشتری، پروژه، کالا…" style="max-width:260px" autocomplete="off"></div>'+
     '<div class="tbl"><table><thead><tr><th>تاریخ</th><th>شماره</th><th>نوع</th><th>مشتری / پروژه</th><th>اقلام</th><th>زمان تحویل</th><th>مبلغ (ریال)</th><th>تسویه</th><th>وضعیت</th><th></th></tr></thead><tbody>'+
@@ -5666,15 +5675,44 @@ function voidSalesHtml(){var L=sales().filter(function(s){return s.void}).sort(f
     '<div class="tbl" style="margin-top:10px"><table><thead><tr><th>تاریخ فروش</th><th>شماره</th><th>نوع</th><th>مشتری / پروژه</th><th>اقلام</th><th>مبلغ (ریال)</th><th>ابطال</th><th>دلیل</th></tr></thead><tbody>'+
     L.map(function(s){return '<tr style="opacity:.75"><td><b class="bdate">'+fdate(s.date)+'</b></td><td><b>'+esc(fa(s.no))+'</b></td><td>'+(s.kind==='nostock'?'📝 بدون خرید':'🏭 از انبار')+'</td><td><b>'+esc(s.company)+'</b>'+(s.project?' / '+esc(s.project):'')+'</td><td><small>'+s.items.map(function(i){return esc(i.name||i.title)+' ×'+fa(i.qty)}).join('، ')+'</small></td><td class="n">'+fm(s.sellTotal||0)+'</td><td><small>'+esc(fa(s.voidAt||'—'))+' · '+esc(s.voidBy||'—')+'</small></td><td><small>'+esc(s.voidWhy||'—')+'</small></td></tr>'}).join('')+
     '</tbody></table></div></details>'}
+/* [BF-V0807] نام دقیق کالا در هشدار: نوع · برند · مدل · مشخصات */
+function nsItemLbl(i){var c=CATS[i.cat]||{},br=String(i.brand||'').trim(),nm=String(i.name||i.title||'').trim(),sp=String(i.spec||'').trim();
+  var cn=c.name||'';if(cn&&nm&&norm(nm).indexOf(norm(cn))===0)cn='';
+  return {head:[cn,br].filter(Boolean).join(' '),model:nm,spec:sp&&norm(sp)!==norm(br)?sp:''}}
+function nsItemHtml(i){var c=CATS[i.cat]||{},L=nsItemLbl(i),lk=brandLogoKey(i.brand||'');
+  return '<span class="ns-it">'+(lk?bfLogo(lk,'sm'):'<i>'+(c.icon||'📦')+'</i>')+'<span><b>'+esc(L.head||c.name||'کالا')+'</b> <bdi class="ns-m">'+esc(L.model||'—')+'</bdi>'+(L.spec?' <small>· '+esc(L.spec)+'</small>':'')+'</span><em>×'+fa(i.qty)+(i.unit&&i.unit!=='عدد'?' '+esc(i.unit):'')+'</em></span>'}
+window.bfNsItemHtml=nsItemHtml;
+/* تأمین‌کنندهٔ اصلی هر برند: ویتور / جنتلرایز / هوبر ← آسانسور ۱۱۰ · شکیب / داینا ← شکیب جک · بقیه ← آخرین خرید همان برند */
+function saleSmartSup(s){var sc={},why={};(s.items||[]).forEach(function(i){var t=[i.brand,i.name,i.spec].join(' '),k='',w='';
+    if(/ویتور|wittur|امار|عمار|omar|جنتل|gentle|هوبر|huber|۱۱۰|\b110\b/i.test(t)){k='آسانسور 110';w='تأمین‌کنندهٔ اصلی '+(i.brand||'ویتور')}
+    else if(/شکیب|داینا|dyna/i.test(t)){k='شکیب جک';w='تأمین‌کنندهٔ اصلی '+(i.brand||'شکیب')}
+    else{var b=norm(i.brand||''),n=norm(i.name||'');for(var j=DB.receipts.length-1;j>=0&&!k;j--){var r=DB.receipts[j];if(r.void||r.opening||!r.supplier)continue;
+      if((r.lines||[]).some(function(l){var f=l.f||{};return l.cat===i.cat&&((b&&norm(f.brand||'')===b)||(!b&&n&&norm(f.name||f.size||f.model||'')===n))})){k=canonSup(r.supplier);w='آخرین خرید همین کالا از '+k}}}
+    if(k){sc[k]=(sc[k]||0)+1;why[k]=why[k]||w}});
+  var best='';Object.keys(sc).forEach(function(k){if(!best||sc[k]>sc[best])best=k});return {sup:best,why:why[best]||'',mixed:Object.keys(sc).length>1}}
+window.bfSaleSmartSup=saleSmartSup;
 function saleBuy(id){var s=sales().filter(function(x){return x.id===id})[0];if(!s)return;
   var SP=['شکیب جک','آسانسور 110'].concat((typeof CUST_SUP!=='undefined'?CUST_SUP:[]).filter(function(n){return n&&n!=='امانی'}));
-  openModal('<h3>🛒 خرید از شرکت مادر — فروش '+esc(fa(s.no))+'</h3><div class="note" style="font-size:.82rem"><b>'+esc(s.company)+(s.project?' / '+esc(s.project):'')+'</b><br>'+s.items.map(function(i){return '• '+esc([i.brand,i.name].filter(Boolean).join(' '))+' ×'+fa(i.qty)+' '+esc(i.unit||'')}).join('<br>')+'</div>'+
-    '<label class="f">از کدام شرکت خرید می‌کنید؟</label><div class="chips" id="sbSup">'+SP.map(function(n){var lk=supLogoKey(n);return '<button type="button" class="chipb" data-sbs="'+esc(n)+'">'+(lk?bfLogo(lk,'sm')+' ':'')+esc(n)+'</button>'}).join('')+'</div>'+
-    '<div style="margin-top:8px"><label class="f">یا تأمین‌کنندهٔ دیگر</label><div style="display:flex;gap:6px"><input id="sbOther" placeholder="نام تأمین‌کننده" autocomplete="off"><button type="button" class="btn" id="sbOtherOk">ادامه</button></div></div>'+
-    '<div class="o" style="font-size:.78rem;margin-top:8px">در «ثبت سفارش» کالاها را اضافه و سفارش را «برای انبار» ثبت کنید؛ کالاها به نام همین مشتری / پروژه علامت می‌خورند (مبلغ فروش قبلاً ثبت شده) و بعد از ثبت، این هشدار خودکار حذف می‌شود.</div>'+
-    '<div class="actions"><button type="button" class="btn ghost" onclick="closeModal()">انصراف</button></div>',function(){
-    function go2(sup){sup=String(sup||'').trim();if(!sup)return;closeModal();
-      window.__bfSaleBuy={id:s.id,no:s.no,co:s.company,pj:s.project||'',sup:sup};
+  var G=saleSmartSup(s),sup=G.sup||'',mode='same',cur=(s.company||'')+(s.project?' / '+s.project:'');
+  openModal('<h3>🛒 خرید از شرکت مادر — فروش '+esc(fa(s.no))+'</h3><div class="note" style="font-size:.82rem"><b>'+esc(cur)+'</b><div class="ns-its" style="margin-top:6px">'+s.items.map(nsItemHtml).join('')+'</div></div>'+
+    '<label class="f">۱) از کدام شرکت خرید می‌کنید؟</label>'+
+    (G.sup?'<div class="sb-smart">⚡ پیشنهاد هوشمند: <b>'+esc(G.sup)+'</b> <small class="o">— '+esc(G.why)+(G.mixed?' · اقلام برندهای مختلف دارند؛ بقیه را جدا بخرید':'')+'</small></div>':'')+
+    '<div class="chips" id="sbSup">'+SP.map(function(n){var lk=supLogoKey(n);return '<button type="button" class="chipb'+(n===sup?' on':'')+'" data-sbs="'+esc(n)+'">'+(lk?bfLogo(lk,'sm')+' ':'')+esc(n)+(n===G.sup?' ⚡':'')+'</button>'}).join('')+'</div>'+
+    '<div style="margin-top:6px;display:flex;gap:6px"><input id="sbOther" placeholder="یا نام تأمین‌کنندهٔ دیگر…" autocomplete="off"></div>'+
+    '<label class="f" style="margin-top:12px">۲) بعد از خرید، کالا مال کیست؟</label>'+
+    '<div class="dst sb-dst"><button type="button" data-sbm="same" class="on"><span>🏷️</span><b>همین پروژه</b><small>'+esc(cur)+'</small></button><button type="button" data-sbm="other"><span>🔁</span><b>مشتری / پروژهٔ دیگر</b><small>فروش به شخص یا پروژهٔ دیگر</small></button><button type="button" data-sbm="cap"><span>💼</span><b>سرمایه انبار</b><small>بدون پروژه — آزاد برای فروش بعدی</small></button></div>'+
+    '<div id="sbOtherCP" class="grid g2" style="display:none;margin-top:8px"><div><label class="f">نام شرکت / مشتری <span class="req">*</span></label><input id="sbCo" list="dl_company" autocomplete="off"></div><div><label class="f">نام پروژه <span class="o">(اختیاری)</span></label><input id="sbPj" list="dl_rproject" autocomplete="off"></div></div>'+
+    '<label class="sb-res" id="sbResL" style="display:none"><input type="checkbox" id="sbRes"> هشدار فروش «'+esc(cur)+'» هم بسته شود <small class="o">(فقط اگر آن فروش کنسل شده یا جداگانه تأمین می‌شود)</small></label>'+
+    '<div class="msg bad" id="sbMsg"></div><div class="actions"><button type="button" class="btn grn" id="sbGo">ادامه ← ثبت سفارش خرید</button><button type="button" class="btn ghost" onclick="closeModal()">انصراف</button></div>',function(){
+    function setMode(m){mode=m;[].forEach.call(document.querySelectorAll('.sb-dst [data-sbm]'),function(b){b.classList.toggle('on',b.dataset.sbm===m)});$('sbOtherCP').style.display=m==='other'?'':'none';$('sbResL').style.display=m==='same'?'none':'';if(m==='other')$('sbCo').focus();showMsg('sbMsg','')}
+    $('sbSup').addEventListener('click',function(e){var b=e.target.closest('[data-sbs]');if(!b)return;sup=b.dataset.sbs;$('sbOther').value='';[].forEach.call(this.children,function(x){x.classList.toggle('on',x===b)});showMsg('sbMsg','')});
+    $('sbOther').addEventListener('input',function(){if(this.value.trim()){sup='';[].forEach.call($('sbSup').children,function(x){x.classList.remove('on')})}});
+    document.querySelector('.sb-dst').addEventListener('click',function(e){var b=e.target.closest('[data-sbm]');if(b)setMode(b.dataset.sbm)});
+    $('sbGo').onclick=function(){var sp=($('sbOther').value.trim()||sup||'').trim();if(!sp){showMsg('sbMsg','تأمین‌کننده را انتخاب کنید');return}
+      var tco=s.company,tpj=s.project||'';if(mode==='cap'){tco='';tpj=''}else if(mode==='other'){tco=$('sbCo').value.trim();tpj=$('sbPj').value.trim();if(!tco){showMsg('sbMsg','نام مشتری / پروژهٔ جدید را بنویسید');$('sbCo').focus();return}}
+      go2(sp,{tco:tco,tpj:tpj,mode:mode,resolve:mode==='same'||$('sbRes').checked})};
+    function go2(sup,T){closeModal();
+      window.__bfSaleBuy={id:s.id,no:s.no,co:s.company,pj:s.project||'',sup:sup,tco:T.tco,tpj:T.tpj,tmode:T.mode,resolve:T.resolve};
       go('in');var e=$('iSup');if(e){e.value=sup;e.dispatchEvent(new Event('change'))}sbBanner();
       /* سیستم خودش اقلام همین فروش را در سبد سفارش می‌گذارد */
       var n=0;s.items.forEach(function(it,ix){if(!CATS[it.cat])return;var mk=(MAIN_K&&MAIN_K[it.cat])||'name',f={};if(it.brand)f.brand=it.brand;f[mk]=it.name||it.title||'';if(it.spec)f.spec=it.spec;if(it.f)f=Object.assign({},it.f,f);delete f.company;delete f.project;
@@ -5682,21 +5720,21 @@ function saleBuy(id){var s=sales().filter(function(x){return x.id===id})[0];if(!
       try{renderInStaged()}catch(_){}
       toast(n?'🛒 '+fa(n)+' قلم فروش '+fa(s.no)+' در سبد سفارش قرار گرفت — فاکتور و قیمت خرید را وارد کنید':'🛒 کالاهای فروش '+fa(s.no)+' را اضافه و سفارش را ثبت کنید');
       if(n)setTimeout(function(){var b=$('btnSaveIn');if(b)b.click()},300)}
-    $('sbSup').addEventListener('click',function(e){var b=e.target.closest('[data-sbs]');if(b)go2(b.dataset.sbs)});
-    $('sbOtherOk').onclick=function(){go2($('sbOther').value)};
   })}
+function sbTgt(B){return B.tmode==='cap'?'💼 سرمایه انبار (بدون پروژه)':(B.tco!=null?B.tco:B.co)+((B.tco!=null?B.tpj:B.pj)?' / '+(B.tco!=null?B.tpj:B.pj):'')}
 function sbBanner(){var B=window.__bfSaleBuy,x=$('bfSbBan'),sec=$('t-in');if(!sec)return;
   if(!B){if(x)x.remove();return}
   var s=sales().filter(function(z){return z.id===B.id})[0];if(!s){window.__bfSaleBuy=null;if(x)x.remove();return}
   if(!x){x=document.createElement('div');x.id='bfSbBan';x.className='pend-banner';x.style.cssText='background:#EAF2FF;border:1.5px solid #9DB8EA;color:#1F3C88;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:.84rem;line-height:1.9';sec.insertBefore(x,sec.firstChild);
     x.addEventListener('click',function(e){if(e.target.closest('[data-sbx]')){window.__bfSaleBuy=null;sbBanner();toast('خرید برای فروش لغو شد')}})}
-  x.innerHTML='🛒 <b>خرید برای فروش '+esc(fa(s.no))+'</b> از <b>'+esc(B.sup)+'</b> — مشتری: <b>'+esc(s.company)+(s.project?' / '+esc(s.project):'')+'</b><br>اقلام: '+s.items.map(function(i){return esc([i.brand,i.name].filter(Boolean).join(' '))+' ×'+fa(i.qty)}).join('، ')+' <button type="button" class="btn sm ghost" data-sbx="1" style="margin-right:8px">✕ لغو</button>'}
+  x.innerHTML='🛒 <b>خرید برای فروش '+esc(fa(s.no))+'</b> از <b>'+esc(B.sup)+'</b> — فروش: <b>'+esc(s.company)+(s.project?' / '+esc(s.project):'')+'</b>'+(B.tmode&&B.tmode!=='same'?' · کالا می‌رود به: <b>'+esc(sbTgt(B))+'</b>':'')+'<br>اقلام: '+s.items.map(function(i){var L=nsItemLbl(i);return esc([L.head,L.model].filter(Boolean).join(' '))+' ×'+fa(i.qty)}).join('، ')+' <button type="button" class="btn sm ghost" data-sbx="1" style="margin-right:8px">✕ لغو</button>'}
 window.bfSaleBuyDest=function(){var B=window.__bfSaleBuy;if(!B)return;
   var c=document.querySelector('.dst [data-d="cust"]');if(c)c.style.display='none';
-  var st=document.querySelector('.dst [data-d="stock"]');if(st){var sm=st.querySelector('small');if(sm)sm.textContent='کالاها به نام «'+B.co+(B.pj?' / '+B.pj:'')+'» علامت می‌خورند';st.click()}
+  var st=document.querySelector('.dst [data-d="stock"]');if(st){var sm=st.querySelector('small');if(sm)sm.textContent=B.tmode==='cap'?'کالاها به سرمایه انبار می‌روند (بدون پروژه)':'کالاها به نام «'+sbTgt(B)+'» علامت می‌خورند';st.click()}
   var f=$('dF');if(f&&!$('dSbNote')){var n=document.createElement('div');n.id='dSbNote';n.className='note';n.style.fontSize='.8rem';n.innerHTML='🛒 خرید برای فروش <b>'+esc(fa(B.no))+'</b> — مبلغ فروش قبلاً در فروش ثبت شده؛ فقط فاکتور و قیمت خرید را وارد کنید.';f.insertBefore(n,f.firstChild)}}
 window.bfSaleBought=function(rec,m){var B=window.__bfSaleBuy;window.__bfSaleBuy=null;if(!B)return;var s=sales().filter(function(z){return z.id===B.id})[0];
-  if(s&&!s.resolved){s.resolved=true;s.resolvedAt=todayJ();s.resolvedBy=curUser()||'—';s.resolvedNote='خرید از '+m.sup+' · سفارش '+(rec.no||'—')+' · فاکتور '+(m.inv||'—');s.buyRid=rec.id;rec.saleId=s.id;
+  if(s&&!s.resolved&&B.resolve===false){addLog('خرید برای فروش — مقصد دیگر','فروش '+s.no+' · کالا رفت به: '+sbTgt(B)+' · سفارش '+(rec.no||'—')+' — هشدار فروش باقی ماند');save();toast('✓ خرید ثبت شد — کالا به «'+sbTgt(B)+'» رفت؛ هشدار فروش '+fa(s.no)+' باقی ماند')}
+  else if(s&&!s.resolved){s.resolved=true;s.resolvedAt=todayJ();s.resolvedBy=curUser()||'—';s.resolvedNote='خرید از '+m.sup+' · سفارش '+(rec.no||'—')+' · فاکتور '+(m.inv||'—');s.buyRid=rec.id;rec.saleId=s.id;
     addLog('تأمین فروش بدون خرید','فروش '+s.no+' · '+s.company+' · '+s.resolvedNote);save();toast('✓ خرید ثبت شد و هشدار فروش '+fa(s.no)+' حذف شد')}
   sbBanner();updSaleBadge()};
 var _goSB=go;go=function(t){var r=_goSB.apply(this,arguments);try{sbBanner()}catch(e){}return r};window.go=go;
@@ -6283,6 +6321,196 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
   var _rx=renderXStaged;renderXStaged=function(){var r=_rx.apply(this,arguments);apply();return r};window.renderXStaged=renderXStaged;
   var _ro=resetOutForm;resetOutForm=function(){window.__xFromStock=false;var r=_ro.apply(this,arguments);apply();return r};window.resetOutForm=resetOutForm;
   var nav=document.getElementById('nav');if(nav)nav.addEventListener('click',function(e){var b=e.target.closest('button[data-t]');if(b&&b.dataset.t==='out'){window.__xFromStock=false;setTimeout(apply,0)}},true);
+})();
+</script>
+<style id="bfPbCss">
+/* ===== [BF-V0807] بُرد پروژه‌ها و سرمایه انبار ===== */
+.pb-sw{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.pb-sw button{border:1.5px solid var(--line,#DCE5E3);background:#fff;border-radius:999px;padding:8px 16px;font:inherit;font-size:.84rem;font-weight:700;color:#355;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.pb-sw button.on{background:#0E6B66;border-color:#0E6B66;color:#fff;box-shadow:0 6px 16px -8px rgba(14,107,102,.7)}
+.pb-sw button small{font-weight:600;opacity:.75}
+.pb-sw .sp{flex:1}
+.pb-kpi{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.pb-k{border-radius:16px;padding:12px 14px;background:#fff;border:1.5px solid var(--line,#DCE5E3);cursor:pointer;text-align:right;font:inherit;display:flex;flex-direction:column;gap:2px;transition:transform .12s,box-shadow .12s}
+.pb-k:hover{transform:translateY(-2px);box-shadow:0 10px 22px -14px rgba(0,0,0,.35)}
+.pb-k b{font-size:1.45rem;line-height:1.2}
+.pb-k span{font-size:.76rem;color:#5b6b69;font-weight:700}
+.pb-k.on{outline:3px solid var(--kc);outline-offset:-1px}
+.pb-k i{font-style:normal;font-size:1.1rem}
+.pb-k{--kc:#0E6B66}.pb-k b{color:var(--kc)}
+.pb-tools{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.pb-tools input{flex:1;min-width:200px;max-width:380px}
+.pb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.pb-card{background:#fff;border:1.5px solid var(--line,#DCE5E3);border-radius:18px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 8px 22px -18px rgba(0,0,0,.45);position:relative}
+.pb-card::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--st,#0E6B66)}
+.pb-hd{padding:12px 16px 8px;display:flex;gap:10px;align-items:flex-start}
+.pb-hd .t{flex:1;min-width:0}
+.pb-hd b.co{display:block;font-size:1.02rem;color:#13302E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pb-hd small{color:#6a7a78;font-size:.76rem}
+.pb-st{font-size:.72rem;font-weight:800;border-radius:999px;padding:4px 10px;white-space:nowrap;background:var(--stb);color:var(--st)}
+.pb-pay{padding:0 16px 10px}
+.pb-bar{height:7px;border-radius:9px;background:#EEF2F1;overflow:hidden}
+.pb-bar i{display:block;height:100%;background:linear-gradient(90deg,#1F8A4C,#3CC27A);border-radius:9px}
+.pb-pay .l{display:flex;justify-content:space-between;font-size:.72rem;color:#5b6b69;margin-top:4px;gap:8px}
+.pb-pay .l b{color:#13302E}
+.pb-pay .l .due{color:#B4321F}
+.pb-slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:0 12px 12px}
+.pb-slot{border-radius:12px;padding:8px 9px;background:var(--sb,#F4F7F6);border:1.5px solid var(--sbd,transparent);min-height:74px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.pb-slot .h{display:flex;align-items:center;gap:5px;font-size:.7rem;font-weight:800;color:#5b6b69}
+.pb-slot .h .bflg.sm{width:18px;height:18px}
+.pb-slot .m{font-size:.83rem;font-weight:800;color:#13302E;unicode-bidi:plaintext;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pb-slot .s{font-size:.68rem;color:#6a7a78;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pb-slot .w{margin-top:auto;font-size:.66rem;font-weight:800;color:var(--wc);display:flex;align-items:center;gap:4px}
+.pb-slot .w::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--wc);flex:none}
+.pb-slot.empty{background:#fff;border:1.5px dashed #CBD6D4;justify-content:center;align-items:center;color:#9AA9A7;font-size:.72rem;font-weight:700;text-align:center}
+.pb-more{padding:0 12px 10px;display:flex;flex-wrap:wrap;gap:6px}
+.pb-chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 10px;font-size:.72rem;font-weight:700;background:var(--sb,#F4F7F6);color:#24403D;border:1px solid var(--sbd,transparent)}
+.pb-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--wc)}
+.pb-ft{margin-top:auto;border-top:1px solid #EEF2F1;padding:8px 12px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:#FAFCFB}
+.pb-ft .sum{font-size:.72rem;color:#5b6b69;flex:1}
+.pb-ft button{font:inherit;font-size:.74rem;font-weight:700;border-radius:10px;padding:6px 10px;border:1.5px solid #CFE0DC;background:#fff;color:#0E6B66;cursor:pointer}
+.pb-ft button.pri{background:#0E6B66;color:#fff;border-color:#0E6B66}
+.pb-det{grid-column:1/-1;border:2px solid #0E6B66;border-radius:18px;background:#fff;padding:10px;box-shadow:0 14px 30px -20px rgba(14,107,102,.8)}
+.pb-det h4{margin:2px 6px 10px;display:flex;gap:8px;align-items:center}
+.pb-det h4 .sp{flex:1}
+.pb-empty{padding:30px;text-align:center;color:#7a8a88;background:#fff;border-radius:16px;border:1.5px dashed #CBD6D4}
+/* سرمایه انبار */
+.cp-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.cp-col{background:#fff;border:1.5px solid var(--line,#DCE5E3);border-radius:18px;overflow:hidden}
+.cp-col>h4{margin:0;padding:12px 14px;display:flex;gap:8px;align-items:center;background:linear-gradient(135deg,var(--cc),color-mix(in srgb,var(--cc) 70%,#fff));color:#fff;font-size:.95rem}
+.cp-col>h4 small{margin-inline-start:auto;background:rgba(255,255,255,.22);border-radius:999px;padding:2px 9px;font-size:.72rem}
+.cp-it{display:flex;gap:10px;align-items:center;padding:9px 14px;border-top:1px solid #EEF2F1}
+.cp-it .n{min-width:44px;height:44px;border-radius:12px;background:color-mix(in srgb,var(--cc) 12%,#fff);color:var(--cc);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900;font-size:1.05rem;line-height:1}
+.cp-it .n small{font-size:.58rem;font-weight:700;opacity:.8;margin-top:2px}
+.cp-it .t{flex:1;min-width:0}
+.cp-it .t b{display:block;font-size:.86rem;unicode-bidi:plaintext;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-it .t small{display:block;font-size:.7rem;color:#6a7a78;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-it .w{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.cp-it .w span{font-size:.64rem;font-weight:800;border-radius:999px;padding:1px 7px;background:var(--sb);color:var(--wc)}
+/* هشدار فروش: نام دقیق کالا */
+.ns-its{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ns-it{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #F2B8AE;border-radius:12px;padding:4px 10px;font-size:.8rem;line-height:1.5}
+.ns-it>i{font-style:normal}
+.ns-it .bflg.sm{width:22px;height:22px}
+.ns-it .ns-m{direction:ltr;unicode-bidi:isolate;font-weight:800;color:#B4321F}
+.ns-it em{font-style:normal;font-weight:800;color:#5b6b69}
+.sb-smart{background:#FFF7E0;border:1.5px solid #F2D27A;border-radius:12px;padding:8px 12px;margin:4px 0 8px;font-size:.84rem}
+.sb-dst{grid-template-columns:repeat(3,minmax(0,1fr))}
+.sb-dst button.on{outline:3px solid #0E6B66}
+.sb-res{display:flex!important;flex-direction:row!important;gap:8px;align-items:center;margin-top:10px;font-size:.8rem;line-height:1.6}.sb-res input{width:auto!important;margin:0;flex:none}
+@media (max-width:900px){.pb-kpi{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:560px){.pb-kpi{grid-template-columns:repeat(2,minmax(0,1fr))}.pb-grid{grid-template-columns:minmax(0,1fr)}.pb-slots{grid-template-columns:repeat(2,minmax(0,1fr))}.sb-dst{grid-template-columns:minmax(0,1fr)}}
+</style>
+<script id="bfPbJs">
+/* ===================== [BF-V0807] موجودی انبار: بُرد پروژه‌ها =====================
+   هر پروژه یک کارت: جک، پاور و روغن (و موتور / متعلقات) کنار هم — از هر انباری که باشند:
+   انبار بهفراز، انبار آسانسور ۱۱۰، انبار شکیب، خرید متفرقه، یا هنوز خریداری‌نشده (فروش بدون خرید).
+   «سرمایه انبار» هم به‌صورت ستون‌های دسته‌بندی‌شده با تعداد، بدون نیاز به جستجو. جدول کامل و حواله مثل قبل در نمای سوم. */
+(function(){
+  if(!document.getElementById('statCards'))return;
+  var pbView='proj',pbF='',pbQ='',pbOpen='';
+  try{var v=localStorage.getItem('bf_pb_view');if(v==='proj'||v==='cap'||v==='tbl')pbView=v}catch(e){}
+  var tableBoard=window.renderBoard;
+  var WH={bf:{n:'در انبار بهفراز',c:'#1F8A4C',b:'#E8F6EE',d:'#BFE5CF'},a110:{n:'در انبار ۱۱۰ (هنوز تحویل نشده)',c:'#D9631E',b:'#FFF1E6',d:'#F6C7A6'},shakib:{n:'در انبار شکیب (هنوز تحویل نشده)',c:'#2F6BD8',b:'#EAF1FF',d:'#BCD0F5'},
+    misc:{n:'خرید متفرقه (هنوز وارد نشده)',c:'#8C6BB8',b:'#F3EEFA',d:'#D9CBEC'},out:{n:'تحویل مشتری شد',c:'#6B7C7A',b:'#F1F4F3',d:'#DCE3E1'},need:{n:'خریداری‌نشده — باید خرید',c:'#C0392B',b:'#FDECEA',d:'#F2B8AE'}};
+  var WHS={bf:'انبار بهفراز',a110:'انبار ۱۱۰',shakib:'انبار شکیب',misc:'خرید متفرقه',out:'تحویل شد',need:'خریداری‌نشده'};
+  function whOf(f,out){if(out)return 'out';var w=(f||{}).wh;return w==='a110'?'a110':w==='shakib'?'shakib':w==='misc'?'misc':'bf'}
+  function slotOf(cat,f){if(cat==='jack')return 'jack';if(cat==='pu')return 'pu';if(cat==='oil')return 'oil';if(cat==='motor')return 'motor';return 'x'}
+  function main(cat,f){f=f||{};return f.size||f.model||f.type||f.name||''}
+  function brandOf(cat,f){f=f||{};return cat==='oil'?(f.type||f.brand||''):(f.brand||'')}
+  function key(c,p){try{return window.bfCPKey?bfCPKey({company:c||'',project:p||''}):norm(c||'')+'|'+norm(p||'')}catch(e){return norm(c||'')+'|'+norm(p||'')}}
+  function fmm(n){return window.bfFm?bfFm(n):fa(Math.round(n||0))}
+  function collect(){
+    var rm=rMap(),P={},CAP=[];
+    function proj(c,p){var k=key(c,p);return P[k]||(P[k]={k:k,co:c,pj:p||'',items:[],date:'',ts:0})}
+    function push(o,src){
+      var f=o.f||{};if(isAm(o))return;var r=rm[o.rid]||{};
+      var it={cat:o.cat,f:f,slot:slotOf(o.cat,f),main:main(o.cat,f),brand:brandOf(o.cat,f),spec:(typeof boardSpec==='function'?boardSpec(f):f.spec)||'',
+        qty:src.qty,unit:src.unit,wh:src.wh,serial:src.serial||'',date:r.date||'',sup:canonSup(r.supplier||''),rid:o.rid,opening:!!r.opening};
+      if(f.company){var p=proj(f.company,f.project);p.items.push(it);if(!it.opening&&it.date>p.date)p.date=it.date;p.ts=Math.max(p.ts,r.ts||0)}
+      else if(src.wh!=='out')CAP.push(it);
+    }
+    DB.units.forEach(function(u){if(u.status==='void')return;push(u,{qty:1,unit:'عدد',wh:whOf(u.f,u.status==='out'),serial:u.serial})});
+    DB.lots.forEach(function(l){if(l.status==='void')return;var out=rnd((+l.qty||0)-(+l.rem||0));
+      if(l.rem>0)push(l,{qty:l.rem,unit:l.unit,wh:whOf(l.f,false),serial:(l.f||{}).bser||''});
+      if(out>0&&l.f&&l.f.company)push(l,{qty:out,unit:l.unit,wh:'out'})});
+    (DB.sales||[]).forEach(function(s){if(s.void||s.kind!=='nostock'||s.resolved||!s.company)return;var p=proj(s.company,s.project);if(s.date>p.date)p.date=s.date;p.ts=Math.max(p.ts,s.ts||0);
+      (s.items||[]).forEach(function(i){var f=i.f||{brand:i.brand,spec:i.spec};p.items.push({cat:i.cat,f:f,slot:slotOf(i.cat,f),main:i.name||i.title||'',brand:i.brand||'',spec:i.spec||'',qty:+i.qty||1,unit:i.unit||'عدد',wh:'need',saleNo:s.no,date:s.date})})});
+    (DB.rsvNeeds||[]).forEach(function(n){if(n.status!=='open'||!n.co||n.co==='انبار')return;var p=proj(n.co,n.pj);var f=n.f||{};
+      p.items.push({cat:n.cat,f:f,slot:slotOf(n.cat,f),main:main(n.cat,f)||n.title||'',brand:brandOf(n.cat,f),spec:f.spec||'',qty:+n.qty||1,unit:n.unit||'عدد',wh:'need',rsv:1,date:n.date})});
+    /* مالی هر پروژه */
+    try{var A=window.bfAllSales?bfAllSales():{ords:[],pays:[]};
+      A.ords.forEach(function(o){var p=P[key(o.company,o.project)];if(p)p.sell=(p.sell||0)+(+o.sellTotal||0)});
+      A.pays.forEach(function(x){var p=P[key(x.co,x.pj)];if(p)p.paid=(p.paid||0)+(+x.amount||0)})}catch(e){}
+    var L=Object.keys(P).map(function(k){var p=P[k],c={};p.items.forEach(function(i){c[i.wh]=(c[i.wh]||0)+1});p.cnt=c;
+      p.state=c.need?'need':(c.a110||c.shakib||c.misc)?'wait':c.bf?'ready':'done';return p});
+    return {L:L,CAP:CAP};
+  }
+  var STATE={need:['🔴 نیاز به خرید','#C0392B','#FDECEA'],wait:['🟠 منتظر شرکت مادر','#D9631E','#FFF1E6'],ready:['🟢 آماده در انبار','#1F8A4C','#E8F6EE'],done:['✔ تحویل کامل','#6B7C7A','#F1F4F3']};
+  var SLOTS=[['jack','🔩','جک'],['pu','⚙️','پاور یونیت'],['oil','🛢️','روغن']];
+  function slotHtml(lbl,icon,arr){
+    if(!arr.length)return '<div class="pb-slot empty">'+icon+' '+lbl+'<br>ثبت نشده</div>';
+    var i=arr[0],w=WH[i.wh],lk=brandLogoKey(i.brand||''),more=arr.length>1?' <small>+'+fa(arr.length-1)+'</small>':'';
+    var q=i.unit&&i.unit!=='عدد'?' · '+fa(i.qty)+' '+i.unit:(i.qty>1?' ×'+fa(i.qty):'');
+    return '<div class="pb-slot" style="--sb:'+w.b+';--sbd:'+w.d+';--wc:'+w.c+'" title="'+esc([lbl,i.brand,i.main,i.spec,i.serial?'سریال '+i.serial:'',w.n].filter(Boolean).join(' · '))+'">'+
+      '<span class="h">'+(lk?bfLogo(lk,'sm'):icon)+' '+lbl+(i.brand?' '+esc(i.brand):'')+more+'</span><span class="m">'+esc(i.main||'—')+'</span><span class="s">'+esc([i.spec,i.serial?'سریال '+i.serial:''].filter(Boolean).join(' · ')||' ')+esc(q)+'</span><span class="w">'+WHS[i.wh]+'</span></div>'}
+  function card(p){
+    var st=STATE[p.state],by={};p.items.forEach(function(i){(by[i.slot]=by[i.slot]||[]).push(i)});
+    var hyd=by.jack||by.pu||by.oil,slots=[];
+    if(hyd)SLOTS.forEach(function(s){slots.push(slotHtml(s[2],s[1],by[s[0]]||[]))});
+    if(by.motor)slots.push(slotHtml('موتور','🧲',by.motor));
+    var x=(by.x||[]).concat(hyd?[]:[]),extra=hyd?'':'';
+    var pay='';if(p.sell){var pd=p.paid||0,pc=Math.max(0,Math.min(100,Math.round(pd/p.sell*100))),due=p.sell-pd;
+      pay='<div class="pb-pay"><div class="pb-bar"><i style="width:'+pc+'%"></i></div><div class="l"><span>فروش <b>'+fmm(p.sell)+'</b></span><span>دریافت '+fa(pc)+'٪</span><span class="'+(due>0?'due':'')+'">'+(due>0?'مانده <b class="due">'+fmm(due)+'</b>':due<0?'بستانکار '+fmm(-due):'✔ تسویه')+'</span></div></div>'}
+    var c=p.cnt,sum=['bf','a110','shakib','misc','need','out'].filter(function(k){return c[k]}).map(function(k){return '<span style="color:'+WH[k].c+'">● '+fa(c[k])+' '+WHS[k]+'</span>'}).join(' &nbsp;');
+    var hasBf=p.items.some(function(i){return i.wh==='bf'}),hasNeed=p.items.some(function(i){return i.wh==='need'&&i.saleNo!=null});
+    return '<div class="pb-card" style="--st:'+st[1]+';--stb:'+st[2]+'" data-pbk="'+esc(p.k)+'"><div class="pb-hd"><span style="font-size:1.4rem">🏷️</span><div class="t"><b class="co" title="'+esc(p.co+(p.pj?' / '+p.pj:''))+'">'+esc(p.co)+(p.pj?' <span style="font-weight:600;color:#5b6b69">/ '+esc(p.pj)+'</span>':'')+'</b><small>آخرین سفارش: <b class="bdate">'+fdate(p.date)+'</b> · '+fa(p.items.length)+' قلم</small></div><span class="pb-st">'+st[0]+'</span></div>'+pay+
+      (slots.length?'<div class="pb-slots">'+slots.join('')+'</div>':'')+
+      (x.length?'<div class="pb-more">'+x.map(function(i){var w=WH[i.wh];return '<span class="pb-chip" style="--sb:'+w.b+';--sbd:'+w.d+';--wc:'+w.c+'" title="'+esc(w.n)+'">'+(CATS[i.cat]?CATS[i.cat].icon:'📦')+' '+esc([i.main||(CATS[i.cat]||{}).name,i.cat==='acc'?'':i.brand].filter(Boolean).join(' '))+(i.qty>1||i.unit!=='عدد'?' ×'+fa(i.qty)+(i.unit!=='عدد'?' '+esc(i.unit):''):'')+'</span>'}).join('')+'</div>':'')+
+      '<div class="pb-ft"><span class="sum">'+sum+'</span>'+(hasNeed&&!ro2()?'<button type="button" data-pbsale="1">🛒 خرید</button>':'')+(hasBf?'<button type="button" class="'+(pbOpen===p.k?'pri':'')+'" data-pbdet="'+esc(p.k)+'">'+(pbOpen===p.k?'▲ بستن':'🚚 جزئیات و حواله')+'</button>':'')+'</div></div>'}
+  function ro2(){try{return typeof BF_WH_RO!=='undefined'&&BF_WH_RO}catch(e){return false}}
+  function detHtml(p){var all=window.sbItems?sbItems():[],L=all.filter(function(it){return it.f&&it.f.company&&key(it.f.company,it.f.project)===p.k});
+    var tbl='';try{tbl=L.length?sbTable(L):'<div class="o" style="padding:10px">کالایی از این پروژه در انبار بهفراز نیست.</div>'}catch(e){tbl=''}
+    return '<div class="pb-det"><h4>🏷️ '+esc(p.co)+(p.pj?' / '+esc(p.pj):'')+' <small class="o">— کالاهای داخل انبار بهفراز (حواله، ویرایش، تاریخچه)</small><span class="sp"></span><button type="button" class="btn sm ghost" data-pbdet="'+esc(p.k)+'">✕ بستن</button></h4>'+tbl+'</div>'}
+  function projView(D){
+    var L=D.L.slice(),q=norm(pbQ);
+    var cnt={all:L.length,need:0,wait:0,ready:0,done:0};L.forEach(function(p){cnt[p.state]++});
+    var K=[['','🏷️','همهٔ پروژه‌ها',cnt.all,'#0E6B66'],['need','🔴','نیاز به خرید',cnt.need,'#C0392B'],['wait','🟠','منتظر شرکت مادر',cnt.wait,'#D9631E'],['ready','🟢','آماده در انبار',cnt.ready,'#1F8A4C'],['done','✔','تحویل کامل',cnt.done,'#6B7C7A']];
+    var h='<div class="pb-kpi">'+K.map(function(k){return '<button type="button" class="pb-k'+(pbF===k[0]?' on':'')+'" style="--kc:'+k[4]+'" data-pbf="'+k[0]+'"><i>'+k[1]+'</i><b>'+fa(k[3])+'</b><span>'+k[2]+'</span></button>'}).join('')+'</div>';
+    h+='<div class="pb-tools"><input id="pbQ" placeholder="🔎 فیلتر سریع: مشتری، پروژه، مدل جک یا پاور…" value="'+esc(pbQ)+'" autocomplete="off"><span class="o" style="font-size:.76rem">رنگ هر خانه = محل کالا: <b style="color:#1F8A4C">● انبار بهفراز</b> · <b style="color:#D9631E">● انبار ۱۱۰</b> · <b style="color:#2F6BD8">● انبار شکیب</b> · <b style="color:#C0392B">● خریداری‌نشده</b> · <b style="color:#6B7C7A">● تحویل شد</b></span></div>';
+    L=L.filter(function(p){if(pbF&&p.state!==pbF)return false;if(q&&norm([p.co,p.pj].concat(p.items.map(function(i){return [i.main,i.brand,i.spec,i.serial,(CATS[i.cat]||{}).name].join(' ')})).join(' ')).indexOf(q)<0)return false;return true});
+    var RK={need:0,wait:1,ready:2,done:3};
+    L.sort(function(a,b){return RK[a.state]-RK[b.state]||String(b.date).localeCompare(String(a.date))||(b.ts-a.ts)});
+    if(!L.length)return h+'<div class="pb-empty">پروژه‌ای با این فیلتر نیست.</div>';
+    var out=[];L.forEach(function(p){out.push(card(p));if(pbOpen===p.k)out.push(detHtml(p))});
+    return h+'<div class="pb-grid">'+out.join('')+'</div>'}
+  var CAPC=[['jack','🔩','جک','#E2572B'],['pu','⚙️','پاور یونیت','#C77D0A'],['motor','🧲','موتور','#5B4FB3'],['oil','🛢️','روغن','#0E7C9E'],['acc','🧰','متعلقات','#1F8A4C'],['x','📦','سایر','#46585E']];
+  function capView(D){
+    var G={};D.CAP.forEach(function(i){var c=i.cat==='acc'?'acc':CAPC.some(function(x){return x[0]===i.cat})?i.cat:'x';
+      var k=[i.cat,norm(i.brand),norm(i.main),norm(i.spec),i.unit].join('|'),g=(G[c]=G[c]||{}),e=g[k]||(g[k]={i:i,q:0,w:{}});e.q=rnd(e.q+i.qty);e.w[i.wh]=rnd((e.w[i.wh]||0)+i.qty)});
+    var tot=0;Object.keys(G).forEach(function(c){tot+=Object.keys(G[c]).length});
+    var h='<div class="pb-tools"><span class="o" style="font-size:.8rem">💼 کالای آزاد (بدون مشتری / پروژه) — <b>'+fa(tot)+'</b> نوع کالا. عدد بزرگ = موجودی کل؛ برچسب‌ها = محل نگهداری.</span></div>';
+    if(!tot)return h+'<div class="pb-empty">سرمایه انبار خالی است.</div>';
+    return h+'<div class="cp-cols">'+CAPC.filter(function(c){return G[c[0]]}).map(function(c){var g=G[c[0]],ks=Object.keys(g).sort(function(a,b){return String(g[a].i.main).localeCompare(String(g[b].i.main),'fa',{numeric:true})});
+      return '<div class="cp-col" style="--cc:'+c[3]+'"><h4>'+c[1]+' '+c[2]+'<small>'+fa(ks.length)+' نوع</small></h4>'+ks.map(function(k){var e=g[k],i=e.i,lk=brandLogoKey(i.brand||'');
+        return '<div class="cp-it"><span class="n">'+fa(e.q)+'<small>'+esc(i.unit)+'</small></span><span class="t"><b>'+esc(i.main||(CATS[i.cat]||{}).name||'—')+'</b><small>'+(lk?bfLogo(lk,'sm')+' ':'')+esc([i.brand,i.spec].filter(Boolean).join(' · ')||(CATS[i.cat]||{}).name||'')+'</small><span class="w">'+Object.keys(e.w).map(function(w){return '<span style="--sb:'+WH[w].b+';--wc:'+WH[w].c+'">'+WHS[w]+(Object.keys(e.w).length>1?' '+fa(e.w[w]):'')+'</span>'}).join('')+'</span></span></div>'}).join('')+'</div>'}).join('')+'</div>'}
+  function sw(D){var nP=D.L.length,nC=D.CAP.length;
+    return '<div class="pb-sw"><button type="button" data-pbv="proj" class="'+(pbView==='proj'?'on':'')+'">🏷️ پروژه‌ها <small>'+fa(nP)+'</small></button><button type="button" data-pbv="cap" class="'+(pbView==='cap'?'on':'')+'">💼 سرمایه انبار <small>'+fa(nC)+' قلم</small></button><button type="button" data-pbv="tbl" class="'+(pbView==='tbl'?'on':'')+'">📋 جدول کامل و حواله</button></div>'}
+  window.renderBoard=renderBoard=function(){
+    if(pbView==='tbl')return sw(collect())+tableBoard.apply(this,arguments);
+    var D=collect();return sw(D)+'<div id="pbBody">'+(pbView==='cap'?capView(D):projView(D))+'</div><div id="sbDock">'+(typeof sbDock==='function'?sbDock():'')+'</div>'};
+  /* جدول قدیم وقتی در نمای پروژه است، فقط جزئیات باز را تازه کند */
+  var _sbr=window.sbRefreshTable;window.sbRefreshTable=sbRefreshTable=function(){if(pbView==='tbl')return _sbr.apply(this,arguments);rs()};
+  function rs(){var y=window.scrollY;try{renderStock()}catch(e){console.error(e)}window.scrollTo({top:y})}
+  var sc=document.getElementById('statCards');
+  sc.addEventListener('click',function(e){var t;
+    if(t=e.target.closest('[data-pbv]')){pbView=t.dataset.pbv;try{localStorage.setItem('bf_pb_view',pbView)}catch(_){}rs();return}
+    if(t=e.target.closest('[data-pbf]')){pbF=pbF===t.dataset.pbf?'':t.dataset.pbf;rs();return}
+    if(t=e.target.closest('[data-pbdet]')){pbOpen=pbOpen===t.dataset.pbdet?'':t.dataset.pbdet;rs();return}
+    if(t=e.target.closest('[data-pbsale]')){go('sale');return}
+  });
+  sc.addEventListener('input',function(e){if(e.target.id!=='pbQ')return;pbQ=e.target.value;clearTimeout(sc._pbt);sc._pbt=setTimeout(function(){rs();var q=document.getElementById('pbQ');if(q){q.focus();q.setSelectionRange(q.value.length,q.value.length)}},250)});
+  try{if(typeof curTab!=='undefined'&&curTab==='stock')renderStock()}catch(e){}
 })();
 </script>
 </body>

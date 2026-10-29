@@ -6550,7 +6550,7 @@ var BF_PX=[{"v":"40*توپر*1000","h":"جک شکیب · غیر مستقیم · 
       (notes.length?'<div class="pb-notes"><b>📝 یادداشت‌ها</b><ul>'+notes.join('')+'</ul></div>':'')+
       (L.length?sbTable(L):'')+(oth.length?'<div class="pb-sec">📍 در انبارهای دیگر</div><div class="pb-more">'+oth.map(function(i){var w=WH[i.wh];return '<span class="pb-chip" style="--sb:'+w.b+';--sbd:'+w.d+';--wc:'+w.c+'">'+fa(i.qty)+' '+esc(i.unit)+' — <b>'+WHS[i.wh]+'</b></span>'}).join('')+'</div>':'')+'</div>'}
   function sw(D){var nP=D.L.length,nC=D.CAP.length;
-    return '<div class="pb-sw"><button type="button" data-pbv="proj" class="'+(pbView==='proj'?'on':'')+'">🏷️ پروژه‌ها <small>'+fa(nP)+'</small></button><button type="button" data-pbv="cap" class="'+(pbView==='cap'?'on':'')+'">💼 سرمایه انبار <small>'+fa(nC)+' قلم</small></button><span class="sp"></span><label class="pb-out"><input type="checkbox" id="sbOut"'+(typeof sbOut!=='undefined'&&sbOut?' checked':'')+'> نمایش خارج‌شده / تمام‌شده در جدول‌ها</label></div>'}
+    return '<div class="pb-sw"><button type="button" data-pbv="proj" class="'+(pbView==='proj'?'on':'')+'">🏷️ فروخته‌شده‌ها <small>'+fa(nP)+'</small></button><button type="button" data-pbv="cap" class="'+(pbView==='cap'?'on':'')+'">💼 سرمایه انبار <small>'+fa(nC)+' قلم</small></button><span class="sp"></span><label class="pb-out"><input type="checkbox" id="sbOut"'+(typeof sbOut!=='undefined'&&sbOut?' checked':'')+'> نمایش خارج‌شده / تمام‌شده در جدول‌ها</label></div>'}
   window.renderBoard=renderBoard=function(){
     var D=collect();return sw(D)+'<div id="pbBody">'+(pbView==='cap'?capView(D):projView(D))+'</div><div id="sbDock">'+(typeof sbDock==='function'?sbDock():'')+'</div>'};
   /* جدول قدیم وقتی در نمای پروژه است، فقط جزئیات باز را تازه کند */

@@ -7,11 +7,11 @@
    قبل از نمایش هر صفحه رمز خواسته می‌شود. بعد از ورود درست، همین مرورگر رمز را به خاطر می‌سپارد.
    رمز به‌صورت هش SHA-256 نگه داشته می‌شود (خود رمز داخل کد نیست).
    برای تغییر رمز، مقدار HASH را با هش رمز جدید عوض کنید (همهٔ دستگاه‌ها دوباره رمز می‌خواهند).
-   برای خروج: localStorage.removeItem('bf_gate_v1') یا دکمهٔ «خروج از نسخهٔ آنلاین» در کنسول. */
+   برای خروج از نسخهٔ آنلاین در کنسول مرورگر: bfGateLogout() */
 (function(){
-  var HASH = '9309e4219a24dab704eda32ce860f233b3a398ecc62d142112c34eba6e5362ba', KEY = 'bf_gate_v1';
-  function ok(){ try{ return localStorage.getItem(KEY) === HASH; }catch(e){ return false; } }
-  window.bfGateLogout = function(){ try{ localStorage.removeItem(KEY); }catch(e){} location.reload(); };
+  var HASH = '9309e4219a24dab704eda32ce860f233b3a398ecc62d142112c34eba6e5362ba', KEY = 'bf_gate_v1', DK = 'bf_gate_dk_v1';
+  function ok(){ try{ return localStorage.getItem(KEY) === HASH && !!localStorage.getItem(DK); }catch(e){ return false; } }
+  window.bfGateLogout = function(){ try{ localStorage.removeItem(KEY); localStorage.removeItem(DK); }catch(e){} location.reload(); };
   if(ok()) return;
   var de = document.documentElement; de.classList.add('bf-locked');
   var st = document.createElement('style'); st.id = 'bfGateStyle';
@@ -29,6 +29,13 @@
       return crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)).then(function(b){ return Array.prototype.map.call(new Uint8Array(b), function(x){ return ('0'+x.toString(16)).slice(-2); }).join(''); });
     return Promise.reject(new Error('nocrypto'));
   }
+  /* کلید باز کردن دادهٔ رمزگذاری‌شدهٔ انبارها (data/*.enc.json) از روی همین رمز ساخته می‌شود */
+  function dkey(t){
+    var e = new TextEncoder();
+    return crypto.subtle.importKey('raw', e.encode(t), 'PBKDF2', false, ['deriveBits']).then(function(k){
+      return crypto.subtle.deriveBits({ name:'PBKDF2', hash:'SHA-256', salt:e.encode('behfaraz-online-data-v1'), iterations:250000 }, k, 256);
+    }).then(function(b){ return btoa(String.fromCharCode.apply(null, new Uint8Array(b))); });
+  }
   window.addEventListener('storage', function(e){ if(e.key === KEY && ok()) unlock(); });
   function show(){
     if(document.getElementById('bfGate')) return;
@@ -41,12 +48,65 @@
     g.querySelector('form').addEventListener('submit', function(ev){
       ev.preventDefault();
       sha(inp.value).then(function(h){
-        if(h === HASH){ try{ localStorage.setItem(KEY, HASH); }catch(e){} unlock(); }
+        if(h === HASH){ return dkey(inp.value).then(function(k){ try{ localStorage.setItem(DK, k); localStorage.setItem(KEY, HASH); }catch(e){} unlock(); }); }
         else { err.textContent = 'رمز اشتباه است'; inp.select(); }
       }, function(){ err.textContent = 'مرورگر شما پشتیبانی نمی‌کند — صفحه را با https باز کنید'; });
     });
   }
   if(document.body) show(); else document.addEventListener('DOMContentLoaded', show);
+})();
+</script>
+<script id="bfStaticMode">
+/* ===================== [BF-STATIC-WH] انبار در نسخهٔ آنلاین (GitHub Pages) — فقط مشاهده =====================
+   دادهٔ انبار از فایل رمزگذاری‌شدهٔ data/whs.enc.json خوانده می‌شود (کپی دادهٔ سرور دفتر در زمان آخرین به‌روزرسانی).
+   کلید باز کردن آن بعد از وارد کردن رمز ورود سامانه ساخته می‌شود. ثبت/ویرایش فقط در سامانهٔ دفتر انجام می‌شود.
+   برای برگرداندن فایل به حالت سرور دفتر، همین بلوک <script id="bfStaticMode"> را پاک کنید. */
+(function(){
+  if(window.BF_STATIC_WH) return; window.BF_STATIC_WH = true;
+  var API = '/api/warehouse-sale', FILE = 'data/whs.enc.json', DK = 'bf_gate_dk_v1';
+  var RO = 'نسخهٔ آنلاین فقط برای مشاهده است — ثبت و ویرایش انبار فقط در سامانهٔ دفتر';
+  var realFetch = window.fetch.bind(window), cache = null;
+  function json(d, s){ return new Response(JSON.stringify(d), { status: s || 200, headers: { 'Content-Type': 'application/json' } }); }
+  function b64(s){ var b = atob(s), u = new Uint8Array(b.length); for(var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+  function snap(){
+    if(cache) return cache;
+    var k = ''; try{ k = localStorage.getItem(DK) || ''; }catch(e){}
+    if(!k) return Promise.reject(new Error('nokey'));
+    cache = realFetch(FILE + '?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ if(!r.ok) throw new Error('nofile'); return r.json(); }).then(function(f){
+      return crypto.subtle.importKey('raw', b64(k), 'AES-GCM', false, ['decrypt']).then(function(key){
+        return crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64(f.iv) }, key, b64(f.ct));
+      }).then(function(buf){ return JSON.parse(new TextDecoder().decode(buf)); });
+    });
+    cache.catch(function(){ cache = null; });
+    return cache;
+  }
+  function banner(s){
+    var go = function(){
+      if(document.getElementById('bfRoBanner')) return;
+      var d = document.createElement('div'); d.id = 'bfRoBanner';
+      d.style.cssText = 'background:#FFF3D6;color:#7A4E00;border-bottom:1px solid #F0D9A0;padding:7px 12px;font:600 12.5px Vazirmatn,Tahoma,sans-serif;text-align:center;direction:rtl';
+      d.textContent = '👁️ ' + RO + (s && s.updated_at ? ' · دادهٔ دفتر تا ' + new Date(s.updated_at).toLocaleString('fa-IR', { timeZone: 'Asia/Tehran', dateStyle: 'medium', timeStyle: 'short' }) : '');
+      document.body.insertBefore(d, document.body.firstChild);
+    };
+    if(document.body) go(); else document.addEventListener('DOMContentLoaded', go);
+  }
+  window.fetch = function(input, init){
+    var url = typeof input === 'string' ? input : (input && input.url) || '', u;
+    try{ u = new URL(url, location.href); }catch(e){ return realFetch(input, init); }
+    if(u.origin !== location.origin || u.pathname.slice(-API.length) !== API && u.pathname.indexOf(API + '/') < 0) return realFetch(input, init);
+    var method = ((init && init.method) || 'GET').toUpperCase(), sub = u.pathname.split(API)[1] || '';
+    if(sub === '/unlock') return realFetch(input, init);
+    if(method !== 'GET' || sub) return Promise.resolve(json({ ok: false, error: RO }, 403));
+    return snap().then(function(s){
+      banner(s);
+      var r = { ok: true, rev: s.rev, canWrite: false, operator: 'آنلاین' };
+      if(u.searchParams.get('rev') != null && Number(u.searchParams.get('rev')) === s.rev) r.same = true;
+      else { r.data = s.data; r.updated_at = s.updated_at; r.updated_by = s.updated_by; }
+      return json(r);
+    }, function(e){
+      return json({ ok: false, error: e && e.message === 'nokey' ? 'برای دیدن انبار دوباره رمز ورود سامانه را وارد کنید' : 'دادهٔ آنلاین انبار در دسترس نیست' }, 401);
+    });
+  };
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
